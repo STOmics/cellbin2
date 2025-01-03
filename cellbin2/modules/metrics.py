@@ -8,7 +8,6 @@ import cv2
 from pathlib import Path
 import h5py
 from pydantic import BaseModel, Field
-
 from cellbin2.utils.matrix import cbMatrix, BinMatrix, MultiMatrix
 from cellbin2.contrib.cell_segmentor import CellSegmentation
 from cellbin2.contrib.clarity import ClarityQC
@@ -111,12 +110,12 @@ class Metrics(object):
                     self._RNAmultiMatrix = MultiMatrix(cellbin_path=i.cell_bin_matrix,
                                                        tissuegef_path=i.tissue_bin_matrix, raw_path=i.bin1_matrix,
                                                        adjusted_path=i.cell_bin_adjusted_matrix,
-                                                       matrix_type=i.matrix_type)
+                                                       matrix_type=i.matrix_type,save_path=self.output_path)
                 elif i.matrix_type == TechType.Protein:
                     self._ProteinmultiMatrix = MultiMatrix(cellbin_path=i.cell_bin_matrix,
                                                            tissuegef_path=i.tissue_bin_matrix, raw_path=i.bin1_matrix,
                                                            adjusted_path=i.cell_bin_adjusted_matrix,
-                                                           matrix_type=i.matrix_type)
+                                                           matrix_type=i.matrix_type,save_path=self.output_path)
                 else:
                     raise Exception("worng .gef file type")
 
@@ -278,16 +277,18 @@ class Metrics(object):
         pass
 
     def image_array_to_base64(self, img_array):
-        png_path = './temp.png'
+        self.png_path = os.path.join(self._output_path, "temp.png")
         if len(img_array.shape) == 3 and img_array.shape[-1] == 3:
             img_array = img_array[:, :, (2, 1, 0)]
-        cv2.imwrite(png_path, img_array)
-        with open('./temp.png', "rb") as f:
+        print(f"Temporary PNG file path: {self.png_path}")
+        print(f"{self.output_path}")
+        cv2.imwrite(self.png_path, img_array)  # 使用 self.png_path
+        with open(self.png_path, "rb") as f:
             img_b = f.read()
             b = io.BytesIO(img_b)
-        cmd = 'rm ' + png_path
-        os.system(cmd)
+        os.remove(self.png_path)  # 使用 self.png_path
         return 'data:image/png;base64,{}'.format(base64.b64encode(b.getvalue()).decode())
+
 
     def set_cellbin_scatterplot(self):
         """
@@ -492,21 +493,22 @@ def calculate(param: FileSource, output_path: str):
 
 def main():
     from glob import glob
-    main_s_type = "ssDNA"
+    main_s_type = "HE"
     # path = r"/media/Data/wqs/hedongdong/tissue_segmentation/cellbin2_test/report_test_data/SS200000135TL_D1_demo"
-    path = r"F:\01.users\hedongdong\cellbin2_test\report_result\pipline\SS200000135TL_D1"
-    sn = "SS200000135TL_D1"  ###芯片号
+    path = r"/storeData/USER/data/01.CellBin/00.user/chenjiaxue/data/cellbin2_test_data/results/A03487D4" #改
+    sn = "A03487D4"  ###芯片号
     ipr_file = glob(os.path.join(path, f"**.ipr"))[0]
     rpi_file = glob(os.path.join(path, f"**.rpi"))[0]
     tissue_gef = glob(os.path.join(path, f"**.tissue.gef"))[0]
     cell_gef = glob(os.path.join(path, "**.cellbin.gef"))[0]
     cell_adjust_gef = glob(os.path.join(path, "**.adjusted.cellbin.gef"))[0]
-    raw_gef = r"F:\01.users\hedongdong\cellbin2_test\report_test_data\SS200000135TL_D1.raw.gef"
-    stitch = r"F:\01.users\hedongdong\cellbin2_test\report_test_data\SS200000135TL_D1_fov_stitched_ssDNA.tif"
+
+    raw_gef = r"/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/03.Stereo_seq_transcriptomics_V2_Kit/A03487D4/gem/A03487D4.raw.gef"
+    stitch = r"/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/03.Stereo_seq_transcriptomics_V2_Kit/A03487D4/raw_images/stitch/A03487D4_fov_stitched.tif"
     cell_mask = glob(os.path.join(path, f"**{main_s_type}_mask.tif"))[0]
-    regist = glob(os.path.join(path, "**ssDNA_regist.tif"))[0]
+    regist = glob(os.path.join(path, "**HE_regist.tif"))[0]
     tissue_mask = glob(os.path.join(path, f"**{main_s_type}_tissue_cut.tif"))[0]
-    cell_adjust_mask = glob(os.path.join(path, "**_mask_edm_dis_10.tif"))[0]
+    cell_adjust_mask = glob(os.path.join(path, "**_cell_mask_adjust.tif"))[0]
     m1 = MatrixArray(
         tissue_bin_matrix=tissue_gef,
         cell_bin_matrix=cell_gef,
@@ -546,7 +548,7 @@ def main():
     # fs = FileSource(ipr_file=ipr_file, rpi_file=rpi_file, matrix_list=[m1])
     fs = FileSource(ipr_file=ipr_file, rpi_file=rpi_file, matrix_list=[m1], sn=sn, image_dict=image_dict)
 
-    output_path = r"F:\01.users\hedongdong\cellbin2_test\report_result\pipline\report"
+    output_path = r"/storeData/USER/data/01.CellBin/00.user/shenzilei/output/t3"
     calculate(param=fs, output_path=output_path)
 
 
