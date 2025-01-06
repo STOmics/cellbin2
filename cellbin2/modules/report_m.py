@@ -3,6 +3,7 @@ import os
 import re
 from cellbin2.modules.report.min_html import operat_html
 
+
 CURR_PATH = os.path.dirname(os.path.realpath(__file__))
 REPORT_MODULE = os.path.join(CURR_PATH, "report")
 RESULT_JSON_PARH = os.path.join(REPORT_MODULE, 'js')
@@ -15,7 +16,6 @@ COLORS = ["#E64B35", "#4DBBD5", "#00A087", "#3C5488", "#F39B7F", "#8491B4", "#91
           "#EE4C97", "#00468B", "#ED0000", "#42B540", "#0099B4", "#925E9F", "#FDAF91", "#AD002A", "#ADB6B6",
           "#1B1919", "#374E55", "#DF8F44", "#00A1D5", "#B24745", "#79AF97", "#6A6599", "#80796B", "#0073C2",
           "#EFC000", "#868686", "#CD534C", "#7AA6DC", "#003C67"]
-
 
 class Report(object):
     """ 报告: 不限制形式（HTML ） """
@@ -37,12 +37,14 @@ class Report(object):
         self._json["sampleId"] = self.matrics_data["infor"]["sampleId"]
         self._json["pipelineVersion"] = self.matrics_data["infor"]["pipelineVersion"]
 
+
     def _javascript_tojson(self, jstring):
         json_data = jstring.split('resultJson = ')[1].strip().strip(';')
         return json_data
 
     def save_js(self):
         save_file = os.path.join(self.save_path, "result.js")
+        print(f"savejspath: {save_file}")
         js_code = f"const resultJson = {self._json};"
         with open(save_file, "w") as file:
             file.write(js_code)
@@ -198,7 +200,8 @@ class Report(object):
                 temp_dict["marker"]["size"] = 1.56
                 temp_dict["marker"]["opacity"] = 1.0
                 temp_dict["marker"]["symbol"] = "circle"
-                temp_dict["marker"]["color"] = COLORS[i]
+                # temp_dict["marker"]["color"] = COLORS[i]
+                temp_dict["marker"]["color"] = COLORS[i % len(COLORS)] #循环颜色
                 self._json["cellbin"][matrix_type]["clustering"]["data"]["spatial"].append(temp_dict)
                 temp_dict = {"mode": "markers", "name": f"Cluster {c}", "type": "scattergl", "hovertemplate": " ",
                              "marker": {}}
@@ -206,7 +209,8 @@ class Report(object):
                 temp_dict["marker"]["size"] = 1.56
                 temp_dict["marker"]["opacity"] = 1.0
                 temp_dict["marker"]["symbol"] = "circle"
-                temp_dict["marker"]["color"] = COLORS[i]
+                # temp_dict["marker"]["color"] = COLORS[i]
+                temp_dict["marker"]["color"] = COLORS[i % len(COLORS)] #循环颜色
                 self._json["cellbin"][matrix_type]["clustering"]["data"]["umap"].append(temp_dict)
 
         if len(self.matrics_data["matrix"]["RNA"]["cluster"]) > 0:
@@ -368,7 +372,7 @@ class Report(object):
 
 
 def creat_report(matric_json, save_path):
-    report = Report(matrics_json=matric_json)
+    report = Report(matrics_json=matric_json, save_path=save_path)
     report.setparam()
     report.save_js()
     os.chdir(REPORT_MODULE)
@@ -381,8 +385,8 @@ def creat_report(matric_json, save_path):
 
 def main():
     creat_report(
-        matric_json=r"F:\01.users\hedongdong\cellbin2_test\report_result\pipline\report\metrics.json",
-        save_path=r"F:\01.users\hedongdong\cellbin2_test\report_result\pipline\report")
+        matric_json=r"/storeData/USER/data/01.CellBin/00.user/shenzilei/output/t3/metrics.json",
+        save_path=r"/storeData/USER/data/01.CellBin/00.user/shenzilei/save_p/t3")
 
 
 if __name__ == '__main__':
