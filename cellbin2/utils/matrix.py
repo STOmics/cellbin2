@@ -281,11 +281,11 @@ class cbMatrix(object):
 
 
 class BinMatrix(object):
-    def __init__(self, file_path: str, bin_read=100):
+    def __init__(self, file_path: str,save_path: str, bin_read=100):
         self._file_path = file_path
         self._stereo_exp = None  ### raw stereo_exp
         self._bin_read = bin_read
-
+        self.out_path = save_path
     def reset(self):
         self._stereo_exp = None
 
@@ -309,7 +309,7 @@ class BinMatrix(object):
         if self._file_path.endswith(".gef"):
             from stereo.io import read_gef, read_gef_info
             data = read_gef(self._file_path, bin_size=bin_size)
-        return data
+            return data
 
     def get_total_MID(self):
         return self.stereo_exp._exp_matrix.sum()
@@ -334,12 +334,13 @@ class BinMatrix(object):
                                                          (0.66, '#f28f38'), (0.77, '#f48f38'), (0.88, '#d91e1e'),
                                                          (1.0, '#d91e1e')])
         cmap.set_under('k', alpha=0)
-        plt.imsave('./temp.png', heatmap_array, vmin=1, cmap=cmap)
+        out_path = os.path.join(self.out_path,"temp.png")
+        plt.imsave(out_path, heatmap_array, vmin=1, cmap=cmap)
 
-        with open('./temp.png', "rb") as f:
+        with open(out_path, "rb") as f:
             img_b = f.read()
             b = io.BytesIO(img_b)  ## heatmap img
-        os.remove('./temp.png')
+        os.remove(out_path)
         fig, ax = plt.subplots(figsize=(1, 1))
         norm = colors.Normalize(vmin=0, vmax=df['plot_data'].max())
         im = cm.ScalarMappable(norm=norm, cmap=cmap)
@@ -354,11 +355,11 @@ class BinMatrix(object):
 
         cbar = plt.colorbar(im, ax=ax, format=ticker.FuncFormatter(human_format))
         ax.remove()
-        plt.savefig('./temp.png', bbox_inches='tight')
-        with open('./temp.png', "rb") as f:
+        plt.savefig(out_path, bbox_inches='tight')
+        with open(out_path, "rb") as f:
             img_c = f.read()
             c = io.BytesIO(img_c)  # color bar
-        os.remove('./temp.png')
+        os.remove(out_path)
 
         return ('data:image/png;base64,{}'.format(base64.b64encode(b.getvalue()).decode()),
                 'data:image/png;base64,{}'.format(base64.b64encode(c.getvalue()).decode()))
@@ -367,7 +368,7 @@ class BinMatrix(object):
 class MultiMatrix(object):
     """ 联合管理多个矩阵：可能需要 """
 
-    def __init__(self, cellbin_path, adjusted_path, tissuegef_path, raw_path, matrix_type: TechType):
+    def __init__(self, cellbin_path, adjusted_path, tissuegef_path, raw_path, matrix_type: TechType,save_path):
 
         self.cellbin = None
         self.tissuebin = None
@@ -378,9 +379,9 @@ class MultiMatrix(object):
         if not cellbin_path == "":
             self.cellbin = cbMatrix(cellbin_path,matrix_type=self.matrix_type)
         if not tissuegef_path == "":
-            self.tissuebin = BinMatrix(tissuegef_path, bin_read=10)
+            self.tissuebin = BinMatrix(tissuegef_path, bin_read=10,save_path=save_path)
         if not raw_path == "":
-            self.rawbin = BinMatrix(raw_path, bin_read=10)
+            self.rawbin = BinMatrix(raw_path, bin_read=10,save_path=save_path)
         if not adjusted_path == "":
             self.adjustedbin = cbMatrix(adjusted_path,matrix_type=self.matrix_type)
 
