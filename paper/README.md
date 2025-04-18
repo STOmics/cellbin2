@@ -44,5 +44,5 @@ python VisiumHD.py -i /storeData/USER/data/01.CellBin/00.user/fanjinghong/data/1
 ```
 step2: run cellbin2_pipeline.py
 ```shell
-python cellbin2/cellbin_pipeline.py -c A04547A1C3 -i /storeData/USER/data/01.CellBin/00.user/fanjinghong/data/10xHD/v2paper/A04547A1C3.tif -s HE -m /storeData/USER/data/01.CellBin/00.user/fanjinghong/data/10xHD/v2paper/A04547A1C3.gem.gz  -o /storeData/USER/data/01.CellBin/00.user/fanjinghong/data/10xHD/v2paper/output -p /storeData/USER/data/01.CellBin/00.user/fanjinghong/cellbin2/paper/VisiumHD.json
+python cellbin2/cellbin_pipeline.py -c A04547A1C3 -s HE -m /storeData/USER/data/01.CellBin/00.user/fanjinghong/data/10xHD/v2paper/A04547A1C3.gem.gz  -o /storeData/USER/data/01.CellBin/00.user/fanjinghong/data/10xHD/v2paper/output -p /storeData/USER/data/01.CellBin/00.user/fanjinghong/cellbin2/paper/VisiumHD.json
 ```
