@@ -214,18 +214,19 @@ class Calibrate:
         Returns:
 
         """
-
-        norm_scale = min(self.src_image.shape) / max(self.dst_image.shape)
-        self.dst_image = cv.resize(
-            self.dst_image,
-            (int(self.dst_image.shape[1] * norm_scale), int(self.dst_image.shape[0] * norm_scale))
-        )
-
         # 一致性
-        self.dst_image = self.mass_align()
-        # self.src_image, self.dst_image = self._consistent_image(
-        #     self.src_image, self.dst_image, 'same'
-        # )
+        if self.method:
+            norm_scale = min(self.src_image.shape) / max(self.dst_image.shape)
+            self.dst_image = cv.resize(
+                self.dst_image,
+                (int(self.dst_image.shape[1] * norm_scale), int(self.dst_image.shape[0] * norm_scale))
+            )
+
+            self.dst_image = self.mass_align()
+        else:
+            self.src_image, self.dst_image = self._consistent_image(
+                self.src_image, self.dst_image, 'same'
+            )
 
         # 填充
         # pad_rate = 0.1
