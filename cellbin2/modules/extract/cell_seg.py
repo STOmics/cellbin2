@@ -17,9 +17,22 @@ def run_cell_seg(
         config: Config,
         channel_image: Optional[Union[ipr.ImageChannel, ipr.IFChannel]] = None
 ):
+    """
+    Run cell segmentation based on the type of technology used in the image file.
+
+    Args:
+        image_file (ProcFile): The image file containing the cell data.
+        image_path (Path): The path to the input image file.
+        save_path (Path): The path to save the segmented cell mask.
+        config (Config): The configuration settings for cell segmentation.
+        channel_image (Optional[Union[ipr.ImageChannel, ipr.IFChannel]]): The channel image data, if available.
+
+    Returns:
+        cell_mask: The segmented cell mask.
+    """
     if image_file.tech == TechType.IF:
-        from cellbin2.contrib import cellpose_segmentor_2
-        cell_mask = cellpose_segmentor_2.segment4cell(
+        from cellbin2.contrib import cellpose_segmentor
+        cell_mask = cellpose_segmentor.segment4cell(
             input_path=str(image_path),
             cfg=config.cell_segmentation,
         )
@@ -32,7 +45,7 @@ def run_cell_seg(
             gpu=0
         )
     cbimwrite(str(save_path), cell_mask)
-    # 这里不保存了，后面保存基于配准图的mask
+    # Here we do not save, the mask based on the registration image will be saved later
     # if channel_image is not None:
     #     channel_image.CellSeg.CellSegShape = list(cell_mask.shape)
     #     # channel_image.CellSeg.CellSegTrace =

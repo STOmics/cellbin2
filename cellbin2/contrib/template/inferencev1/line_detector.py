@@ -137,12 +137,12 @@ class TrackLineDetector(object):
     def points_to_line(dct, tolerance=2):
         lines = list()
         for k, v in dct.items():
-            # 少于两个的拟合不成直线
+            # Less than two fits do not form a straight line
             if len(v) > tolerance:
                 tmp = np.array(v)
-                model.fit(tmp[:, 0].reshape(-1, 1), tmp[:, 1])  # TODO: 90度直线拟合会有问题, need to be fixed
+                model.fit(tmp[:, 0].reshape(-1, 1), tmp[:, 1])
                 line = Line()
-                # 一个点，加上coef拟合直线
+                # A point, combined with coef to fit a straight line
                 line.init_by_point_k(v[0], model.coef_[0])
                 lines.append(line)
         return lines
@@ -153,17 +153,17 @@ class TrackLineDetector(object):
         dct = dict()
         while (len(pts) > 1):
             pts_, index = self.angle_line(base_angle, pts, tolerance)
-            # 将找到的同一直线的点放入dct中
+            # Put the points of the same straight line found into DCT
             dct[ind] = pts_
-            # 根据angle_line中返回的index删除已找到的点
+            # Delete the found points based on the index returned in the anglenline
             pts = np.delete(np.array(pts), index, axis=0).tolist()
             ind += 1
-        # 返回存有点的分类的dct
+        # Return the DCT of the classification of stored points
         return dct
 
     @staticmethod
     def angle_line(angle, points, tolerance=2):
-        # 找跟points[0]在一条直线的点
+        # Find a point on a straight line with points [0]
         count = len(points)
         orignal_point = points[0]
         points_ = [points[0]]
@@ -177,33 +177,33 @@ class TrackLineDetector(object):
             if diff < tolerance:
                 points_.append(p)
                 index.append(i)
-        # 返回这条线的所有点，以及对应的index号，index用于之后删除array中已找到的点
+        # Return all points of this line, along with their corresponding index numbers.
+        # The index is used to delete the points found in the array later
         return points_, index
 
     @staticmethod
     def select_pts_by_integer_angle(candidate_pts, base_angle, tolerance=2):
-        # 过滤
         x_count = len(candidate_pts)
-        # pts用来储存该方向的所有点
+        # Pts is used to store all points in that direction
         pts = list()
         for i in range(0, x_count - 1):
             if len(candidate_pts[i]) > 100:
                 continue
-            # 遍历所有的采样区域
+            # Traverse all sampling areas
             pts_start = candidate_pts[i]
             pts_end = candidate_pts[i + 1]
-            # 遍历pts_start中的所有的点
+            # Traverse all points in pts_start
             for p0 in pts_start:
-                # 遍历pts_end中所有点，计算p0与各点的距离
+                # Traverse all points in pts_end and calculate the distance between p0 and each point
                 d = [math.sqrt(pow(p0[0] - p1[0], 2) + pow(p0[1] - p1[1], 2)) for p1 in pts_end]
-                # 取绝对值
+                # Take absolute value
                 d_ = np.abs(d)
-                # 找到最短的距离的index
+                # Find the index of the shortest distance
                 ind = np.where(d_ == np.min(d_))[0]
                 line = Line()
-                # 计算角度
+                # Calculate angle
                 line.init_by_point_pair(p0, pts_end[ind[0]])
-                # 如果角度小于tol，
+                # If the angle is less than tol
                 if abs(line.rotation() - base_angle) <= tolerance: pts.append(p0)
         return pts
 
@@ -211,31 +211,30 @@ class TrackLineDetector(object):
     def integer_angle(pts, derection='x'):
         angle = -1000
         x_count = len(pts)
-        # angles将保存该方向上所有采样区域的角度
+        # Angles will save the angles of all sampling areas in that direction
         angles = list()
         for i in range(0, x_count - 1):
             if len(pts[i]) > 100:
                 continue
-            # 相邻的两个采样区域
+            # Two adjacent sampling regions
             pts_start = pts[i]
             pts_end = pts[i + 1]
             for p0 in pts_start:
-                # pts_start中的一个点p0对应pts_end的所有点的euclidean distance
+                # A point p0 in pts_start corresponds to the Euclidean distance of all points in pts_end
                 d = [math.sqrt(pow(p0[0] - p1[0], 2) + pow(p0[1] - p1[1], 2)) for p1 in pts_end]
-                # 取绝对值
+                # Take absolute value
                 d_ = np.abs(d)
-                # 找到pts_start的该点的最小距离的index
+                # Find the index of the minimum distance to the point of pts_start
                 ind = np.where(d_ == np.min(d_))[0]
                 line = Line()
-                # 将p0和对应的最小距离的点输入到line.init_by_point_pair
-                # 可以得到线的coef和bias
+
                 line.init_by_point_pair(p0, pts_end[ind[0]])
-                # rotation方法运用上面得到的coef计算该直线的角度
-                # 并将角度记录
+                # The rotation method uses the coef obtained above to calculate the angle of the line
+                # And record the angle
                 angles.append(round(line.rotation()))
         if len(angles) != 0:
             x = np.array(angles) - np.min(angles)
-            # 得到该方向上的角度（出现最多的角度）
+            # Obtain the angle in that direction (the angle with the most occurrences)
             angle = np.argmax(np.bincount(x)) + np.min(angles)
         return angle
 
@@ -245,33 +244,33 @@ class TrackLineDetector(object):
         # direction x -> h
         # direction y -> w
         counter = (derection == 'x' and h or w)
-        # self.grid -> defined by user, 采样间隔
+        # self.grid -> defined by user
         for i in range(0, counter, self.grid):
-            # i -> 从0到h或者w
-            # 设置t为当前采样间隔的x或者y
+            # Set t to x or y of the current sampling interval
             t = i + self.grid / 2
             if derection == 'x':
-                # 区域 -> i到i+采样间隔的区域
+                # Region -> i to i+sampling interval region
                 region_mat = mat[i: i + self.grid, :w]
-                # 如果区域不是取样规定长度，继续
+                # If the area is not of the specified sampling length, continue
                 if region_mat.shape[0] != self.grid:
                     continue
-                # 对y方向进行像素求和，并除以规定的采样间隔，可以看做成normalization
+                # Summing up the pixels in the y direction and
+                # dividing it by the specified sampling interval can be seen as normalization
                 line = np.sum(region_mat, axis=0) / self.grid
             else:
-                # 这里的处理与上述基本一样，只是这里是方向y的情况
+                # The handling here is basically the same as above, except that this is the case for direction y
                 region_mat = mat[:h, i: i + self.grid]
                 if region_mat.shape[1] != self.grid:
                     continue
                 line = np.sum(region_mat, axis=1) / self.grid
-            # 找到该条线上的极值（最小值）
+            # Find the extreme value (minimum value) on this line
             p = argrelextrema(line, np.less_equal, order=100)
             # print(p[0].shape)
             if derection == 'x':
                 pt = [[p, t] for p in p[0]]
             else:
                 pt = [[t, p] for p in p[0]]
-            # pts中保存的为该方向的所有点
+            # All points in that direction are saved in pts
             pts.append(pt)
         return pts
 

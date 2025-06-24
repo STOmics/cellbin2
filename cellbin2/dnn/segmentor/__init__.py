@@ -1,1 +1,1 @@
-# 基于深度学习的分割
+# deep learning-based segmentation 

@@ -23,7 +23,7 @@ class MatrixRunState(object):
         return (self._dst_dir / self._naming.tissue_bin_matrix).exists()
 
     @property
-    def matrix_template(self, ):  # 矩阵模板文件
+    def matrix_template(self, ):  # matrix template file
         return (self._dst_dir / self._naming.matrix_template).exists()
 
 
@@ -64,7 +64,7 @@ class ImageRunState(object):
 
 
 class PipelineRunState(object):
-    """ 实现对CellBin输出文件的命名管理，输出文件内部关键字段的命名管理 """
+    """ implement naming management of CellBin output files and key string within the output files """
 
     def __init__(self, chip_no: str, dst_dir: Union[str, Path]):
         self._naming = DumpPipelineFileNaming(chip_no)
@@ -72,21 +72,21 @@ class PipelineRunState(object):
         self._dst_dir = dst_dir
 
     @property
-    def image_qc(self, ):  # 图像记录文件
+    def image_qc(self, ):  # image record file 
         return (self._dst_dir / self._naming.ipr).exists()
 
     @property
-    def scheduler(self, ):  # 图像金字塔文件
+    def scheduler(self, ):  # image pyramid files
         flag = (self._dst_dir / self._naming.ipr).exists() and (self._dst_dir / self._naming.rpi).exists()
         return flag
 
     @property
-    def metrics(self, ):  # 统计指标文件
+    def metrics(self, ):  # statistical indicator file
         flag = self.scheduler and (self._dst_dir / self._naming.metrics).exists()
         return flag
 
     @property
-    def report(self, ):  # 报告文件
+    def report(self, ):  # report file
         flag = self.metrics and (self._dst_dir / self._naming.report).exists()
         return flag
 

@@ -12,7 +12,8 @@ from cellbin2.image import CBImage
 
 class ChipAlignment(Alignment):
     """
-    满足TissueBin需求：利用2模态芯片角为特征点，计算变换参数，实现配准。误差约100pix
+    Satisfy the requirements of TissueBin: Utilize the bimodal chip angles as feature points,
+    calculate transformation parameters, and achieve registration. The error is about 100pix
     """
 
     def __init__(
@@ -29,11 +30,12 @@ class ChipAlignment(Alignment):
         self._hflip = flip_flag
         self.no_trans_flag = False
 
-        self.max_length = 9996  # 图像降采样最大尺寸
+        self.max_length = 9996  # Maximum size of image downsampling
 
     def registration_image(self,
                            file: Union[str, np.ndarray, CBImage]):
-        """ 对待变换的图像，调用图像处理库按照对齐参数，返回变换后的图 """
+        """ To treat the transformed image, call the image processing library to return
+        the transformed image according to the alignment parameters """
 
         if not isinstance(file, CBImage):
             image = cbimread(file)
@@ -173,9 +175,9 @@ def chip_align(
         rot90_flag: bool = True
 ):
     """
-    :param moving_image: 待配准图，通常是染色图（如ssDNA、HE）
-    :param fixed_image: 固定图
-    :param from_stitched: 从拼接图开始
+    :param moving_image: The image to be registered is usually a stained image (such as ssDNA, HE)
+    :param fixed_image: Fixed image
+    :param from_stitched: Starting from the stitching diagram
     :param flip_flag:
     :param rot90_flag:
 
@@ -249,7 +251,7 @@ if __name__ == '__main__':
     from cellbin2.matrix.box_detect import detect_chip_box
 
 
-    # 移动图像信息
+    # move image 
     moving_image = ChipFeature()
     moving_image.tech_type = TechType.DAPI
     moving_mat = cbimread(r"D:\02.data\temp\temp_cellbin2_test\register\D04499F1F2\D04499F1F2_ssDNA_stitch.tif")
@@ -280,7 +282,7 @@ if __name__ == '__main__':
     m_info = detect_chip(moving_mat.image, cfg=cfg, stain_type=TechType.DAPI, actual_size=(19992, 19992 * 2))
     moving_image.set_chip_box(m_info)
 
-    # 固定对象信息
+    # fix object information 
     fixed_image = ChipFeature()
     fixed_image.tech_type = TechType.Transcriptomics
     fixed_image.set_mat(r"D:\02.data\temp\temp_cellbin2_test\register\D04499F1F2\D04499F1F2_Transcriptomics.tif")

@@ -7,7 +7,7 @@ from sklearn.linear_model import LinearRegression
 
 class RotateSearch:
     """
-    track检点进行角度判定
+    Track inspection points for angle determination
     """
     def __init__(self,
                  search_range=90,
@@ -29,7 +29,7 @@ class RotateSearch:
     @staticmethod
     def _center_point_search(points, n=1):
         """
-        中心点匹配
+        Center point matching
         Args:
             points:
         """
@@ -41,30 +41,30 @@ class RotateSearch:
     @staticmethod
     def _get_distance_from_point_to_line(point, line_point1, line_point2):
         """
-        计算点到直线的距离
+        Calculate the distance from a point to a straight line
         Args:
             point:
             line_point1:
             line_point2:
         """
-        # 对于两点坐标为同一点时,返回点与点的距离
+        # When the coordinates of two points are the same, return the distance between the points
         if line_point1 == line_point2:
             point_array = np.array(point)
             point1_array = np.array(line_point1)
             return np.linalg.norm(point_array - point1_array)
-        # 计算直线的三个参数
+        # Calculate the three parameters of a straight line
         A = line_point2[1] - line_point1[1]
         B = line_point1[0] - line_point2[0]
         C = (line_point1[1] - line_point2[1]) * line_point1[0] + \
             (line_point2[0] - line_point1[0]) * line_point1[1]
-        # 根据点到直线的距离公式计算距离
+        # Calculate the distance based on the formula for the distance from a point to a straight line
         distance = np.abs(A * point[0] + B * point[1] + C) / (np.sqrt(A**2 + B**2))
         return distance
 
     @staticmethod
     def _fitting_line2rotate(points):
         """
-        点拟合线段并获得角度
+        Fit line segments with points and obtain angles
         """
         line_model = LinearRegression()
         _x = points[:, 0].reshape(-1, 1)
@@ -78,7 +78,7 @@ class RotateSearch:
 
     def distance_by_line(self, line_points, points):
         """
-        按距离取值
+        Value based on distance
         Args:
             line_points: points -- [[x1, y1], [x2, y2]]
             points:
@@ -95,18 +95,18 @@ class RotateSearch:
 
     def get_rotate(self, points, fit=False):
         """
-        获得角度值
+        Obtain angle value
         """
         if len(points) < 3: return None
         center_points = self._center_point_search(points, self.search_point_num)
 
         points_rotate_list = list()
         points_all_list = list()
-        for _points in center_points:  # 点进行遍历
-            rotate_min = None  # 最小角度
-            rotate_min_dis = None  # 最小角度距离
-            points_min_list = None  # 最小角度所在点
-            for _rotate in range(-self.search_range, self.search_range):  # 角度进行遍历
+        for _points in center_points:
+            rotate_min = None
+            rotate_min_dis = None
+            points_min_list = None
+            for _rotate in range(-self.search_range, self.search_range):
                 line_point_left = [_points[0] + self.dis_range * np.cos(np.radians(_rotate)),
                                    _points[1] + self.dis_range * np.sin(np.radians(_rotate))]
                 line_point_right = [_points[0] - self.dis_range * np.cos(np.radians(_rotate)),

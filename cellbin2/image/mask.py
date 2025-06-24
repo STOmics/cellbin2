@@ -9,7 +9,7 @@ def f_fill_all_hole(mask_in):
     :param mask_in: np.array np.uint8
     :return: np.array np.uint8
     """
-    ''' 对二值图像进行孔洞填充 '''
+    ''' perform fill_holes on binary images '''
     im_floodfill = cv2.copyMakeBorder(mask_in, 2, 2, 2, 2, cv2.BORDER_CONSTANT, value=[0])
     # im_floodfill = im_in.copy()
     # Mask used to flood filling.
@@ -57,19 +57,19 @@ def iou(a, b, epsilon=1e-5):
     Returns:
 
     """
-    # 首先将a和b按照0/1的方式量化
+    # quantify a and b into 0/1 values
     a = (a > 0).astype(int)
     b = (b > 0).astype(int)
 
-    # 计算交集(intersection)
+    # intersection
     intersection = np.logical_and(a, b)
     intersection = np.sum(intersection)
 
-    # 计算并集(union)
+    # union
     union = np.logical_or(a, b)
     union = np.sum(union)
 
-    # 计算IoU
+    # IoU
     iou = intersection / (union + epsilon)
 
     return iou

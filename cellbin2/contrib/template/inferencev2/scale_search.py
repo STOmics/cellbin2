@@ -6,7 +6,7 @@ import numpy as np
 
 class ScaleSearch:
     """
-    track检点进行尺度判定, 需要给明角度
+    Track inspection points require a clear angle for scale determination
     """
     def __init__(self,
                  search_range=[0.3, 1.7],
@@ -21,7 +21,7 @@ class ScaleSearch:
     @staticmethod
     def _center_point_search(points, n=1):
         """
-        中心点匹配
+        Center point matching
         Args:
             points:
         """
@@ -35,7 +35,7 @@ class ScaleSearch:
         """
         one point of temp0 map to only one point of temp1
         Args:
-            dis: 距离测量
+            dis: Distance measurement
         """
         import scipy.spatial as spt
 
@@ -118,7 +118,7 @@ class ScaleSearch:
 
     def _valid_scale_judge(self, target_points, rate=1.2, search_thresh=None):
         """
-        搜索尺度时，解决对于小scale尺度匹配距离过小问题
+        When searching for scales, solve the problem of matching distances that are too small for small scales
         """
         point_re, point_qc = self.pair_to_template(target_points, self.template, search_thresh)
 
@@ -137,7 +137,7 @@ class ScaleSearch:
                 valid_temp.append(point)
 
         if points_count / len(target_points) <= rate or \
-                points_count - len(target_points) <= 10:  # 匹配点圈内点数量不多于1.2倍或不多于10个检点数
+                points_count - len(target_points) <= 10:
             return True
         elif points_count / len(target_points) <= 2 * rate or \
                 points_count - len(target_points) <= 20:
@@ -166,9 +166,9 @@ class ScaleSearch:
     def _index_search(self, target_points, center_point=None):
         """
         Args:
-            target_points: 单个FOV的点集
+            target_points: Point set of a single FOV
         Return:
-            best_center_point: FOV中心点的坐标及索引
+            best_center_point: Coordinates and Index of FOV Center Point
         """
         best_center_point = list()
         if center_point is None:
@@ -191,11 +191,11 @@ class ScaleSearch:
 
     def get_scale(self, points, rotate, n=5):
         """
-        尺度搜索
+        Scale search
         Args:
             points:
             rotate:
-            n: 点数
+            n:
         Return:
             scale:
             best_point:

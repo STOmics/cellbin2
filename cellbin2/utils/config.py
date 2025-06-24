@@ -8,7 +8,7 @@ from cellbin2.contrib.cell_segmentor import CellSegParam
 from cellbin2.contrib.tissue_segmentor import TissueSegParam
 from pydantic import BaseModel, Field
 from cellbin2.utils.ipr import sPlaceHolder
-from cellbin2.matrix.matrix import GeneticStandards
+
 
 
 class DefaultIMage(BaseModel):
@@ -80,6 +80,7 @@ class Config:
 
     @property
     def genetic_standards(self, ):
+        from cellbin2.matrix.matrix import GeneticStandards
         return GeneticStandards(**self.param['geneticStandards'])
 
 

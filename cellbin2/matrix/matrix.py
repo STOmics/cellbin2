@@ -13,7 +13,6 @@ from cellbin2.utils import clog
 from cellbin2.contrib.alignment.basic import TemplateInfo, ChipBoxInfo
 from cellbin2.image import cbimread, cbimwrite
 from cellbin2.modules import naming
-from cellbin2.utils.cell_shape import f_main
 from pydantic import BaseModel, Field
 
 
@@ -34,7 +33,7 @@ class GeneticStandards(BaseModel):
 
 
 class cMatrix(object):
-    """ 单个矩阵管理 """
+    """ single matrix management """
 
     def __init__(self) -> None:
         self._gene_mat = np.array([])
@@ -99,7 +98,7 @@ class cMatrix(object):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             for chunk in df:
-                # 将数据转成图片
+                # convert data to image
                 tmp_h = chunk["y"].max() + 1
                 tmp_w = chunk["x"].max() + 1
                 tmp_min_y = chunk["y"].min()
@@ -189,7 +188,7 @@ class cMatrix(object):
             return width, height
 
     def detect_feature(self, ref: list, chip_size: float):
-        """ track lines 检测，矩阵数据：芯片区域识别，用于配准 """
+        """ track lines detection, matrix data: chip area recognition for registration """
         from cellbin2.matrix.box_detect import detect_chip_box
         from cellbin2.matrix.index_points_detect import detect_cross_points
 
@@ -211,7 +210,7 @@ class cMatrix(object):
 
     @property
     def heatmap(self, ):
-        """ 灰度热图： 用于配准 """
+        """ gray scale heatmap: for registration """
         return self._gene_mat
 
 
@@ -238,7 +237,8 @@ def gem_to_gef(gem_path, gef_path):
 
 
 def save_cell_bin_data(src_path: str, dst_path: str, cell_mask: str):
-    """ 获取：单细胞数据（mask可来自配准图像 or 矩阵自身 ） """
+    from cellbin2.utils.cell_shape import f_main
+    """ fetch: single cell data (mask can get from registered image or matrix) """
     src_path = str(src_path)
     dst_path = str(dst_path)
     cell_mask = str(cell_mask)
@@ -270,7 +270,7 @@ def generate_vis_gef(src_path: str, dst_path):
 
 
 def save_tissue_bin_data(src_path: str, dst_path: str, tissue_mask: str, bin_siz: int = 1):
-    """ 获取：组织区域内BinN数据 """
+    """ save: BinN data within the tissue area """
     src_path = str(src_path)
     dst_path = str(dst_path)
     tissue_mask = str(tissue_mask)
@@ -287,7 +287,7 @@ def save_tissue_bin_data(src_path: str, dst_path: str, tissue_mask: str, bin_siz
 
 
 def get_tissue_bin_data(file_path: str, tissue_mask: np.ndarray, bin_siz: int = 1):
-    """ 获取：组织区域内BinN数据 """
+    """ fetch: BinN data within the tissue area """
     from gefpy.bgef_creater_cy import BgefCreater
 
     bc = BgefCreater()
@@ -295,7 +295,7 @@ def get_tissue_bin_data(file_path: str, tissue_mask: np.ndarray, bin_siz: int = 
 
 
 def get_bin_n_data(file_path: str, bin_siz: int = 1):
-    """ 获取：芯片全部区域内BinN数据 """
+    """ fetch: BinN data with chip area """
     from stereo.io import read_gef, read_gem
 
     if file_path.endswith(".gem") or file_path.endswith(".gem.gz"):

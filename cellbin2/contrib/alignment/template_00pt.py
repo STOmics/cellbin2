@@ -13,7 +13,8 @@ from cellbin2.utils import clog
 
 class Template00PtAlignment(Alignment):
     """
-    满足CellBin需求，利用芯片切割特性，实现左上角第一个周期起始点对齐。实现配准，误差在10pix
+    Satisfy CellBin's requirements and utilize chip cutting characteristics to achieve alignment
+    of the starting point of the first cycle in the upper left corner. Implement registration with an error of 10pix
     """
 
     def __init__(self,
@@ -71,7 +72,7 @@ class Template00PtAlignment(Alignment):
             file: Union[str, np.ndarray, CBImage]
     ) -> CBImage:
         """
-        从拼接图开始配
+        Starting from the stitching diagram
         Args:
             file:
 
@@ -93,7 +94,7 @@ class Template00PtAlignment(Alignment):
             rot90=4 - rot90,
             offset=offset,
             dst_size=self._register_shape,
-            flip_ud=True  # 配准前置默认是上下翻转即可对齐
+            flip_ud=True  # default pre-registration: vertical flip for alignment 
         )
 
         return result
@@ -207,7 +208,7 @@ class Template00PtAlignment(Alignment):
     def get_lt_zero_point(template_points, x_index=0, y_index=0):
         """
         Args:
-            template_points: np.array, 模板点 -- shape == (*, 4)
+            template_points: np.array, template points -- shape == (*, 4)
             x_index:
             y_index:
         Returns:
@@ -233,7 +234,7 @@ def template_00pt_check(
         moving_image:
         fixed_image:
         offset_info:
-        fixed_offset: 矩阵图的起始 xy 信息
+        fixed_offset: Starting xy information of matrix image
         flip_flag:
         rot90_flag:
         max_length:
@@ -276,7 +277,7 @@ def template_00pt_check(
         offset = _info["offset"]
         _offset = (np.array(offset) - np.array(fixed_offset)).tolist()
         register_image = mm.trans_image(
-            rot90 = rot_ind,
+            rot90 = (4 - rot_ind) % 4 ,
             offset = _offset,
             dst_size = fixed_image.mat.shape
         )
@@ -315,9 +316,9 @@ def template_00pt_align(
         rot90_flag: bool = True
 ):
     """
-    :param moving_image: 待配准图，通常是染色图（如ssDNA、HE）
-    :param ref: 模板周期，仅在模板相关配准方法下用到
-    :param dst_shape: 配准图理论尺寸
+    :param moving_image: The image to be registered is usually a stained image (such as ssDNA, HE)
+    :param ref: Template cycle, only used in template related registration methods
+    :param dst_shape: Theoretical size of registration map
     :param from_stitched
     :param flip_flag:
     :param rot90_flag:
@@ -364,7 +365,7 @@ if __name__ == '__main__':
     #     reference = template_ref
     # )
 
-    # 移动图像信息
+    # move image 
     moving_image = ChipFeature()
     moving_image.tech_type = TechType.DAPI
     moving_mat = cbimread(r"E:\03.users\liuhuanlin\01.data\cellbin2\stitch\A03599D1_gene.tif")
@@ -386,7 +387,7 @@ if __name__ == '__main__':
     m_info = detect_chip(moving_mat.image, cfg=cfg, stain_type=TechType.DAPI, actual_size=(19992, 19992))
     moving_image.set_chip_box(m_info)
 
-    # 矩阵理论原点位置
+    # theoretical origin position of the matrix 
     chip_mask_file = os.path.join(r'E:\03.users\liuhuanlin\02.code\cellbin2\cellbin\config\chip_mask.json')
     sc = StereoChip(chip_mask_file)
     sc.parse_info('A03599D1')

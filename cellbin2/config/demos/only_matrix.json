@@ -1,32 +1,32 @@
 {
     "image_process": {
         "0": {
-            "file_path": "/media/Data/dzh/data/cellbin2/demo_data/Y00788P9/Y00788P9.gem.gz",
+            "file_path": "Path/SN.gem.gz",
             "tech_type": "Transcriptomics",
             "chip_detect": false,
             "quality_control": false,
             "registration": {
                 "fixed_image": -1,
-                "trackline": true,
+                "trackline": false,
                 "reuse": -1
             },
             "tissue_segmentation": true,
             "cell_segmentation": true,
-            "correct_r": 0,
+            "correct_r": -1,
             "channel_align": -1
         }
     },
     "molecular_classify": {
         "0": {
-            "exp_matrix": 0,
-            "cell_mask": [0],
+            "exp_matrix": 1,
+            "cell_mask": [1],
             "extra_method": ""
         }
     },
    "run": {
-    "qc": true,
+    "qc": false,
     "alignment": true,
-    "matrix_extract": false,
+    "matrix_extract": true,
     "report": false,
     "annotation": false
   }

@@ -1,4 +1,4 @@
-# 图像质控
+# Image Quality Control
 import os
 import sys
 from typing import List, Dict, Any, Tuple, Union
@@ -20,21 +20,36 @@ from cellbin2.utils.tar import save_tar
 
 
 class ImageQC(object):
-    """
-        入参合法性、模板推导（点/线识别）、芯片检测、清晰度、校准
-    """
-
     def __init__(self, config_file: str, chip_mask_file: str, weights_root: str):
+        """
+        Initialize the ImageQC class.
+
+        This class is in charge of image quality control operations.
+
+        Args:
+            config_file (str): The path to the configuration file.
+            chip_mask_file (str): The path to the chip mask file.
+            weights_root (str): The path to the weights folder.
+        """
         self.weights_root = weights_root
         self.param_chip = StereoChip(chip_mask_file)
         self.config = Config(config_file, weights_root)
-        self._fov_wh = (2000, 2000)  # 初始裁图尺寸
+        self._fov_wh = (2000, 2000)  # Initial cropping size
         self._files: Dict[int, ProcFile] = {}
         self._ipr = ipr.ImageProcessRecord()
         self._channel_images: Dict[str, Union[ipr.ImageChannel, ipr.IFChannel]] = {}
         self.p_naming: naming.DumpPipelineFileNaming = None
 
     def _align_channels(self, image_file: ProcFile):
+        """
+        Aligns the channels of an image using calibration data.
+
+        Args:
+            image_file (ProcFile): The image file to be aligned.
+
+        Returns:
+            int: Returns 1 if calibration data is missing; otherwise, returns 0.
+        """
         from cellbin2.contrib import calibration
 
         fixed = self._files[image_file.channel_align]
@@ -52,10 +67,32 @@ class ImageQC(object):
         return 0
 
     def _dump_ipr(self, output_path: Union[str, Path]):
+        """
+        Write the ipr to the specified output path.
+
+        Args:
+            output_path (Union[str, Path]): The path where the ipr will be written.
+
+        Returns:
+            None
+        """
+        # Write the ipr to the specified output path
         ipr.write(file_path=output_path, ipr=self._ipr, extra_images=self._channel_images)
+        # Log the output path
         clog.info('Dump ipr to {}'.format(output_path))
 
     def _weights_check(self, ):
+        """
+        Check and download weights for the files in the current instance.
+
+        This method iterates through the files in the current instance, checks
+        if weights are required for each file, and downloads them if necessary.
+        It also ensures that the weights are unique and then attempts to download
+        them using the WeightDownloader class.
+
+        Returns:
+            int: The status code of the weight download process.
+        """
         weights = []
         for idx, f in self._files.items():
             stain_type = f.tech
@@ -92,6 +129,16 @@ class ImageQC(object):
         return flag
 
     def _data_check(self, ):
+        """
+        Check the data files and their formats.
+
+        This method verifies that the data files exist and have consistent sizes.
+        If any file is missing or if the sizes of the images are inconsistent,
+        an error message is logged and the program exits with an appropriate error code.
+
+        Returns:
+            int: Always returns 0.
+        """
         if len(self._files) < 1:
             clog.warning('No data was found that needed to be analyzed')
             return 0
@@ -101,7 +148,7 @@ class ImageQC(object):
             for idx, f in self._files.items():
                 if not os.path.exists(f.file_path):
                     clog.error('Missing file, {}'.format(f.file_path))
-                    sys.exit(ErrorCode.missFile.value)  # 缺失文件，非正常退出
+                    sys.exit(ErrorCode.missFile.value)  # missing file, abnormal exit
                 image = cbimread(f.file_path)
                 wh[f.tag] = [image.width, image.height]
             s = np.unique(list(wh.values()), axis=0)
@@ -122,42 +169,58 @@ class ImageQC(object):
             debug: bool,
             research_mode: bool
     ):
-        """ Phase1: 输入准备工作 """
-        # 芯片信息加载
+        """
+        Executes the Image Quality Control (ImageQC) process.
+
+        Args:
+            chip_no (str): The chip number used to load chip information.
+            input_image (str): The path to the input image.
+            stain_type (str): The staining type used for image processing.
+            param_file (str): The path to the parameter file containing configuration details for image processing.
+            output_path (str): The path where output files will be saved.
+            debug (bool): Whether to enable debug mode, which outputs additional debug information.
+            research_mode (bool): Whether to enable research mode, which compresses the result files.
+
+        Returns:
+            int: A status code. 0 indicates success, and 1 indicates failure.
+        """
+
+        """ Phase1: Input Preparation """
+        # Load chip information and initialize file naming rules
         self.param_chip.parse_info(chip_no)
         self.p_naming = naming.DumpPipelineFileNaming(chip_no, save_dir=output_path)
 
-        # 数据加载
+        # Load data from the parameter file
         pp = read_param_file(
             file_path=param_file,
             cfg=self.config,
             out_path=self.p_naming.input_json
         )
 
-        # 只加载与ImageQC相关的文件，同时检查该文件是否存在
+        # Load only files related to ImageQC and check if they exist
         self._files = pp.get_image_files(do_image_qc=True, do_scheduler=False, cheek_exists=False)
         pp.print_files_info(self._files, mode='imageQC')
 
-        # 数据校验失败则退出（尺寸、通道及位深等信息）
+        # Exit if data validation fails (e.g., size, channel, or bit depth issues)
         flag = self._data_check()
         if flag != 0:
             return 1
         clog.info('Check data finished, as state: PASS')
 
-        # 模型加载
+        # Load the model weights
         flag = self._weights_check()
         if flag != 0:
             clog.warning('Weight file preparation failed, program will exit soon')
             return 1
         clog.info('Prepare DNN weights files finished, as state: PASS')
 
-        """ Phase2: 计算 """
+        """ Phase2: Computation """
 
-        # 遍历QC过程
+        # Iterate through the QC process
         if len(self._files) == 0:
-            clog.info('Finished with no data do imageQC')
+            clog.info('Finished with no data to perform ImageQC')
             return 0
-        files = []  # contain files which will be compressed into tar.gz
+        files = []  # Contains files that will be compressed into a tar.gz archive
         for idx, f in self._files.items():
             clog.info('======>  Image[{}] QC, {}'.format(idx, f.file_path))
             if f.registration.trackline:
@@ -171,14 +234,18 @@ class ImageQC(object):
                 self._channel_images[f.get_group_name(sn=self.param_chip.chip_name)] = channel_image
                 files.append((f.file_path, f"{f.tech.name}/{f.tag}.tif"))
             elif f.channel_align != -1:
+                # do calibration
                 channel_image = ipr.IFChannel()
                 self._channel_images[f.get_group_name(sn=self.param_chip.chip_name)] = channel_image
                 self._align_channels(f)
-                files.append((f.file_path, f"{f.tech.name}/{f.get_group_name(sn=self.param_chip.chip_name)}/{f.tag}.tif"))
+                files.append(
+                    (f.file_path, f"{f.tech.name}/{f.get_group_name(sn=self.param_chip.chip_name)}/{f.tag}.tif")
+                )
             else:
                 channel_image = ipr.ImageChannel()
+                self._channel_images[f.get_group_name(sn=self.param_chip.chip_name)] = channel_image
             image = cbimread(f.file_path)
-            if f.tech == TechType.IF:  # 产品是这样处理的，SN_IF.tif -> ipr stain_type = SN_IF
+            if f.tech == TechType.IF:  # Product-specific handling: SN_IF.tif -> ipr stain_type = SN_IF
                 s_type = f.get_group_name(sn=self.param_chip.chip_name)
             else:
                 s_type = f.tech_type
@@ -191,7 +258,7 @@ class ImageQC(object):
                 depth=image.depth
             )
 
-        """ Phase3: 输出 """
+        """ Phase3: Output """
         self._dump_ipr(self.p_naming.ipr)
         if research_mode:
             files.append((self.p_naming.ipr, os.path.basename(self.p_naming.ipr)))
@@ -205,15 +272,25 @@ class ImageQC(object):
 
 
 def image_quality_control(weights_root: str, chip_no: str, input_image: str,
-                          stain_type: str, param_file: str, output_path: str, debug: bool = False, research_mode=False):
+                          stain_type: str, param_file: str, output_path: str,
+                          debug: bool = False, research_mode=False):
     """
-    :param weights_root: CNN权重文件本地存储目录路径
-    :param chip_no: 样本芯片号
-    :param input_image: 染色图本地路径
-    :param stain_type: 染色图对应的染色类型
-    :param param_file: 入参文件本地路径
-    :param output_path: 输出文件本地存储目录路径
-    :return: int(状态码)
+    Perform image quality control tasks.
+
+    This function initializes an ImageQC object and runs the quality control process.
+
+    Args:
+        weights_root (str): Local directory path where the CNN weight files are stored.
+        chip_no (str): Serial number of the sample chip.
+        input_image (str): Local path to the stained image.
+        stain_type (str): Stain type corresponding to the input image.
+        param_file (str): Local path to the input parameter file.
+        output_path (str): Local directory path where the output files will be stored.
+        debug (bool, optional): Boolean flag to enable debug mode. Defaults to False.
+        research_mode (bool, optional): Boolean flag to enable research mode. Defaults to False.
+
+    Returns:
+        int: Status code
     """
     curr_path = os.path.dirname(os.path.realpath(__file__))
     config_file = os.path.join(curr_path, r'../config/cellbin.yaml')
@@ -225,6 +302,20 @@ def image_quality_control(weights_root: str, chip_no: str, input_image: str,
 
 
 def main(args, para):
+    """
+    Main function to execute image quality control.
+
+    This function parses the command - line arguments and parameters,
+    and then invokes the `image_quality_control` function to carry out
+    the quality control process on the input image.
+
+    Args:
+        args (argparse.Namespace): Parsed command - line arguments that contain input parameters.
+        para (dict): Additional parameters for the quality control process.
+
+    Returns:
+        None
+    """
     image_quality_control(weights_root=args.weights_root,
                           chip_no=args.chip_no,
                           input_image=args.image_path,
