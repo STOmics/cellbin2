@@ -11,10 +11,10 @@ from cellbin2.utils.common import bPlaceHolder, fPlaceHolder, iPlaceHolder, sPla
 
 
 class TrackPointsInfo(BaseModel):
-    track_points: dict = Field(dict(), description="识别到的track点坐标信息")
-    good_fov_count: int = Field(iPlaceHolder, description="track点数目在某个数目之上的FOV数目")
-    score: float = Field(fPlaceHolder, description="得分")
-    fov_location: Any = Field(description='全部FOV坐标')
+    track_points: dict = Field(dict(), description="detected track point coordinates")
+    good_fov_count: int = Field(iPlaceHolder, description="number of FOV with track points above threshold ")
+    score: float = Field(fPlaceHolder, description="score")
+    fov_location: Any = Field(description='locations for all FOV')
 
 
 
@@ -37,5 +37,5 @@ class CellSegInfo(BaseModel):
 
 
 class TissueSegOutputInfo(BaseModel):
-    tissue_mask: Any = Field(None, description='输出的组织分割mask')
-    threshold_list: Any = Field(None, description='返回的阈值列表')
+    tissue_mask: Any = Field(None, description='outputted cell segmentation mask')
+    threshold_list: Any = Field(None, description='returned threshold list')

@@ -29,7 +29,7 @@ def rc_key(row: int, col: int):
 
 class FOVAligner(object):
     """
-    计算出所有图像的偏移量
+    Calculate the offset of all images
     """
     def __init__(self, images_path, rows, cols, mode='FFT', multi=True,
                  channel=0, overlap=[0.1, 0.1], i_shape=[None, None]):
@@ -40,7 +40,7 @@ class FOVAligner(object):
         self.set_size(rows, cols)
         self.set_images_path(images_path)
         self.set_channel(channel)
-        self.multi = multi  # TODO 多进程选项
+        self.multi = multi
 
         self.num = 5
         self.overlap_x, self.overlap_y = overlap
@@ -312,16 +312,17 @@ class FOVAligner(object):
     @staticmethod
     def filter_abnormal_offset(offset: np.array, stitch_confi_mask: np.ndarray, thread: int = 2):
         """
-        过滤异常的offset
+        Filter out abnormal offsets
         :param offset: W*H*C
         :return:
         """
         c = offset.shape[2]
         max_thread = 0
         for i in range(c):
-            offset_1 = offset[:, :, i]  # 所有offset
+            offset_1 = offset[:, :, i]
             valid_offset = offset_1[np.where((offset_1 != -999) & (stitch_confi_mask > thread))]
-            # 去掉最大值和最小值 取出[0.2, 0.8]之间的值来求均值和方差
+            # Remove the maximum and minimum values and take the values between
+            # [0.2, 0.8] to calculate the mean and variance
             if len(valid_offset) > 3:
                 percentile = np.percentile(valid_offset, (25, 50, 75), interpolation='midpoint')
                 Q1, Q3 = percentile[0], percentile[2]
@@ -337,7 +338,7 @@ class FOVAligner(object):
                 error_fov = np.vstack([error_fov, max_error_fov, min_error_fov])
                 if len(error_fov) > 0:
                     for row, col in error_fov:
-                        if stitch_confi_mask[row, col] > thread * 3:  # 置信度高, 阈值放宽
+                        if stitch_confi_mask[row, col] > thread * 3:  # High confidence, relaxed threshold
                             thread_max += IQR * 0.6
                             thread_min -= IQR * 0.6
                         if offset_1[row, col] > thread_max or offset_1[row, col] < thread_min:
@@ -499,7 +500,7 @@ class FFTMatcher(Matcher):
         lims = np.array([[-size_y, size_y], [-size_x, size_x]])
         max_peak = self._interpret_translation(
             image1, image2, yins, xins, *lims[0], *lims[1]
-        )  # 与输入进来的位置参数刚好相反
+        )  # opposite to inputted position parameter 
         ncc, offset_y, offset_x, sub_dst, sub_src = max_peak
         return ncc, offset_y, offset_x, sub_dst, sub_src
 

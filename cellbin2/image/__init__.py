@@ -1,5 +1,5 @@
 """
-图像读取基类
+Image Reader Base Class
 """
 import os
 import tifffile
@@ -12,7 +12,7 @@ from typing import Any, Dict, Tuple, Union, List
 
 
 class CBImage(object):
-    """ channel image: 单通道图 """
+    """ channel image: Single channel diagram """
 
     _SUFFIX_LIST = ['.tif', '.tiff', '.TIF', '.TIFF']
     _SECOND_SUFFIX_LIST = ['.png', '.jpg', '.jpeg']
@@ -117,7 +117,7 @@ class CBImage(object):
             flip_ud: bool = False,
             trans_mat: np.matrix = None
     ) -> 'CBImage':
-        """ 调用pyvips进行图像操作
+        """ Call pyvips for image manipulation
 
         Args:
             scale:

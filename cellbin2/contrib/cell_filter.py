@@ -113,10 +113,10 @@ class FilterCells(object):
     @classmethod
     def filter_to_gef(cls, filter_df: pd.DataFrame, cbm: cbMatrix, save_path="", key="not_singlecell_two_factor"):
         """
-                用过滤的 结果的文件 过滤原始的.gef or .gem
-                :param cbm: 过滤前的
-                :param save_path: 过滤后的cellbin结果
-                :return:  过滤后的cellbin （cbmatrix）格式
+                filter original .gef or .gem file with filtered result file 
+                :param cbm: cellbin before filtering 
+                :param save_path: cellbin result after filtering 
+                :return:  filtered cellbin format (cbmatrix) 
                 """
         contain_cell = filter_df[filter_df[key] == 0]
         cbm.raw_data.tl.filter_cells(cell_list=contain_cell, inplace=True)
@@ -127,16 +127,16 @@ class FilterCells(object):
 
 def filter_pipline(geffile, cellmask, output_filter_file="", output_filter_gef=""):
     """
-        过滤算法流程
-        :param geffile:  需要过滤的cellbin 单细胞数据 ，可以接受gef，gem
-        :param cellmask:  单细胞产生的mask
-        :param output_filter_file: 是否过滤的输出文件：输出为 txt， 两列，第一列是细胞名称，第二列是是否删除，1 代表删除，0代表保留
-        :param output_filter_gef:  根据过滤文件，产生过滤后的gef
-        :return: 过滤后的gef
+        filter algorithm piepline 
+        :param geffile:  cellbin to be filtered, single-cell data , supports GEF/GEM formats as input 
+        :param cellmask:  mask produced by single cell 
+        :param output_filter_file: output double-column text, column 1: cell name, column 2: delete flag (1 for delete, 0 for keep)  
+        :param output_filter_gef: generate filtered gef file based on the filter list 
+        :return: filtered gef
         """
     fc = FilterCells(geffile, mask=cellmask)
     fc.filter_doublecells()
-    fc.result_to_txt(output_filter_file)  ###### 输出为 txt， 两列，第一列是细胞名称，第二列是是否删除，1 代表删除，0代表保留
+    fc.result_to_txt(output_filter_file)  ###### output double-column text, column 1: cell name, column 2: delete flag (1 for delete, 0 for keep)
     df = pd.read_csv(output_filter_file, header=0, sep="\t")
     cbm = cbMatrix(geffile)
     FilterCells.filter_to_gef(df, cbm, output_filter_gef)

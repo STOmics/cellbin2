@@ -101,7 +101,7 @@ class WeightDownloader(object):
         elif isinstance(module_name, list):
             weights_to_download = module_name
         elif module_name is None:
-            # 如果不给这个参数，默认就全部下载
+            # if parameter not given, download all weights by default
             weights_to_download = DNNModuleName.__members__.values()
         for module_name in weights_to_download:
             for model_name in self._WEIGHTS[module_name.name].keys():
@@ -127,13 +127,13 @@ if __name__ == '__main__':
     # names = [DNNModuleName.cellseg]
     # wd = WeightDownloader(save_dir)
     #
-    # # 通过模块下载
+    # # download by module 
     # wd.download_module_weight(names)
     #
-    # # 通过模块/模型名字下载
+    # # download by module/model name
     # wd.download_weights(names[0], 'cellseg_bcdu_SHDI_221008_tf.onnx')
     # wd.download_weights(names[0], 'points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx')
     #
-    # # 通过模型名字列表下载
+    # # download by names list 
     # wd.download_weight_by_names(['chip_detect_yolov5obb_SSDNA_20241001_pytorch.onnx',
     #                              'tissueseg_yolo_SH_20230131_th.onnx'])

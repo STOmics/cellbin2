@@ -6,15 +6,11 @@ SUPPORTED_MODELS = [
     f'cellseg_bcdu_SHDI_221008_tf',
     f'cellseg_bcdu_H_240823_tf',
     f'cellseg_unet_RNA_20230606',
-    f'cellseg_bcdu_D_250225_tf_R',
-    f'cellseg_bcdu_H_250303_tf_R',
 ]
 SUPPORTED_STAIN_TYPE_BY_MODEL = {
     SUPPORTED_MODELS[0]: [TechType.ssDNA, TechType.HE, TechType.DAPI],
     SUPPORTED_MODELS[1]: [TechType.HE],
-    SUPPORTED_MODELS[2]: [TechType.Transcriptomics],
-    SUPPORTED_MODELS[3]: [TechType.DAPI],
-    SUPPORTED_MODELS[4]: [TechType.HE]
+    SUPPORTED_MODELS[2]: [TechType.Transcriptomics]
 }
 weight_name_ext = '_weights_path'
 TechToWeightName = {}

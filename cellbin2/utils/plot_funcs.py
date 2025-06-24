@@ -23,6 +23,38 @@ pt_enhance_method = {
 }
 
 
+def pad_to_target_size(image, target_h, target_w, padding_color=(0, 0, 0)):
+    """
+    Fill the image to the target size (centered filling)
+
+     Args:
+        image (numpy.ndarray): image
+        target_h (int):
+        target_w (int):
+        padding_color (tuple):
+
+     Returns:
+        padded_image (numpy.ndarray): padded image
+    """
+    h, w = image.shape[:2]
+
+    pad_top = (target_h - h) // 2
+    pad_bottom = target_h - h - pad_top
+    pad_left = (target_w - w) // 2
+    pad_right = target_w - w - pad_left
+
+    padded_image = cv.copyMakeBorder(
+        image,
+        pad_top,
+        pad_bottom,
+        pad_left,
+        pad_right,
+        cv2.BORDER_CONSTANT,
+        value=padding_color
+    )
+
+    return padded_image
+
 def get_tissue_corner_points(
         tissue_data: np.ndarray,
         k: int = 9
@@ -58,13 +90,36 @@ def get_tissue_corner_points(
     return result_points
 
 
-def crop_image(corner_temp_points, points, image,
-               image_size, image_type,
-               draw_radius, template_color, draw_thickness
+def crop_image(corner_qc_points, temp_points, qc_points,
+               image, image_size, image_type,
+               draw_radius, template_color, qc_color, draw_thickness
                ):
+    """
+        Crop regions of interest from an image around specified corner points, and annotate them with template and QC points.
+
+        Args:
+            corner_qc_points (list): List of corner points around which to crop images. Each point should contain at least x,y coordinates.
+            temp_points (list): List of template points.
+            qc_points (list): List of qc points.
+            image: Input image CBImage(Class).
+            image_size (int): Desired size (width and height) of the output cropped images.
+            image_type (str): Type(stain) of the image, used to determine the enhancement method.
+            draw_radius (int): Radius for drawing circles around points.
+            template_color: Color to use for drawing template points.
+            qc_color: Color to use for drawing qc points.
+            draw_thickness (int): Thickness of the circles drawn around points.
+
+        Returns:
+            tuple: A tuple containing:
+                - cp_image_list (list): List of cropped and enhanced image regions with points marked.
+                - coord_list (list): List of coordinates used for each crop [y_up, y_down, x_left, x_right].
+
+        The function crops square regions of specified size around each corner point, adjusts for image boundaries,
+        enhances each cropped region based on image type, and marks template and qc points within each region.
+        """
     cp_image_list = list()
     coord_list = list()
-    for cp in corner_temp_points:
+    for cp in corner_qc_points:
         x, y = map(int, cp[:2])
         if x <= image_size // 2:
             x_left = 0
@@ -89,16 +144,25 @@ def crop_image(corner_temp_points, points, image,
         _ci = image.crop_image([y_up, y_down, x_left, x_right])
         coord_list.append([y_up, y_down, x_left, x_right])
         enhance_func = pt_enhance_method.get(image_type, "DAPI")
-        _ctp = [i for i in points if (i[0] > x_left) and
+        temp_ctp = [i for i in temp_points if (i[0] > x_left) and
                 (i[1] > y_up) and
                 (i[0] < x_right) and
                 (i[1] < y_down)]
-        _ctp = np.array(_ctp)[:, :2] - [x_left, y_up]
+        qc_ctp = [i for i in qc_points if (i[0] > x_left) and
+                    (i[1] > y_up) and
+                    (i[0] < x_right) and
+                    (i[1] < y_down)]
+        temp_ctp = np.array(temp_ctp)[:, :2] - [x_left, y_up]
+        qc_ctp = np.array(qc_ctp)[:, :2] - [x_left, y_up]
         _ci = enhance_func(_ci)
 
-        for i in _ctp:
+        for i in temp_ctp:
             cv.circle(_ci, list(map(int, i))[:2],
-                      draw_radius * 2, template_color, draw_thickness)
+                      draw_radius , template_color, draw_thickness)
+        for i in qc_ctp:
+            cv.circle(_ci, list(map(int, i))[:2],
+                      draw_radius , qc_color, draw_thickness)
+
         cp_image_list.append(_ci)
 
     return cp_image_list, coord_list
@@ -108,13 +172,17 @@ def template_painting(
         image_data: Union[str, np.ndarray, CBImage],
         tissue_seg_data: Union[str, np.ndarray, CBImage],
         image_type: str,
+
         qc_points: np.ndarray = None,
         template_points: np.ndarray = None,
-        image_size: int = 2048,
-        track_color: tuple = (0, 0, 255),
-        template_color: tuple = (0, 255, 0),
-        chip_rect_color: tuple = (0, 255, 255),
+        image_size: int = 1024,
+        qc_color: tuple = (0, 255, 0),
+        template_color: tuple = (0, 0, 255),
+        true_color: tuple = (0, 255, 0),
+        miss_color: tuple = (0, 0, 255),
+        chip_rect_color: tuple = (255, 0, 255),
         tissue_rect_color: tuple = (255, 255, 0),
+        idx_color: tuple = (255, 255, 255),
         draw_radius: int = 5,
         draw_thickness: int = 2
 ) -> Union[np.ndarray, list, list]:
@@ -129,10 +197,14 @@ def template_painting(
         image_size: image height size
         track_color:
         template_color:
+        true_color: color of points where the error between track_point and template_point is less than 10 pixels
+        miss_color: over than 10 pixels color
         chip_rect_color:
         tissue_rect_color:
+        idx_color: chip rect and tissue rect index color
         draw_radius:
         draw_thickness:
+
 
     Returns:
 
@@ -143,39 +215,40 @@ def template_painting(
 
     tissue_image = cbimread(tissue_seg_data)
 
-    _temp, _track = TemplateReferenceV1.pair_to_template(
-        qc_points, template_points
+    _temp, _qc = TemplateReferenceV1.pair_to_template(
+        qc_points, template_points, threshold=5
     )
 
-    corner_points = np.array([[0, 0], [0, image.height],
+    # qc_track point closest to chip corner
+    chip_corner_points = np.array([[0, 0], [0, image.height],
                               [image.width, image.height], [image.width, 0]])
+    chip_points_dis = cdist(_qc[:, :2], chip_corner_points)
+    corner_chip_qc_points = _qc[np.argmin(chip_points_dis, axis=0)]
 
-    points_dis = cdist(_temp[:, :2], corner_points)
-    corner_temp_points = _temp[np.argmin(points_dis, axis=0)]
-
+    # qc_track point closest to tissue corner
     tissue_corner_points = get_tissue_corner_points(tissue_image.image)
-    tissue_points_dis = cdist(_temp[:, :2], tissue_corner_points)
-    corner_tissue_temp_points = _temp[np.argmin(tissue_points_dis, axis=0)]
+    tissue_points_dis = cdist(_qc[:, :2], tissue_corner_points)
+    corner_tissue_qc_points = _qc[np.argmin(tissue_points_dis, axis=0)]
 
     ########################
-    # 芯片角最近track点
+    # qc template track point for chip edge
     cp_image_list, cp_coord_list = crop_image(
-        corner_temp_points, _temp, image,
-        image_size, image_type,
-        draw_radius, template_color, draw_thickness
+        corner_chip_qc_points, template_points, qc_points,
+        image, image_size, image_type,
+        draw_radius, template_color, qc_color, draw_thickness
     )
-    # 组织边缘track点
+    # qc template track point for tissue edge
     tissue_image_list, tissue_coord_list = crop_image(
-        corner_tissue_temp_points, _temp, image,
-        image_size, image_type,
-        draw_radius, template_color, draw_thickness
+        corner_tissue_qc_points, template_points, qc_points,
+        image, image_size, image_type,
+        draw_radius, template_color, qc_color, draw_thickness
     )
     ########################
 
-    track_list = _track.tolist()
-    _unpair = [i for i in qc_points[:, :2].tolist() if i not in track_list]
+    qc_list = _qc.tolist()
+    _unpair = [i for i in qc_points[:, :2].tolist() if i not in qc_list]
 
-    rate = image_size / image.image.shape[0]
+    rate = image_size*2 / max(image.width, image.height)
     _image = image.resize_image(rate)
 
     if len(_image.image.shape) == 2:
@@ -184,25 +257,38 @@ def template_painting(
         _image = f_ij_16_to_8(_image.image)
     for i in np.array(_unpair):
         cv.circle(_image, list(map(int, i * rate)),
-                  draw_radius, track_color, draw_thickness)
+                  draw_radius, miss_color, draw_thickness)
 
-    for i in np.array(_temp):
+    for i in np.array(_qc):
         cv.circle(_image, list(map(int, i[:2] * rate)),
-                  draw_radius, template_color, draw_thickness)
+                  draw_radius, true_color, draw_thickness)
 
+    small_idx = 0
     for cc in cp_coord_list:
+        small_idx += 1
         y0, y1, x0, x1 = cc
         _p = np.array([[x0, y0], [x0, y1], [x1, y1], [x1, y0]], dtype=np.int32)
 
         cv.polylines(_image, [(_p * rate).astype(np.int32)],
                      True, chip_rect_color, draw_thickness)
 
+        # draw index on left_top
+        text_pos = (int(x0 * rate) + 10, int(y0 * rate) + 40)
+        cv.putText(_image, str(small_idx), text_pos, cv.FONT_HERSHEY_SIMPLEX, 1.2, idx_color, 2)
+
     for tc in tissue_coord_list:
+        small_idx += 1
         y0, y1, x0, x1 = tc
         _p = np.array([[x0, y0], [x0, y1], [x1, y1], [x1, y0]], dtype=np.int32)
 
         cv.polylines(_image, [(_p * rate).astype(np.int32)],
                      True, tissue_rect_color, draw_thickness)
+
+        # draw index in left_top
+        text_pos = (int(x0 * rate) + 10, int(y0 * rate) + 40)
+        cv.putText(_image, str(small_idx), text_pos, cv.FONT_HERSHEY_SIMPLEX, 1.2, idx_color, 2)
+
+    _image = pad_to_target_size(_image, image_size*2, image_size*2, (0, 0, 0))
 
     return _image, cp_image_list, tissue_image_list
 
@@ -214,7 +300,7 @@ def chip_box_painting(
         layer: str = None,
         image_size: int = 2048,
         chip_color: tuple = (0, 255, 0),
-        draw_thickness: int = 5
+        draw_thickness: int = 3
 ) -> np.ndarray:
     """
 
@@ -228,7 +314,7 @@ def chip_box_painting(
         draw_thickness:
 
     Returns:
-
+        Chip frame detection results and four part image
     """
     if ipr_path is not None:
         with h5py.File(ipr_path) as conf:
@@ -245,25 +331,69 @@ def chip_box_painting(
         raise ValueError("Chip info not found.")
 
     image = cbimread(image_data)
-    rate = image_size / image.image.shape[0]
-    # _image = image.resize_image(rate)
-    # _image = cv.cvtColor(f_ij_16_to_8(_image.image), cv.COLOR_GRAY2BGR)
 
-    image = image.image
-    image = f_ij_16_to_8(image)
+    ###
+    rate = image_size / max(image.width, image.height)
+    _image = image.resize_image(rate).image
+
+    if len(_image.shape) == 2:
+        _image = cv2.equalizeHist(_image)
+        _image = cv.cvtColor(f_ij_16_to_8(_image), cv.COLOR_GRAY2BGR)
+    else:
+        _image = f_ij_16_to_8(_image)
+
+    _points = points * rate
+    _points = _points.reshape(-1, 1, 2)
+    cv.polylines(_image, [_points.astype(np.int32)],
+                 True, chip_color, draw_thickness)
+    ### part image
+    image = f_ij_16_to_8(image.image)
     if len(image.shape) == 2:
         image = cv2.equalizeHist(image)
-        image = cv2.resize(image, (image_size, image_size), interpolation=cv2.INTER_NEAREST)
         image = cv.cvtColor(image, cv.COLOR_GRAY2BGR)
-    else:
-        image = cv2.resize(image, (image_size, image_size), interpolation=cv2.INTER_NEAREST)
-
-    points = points * rate
-    points = points.reshape(-1, 1, 2)
     cv.polylines(image, [points.astype(np.int32)],
                  True, chip_color, draw_thickness)
 
-    return image
+    half_image_size = image_size//2
+    padded_image = cv.copyMakeBorder(
+        image,
+        half_image_size,
+        half_image_size,
+        half_image_size,
+        half_image_size,
+        cv2.BORDER_CONSTANT,
+        value=(0, 0, 0)
+    )
+
+    chipbox_part_image_lists = []
+    for point in points:
+        x, y = int(point[0]), int(point[1])
+        # calculate cutting area (center point (x,y), range is image_size x image_size)
+        x_start = x  # since original image already padded with 'half_image_size',no offset required for the coordinate
+        y_start = y
+        x_end = x_start + image_size
+        y_end = y_start + image_size
+
+        # automatic restrict boundary (prevent crossing line) 
+        chip = padded_image[
+               max(0, y_start): min(padded_image.shape[0], y_end),
+               max(0, x_start): min(padded_image.shape[1], x_end)
+               ]
+        if chip.shape[0] < image_size or chip.shape[1] < image_size:
+            pad_bottom = image_size - chip.shape[0]
+            pad_right = image_size - chip.shape[1]
+            chip = cv2.copyMakeBorder(
+                chip,
+                top=0,
+                bottom=pad_bottom,
+                left=0,
+                right=pad_right,
+                borderType=cv2.BORDER_CONSTANT,
+                value=(0, 0, 0))
+
+        chipbox_part_image_lists.append(chip)
+
+    return _image, chipbox_part_image_lists
 
 
 def get_view_image(

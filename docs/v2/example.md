@@ -14,10 +14,10 @@ change run like follows
 run command like below
 ```shell
 python cellbin2/cellbin_pipeline.py \
--c A02677B5 \
--i A02677B5.tif \
--imf A02677B5_IF.tif \
--o result/A02677B5 \
+-c SN \
+-i SN.tif \
+-imf SN_IF.tif \
+-o result/SN \
 -s DAPI 
 ```
 ---
@@ -38,13 +38,13 @@ run command like below <br>
 -o path should be the same as qc
 ```shell
 python cellbin2/cellbin_pipeline.py \
--c A02677B5 \
--i A02677B5.tif \
+-c SN \
+-i SN.tif \
 -s DAPI \
--imf A02677B5_IF.tif \
--m A02677B5.raw.gef \
+-imf SN_IF.tif \
+-m SN.raw.gef \
 -k "Stereo-CITE T FF V1.0" \
--o result/A02677B5 
+-o result/SN 
 ```
 ---
 case3: only alignment without registration & matrix extract <br>
@@ -65,10 +65,10 @@ case 4: No matrix <br>
 Stereo-seq T FF
 ssDNA
 ```shell
--c SS200000135TL_D1 
--i /media/Data/dzh/data/cellbin2/demo_data/product_demo/SS200000135TL_D1/SS200000135TL_D1_fov_stitched_ssDNA.tif 
+-c SN 
+-i /Path/TO/SN_fov_stitched_ssDNA.tif 
 -s ssDNA 
--o /media/Data/dzh/data/cellbin2/test/SS200000135TL_D1 
+-o /Path/TO//test/SN 
 -k "Stereo-seq T FF V1.2"
 ```
 ---

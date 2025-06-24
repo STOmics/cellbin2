@@ -55,23 +55,26 @@ class CellSegmentation:
             num_threads: int = 0,
     ):
         """
+        Initialize the CellSegmentation class with the given configuration and stain type.
+
         Args:
-            cfg (CellSegParam): network param
-            stain_type (TechType): image stain type
-            gpu (int): gpu index
-            num_threads (int): default is 0,When you use the CPU,
+            cfg (CellSegParam): Configuration parameters for the cell segmentation model.
+            stain_type (TechType): The type of stain used in the input images.
+            gpu (int, optional): The index of the GPU to be used for computations. 
+                                  Use -1 to indicate CPU usage. Defaults to -1.
+            num_threads (int, optional): The number of threads to be used when running on the CPU. 
+                                         Defaults to 0.
         """
         super(CellSegmentation, self).__init__()
         self.cfg = cfg
         self.stain_type = stain_type
         self._model_path = self.cfg.get_weights_path(self.stain_type)
         if not os.path.exists(self._model_path):
-            clog.info(f"{self._model_path} does not exists, will download automatically. ")
+            clog.info(f"{self._model_path} does not exist, will download automatically.")
             download_by_names(
                 save_dir=os.path.dirname(self._model_path),
                 weight_names=[os.path.basename(self._model_path)]
             )
-        # self._model_path = getattr(self.cfg, TechToWeightName[self.stain_type])
         self.model_name, self.mode = os.path.splitext(os.path.basename(self._model_path))
         if self.stain_type not in SUPPORTED_STAIN_TYPE_BY_MODEL[self.model_name]:
             clog.warning(
@@ -105,32 +108,49 @@ class CellSegmentation:
             preprocess=self.pre_process,
             postprocess=self.post_process
         )
-        clog.info("start loading model weight")
+        clog.info("Start loading model weight")
         self._cell_seg.f_init_model(model_path=self._model_path)
-        clog.info("end loading model weight")
+        clog.info("End loading model weight")
 
     @process_decorator('GiB')
     def run(self, img: Union[str, npt.NDArray]) -> npt.NDArray[np.uint8]:
         """
-        run cell predict
+        Run cell prediction on the given image.
+
         Args:
-            img (ndarray): img array
+            img (Union[str, npt.NDArray]): The input image. This can be either a file path (str) or a numpy array (npt.NDArray).
 
         Returns:
-            mask (ndarray)
+            npt.NDArray[np.uint8]: The predicted cell segmentation mask as a numpy array of uint8 type.
 
+        Raises:
+            AttributeError: If the `_cell_seg` attribute is not initialized.
         """
+        # Check if the _cell_seg attribute is initialized
         if not hasattr(self, '_cell_seg'):
             clog.info(f"{self.__class__.__name__} failed to initialize, can not predict")
+            # Return a zeroed mask of the same shape as the input image
             mask = np.zeros_like(img, dtype='uint8')
         else:
             clog.info("start cell segmentation")
+            # Predict the cell segmentation mask using the _cell_seg object
             mask = self._cell_seg.f_predict(img)
             clog.info("end cell segmentation")
         return mask
 
     @classmethod
     def run_fast(cls, mask: npt.NDArray, distance: int, process: int) -> npt.NDArray[np.uint8]:
+        """
+        Applies a fast correction to the mask if the distance is greater than 0.
+
+        Args:
+            mask (npt.NDArray): The mask to be corrected.
+            distance (int): The distance parameter for the fast correction.
+            process (int): The number of processes to be used for the correction.
+
+        Returns:
+            npt.NDArray[np.uint8]: The corrected mask if distance > 0, else the original mask.
+        """
         if distance > 0:
             fast_mask = run_fast_correct(
                 mask_path=mask,
@@ -145,7 +165,18 @@ class CellSegmentation:
     @staticmethod
     def get_trace(mask):
         """
-        2023/09/20 @fxzhao 对大尺寸图片采用加速版本以降低内存
+        Process a mask for cell tracing. Depending on the size of the mask, either a standard or a faster
+        version of the tracing algorithm is used to reduce memory usage for large images.
+        
+        Args:
+            mask (npt.NDArray): The mask to be processed.
+        
+        Returns:
+            npt.NDArray: The processed mask.
+        
+        Note:
+            For masks with a height greater than 40,000 pixels, the accelerated version `get_t_v2` is used.
+            Otherwise, the standard version `get_t` is used.
         """
         if mask.shape[0] > 40000:
             return get_t_v2(mask)
@@ -164,36 +195,40 @@ class CellSegmentation:
             save_dir=None,
     ) -> Tuple[float, float, float, List[Tuple[npt.NDArray, List[Tuple[int, int, int, int]]]], plt.figure]:
         """
+        Calculate various statistics and visualizations based on input masks and an image.
+
         Args:
-            c_mask_p: 细胞分割mask，只接受单通道
-            cor_mask_p: 修正mask，只接受单通道
-            t_mask_p: 组织分割mask，只接受单通道
-            register_img_p: 默认对RGB图做转灰度且反色的处理，若不是H&E染色的RGB图，请转成单通道再传入
-            keep: 保留几张图
-            size: 切图的尺寸
-            save_dir: 存储路径
+            c_mask_p (str): Path to the cell segmentation mask (single channel).
+            cor_mask_p (str): Path to the corrected mask (single channel).
+            t_mask_p (str): Path to the tissue segmentation mask (single channel).
+            register_img_p (str): Path to the registered image. The image will be converted to grayscale and inverted if it's an H&E stained RGB image.
+            keep (int, optional): Number of images to keep. Defaults to 5.
+            size (int, optional): Size of the cropped images. Defaults to 1024.
+            save_dir (str, optional): Directory to save the output images. Defaults to None.
 
         Returns:
             Tuple[float, float, float, List[Tuple[npt.NDArray, List[Tuple[int, int, int, int]]]], plt.figure]:
-                第一个元素：细胞分割mask与组织分割mask面积比值
-                第二个元素：修正mask与组织分割mask面积比值
-                第三个元素：细胞分割mask与组织分割mask亮度壁纸
-                第四个元素：返回keep个大小为size的图以及位置坐标，位置坐标以y_begin, y_end, x_begin, x_end。选择局部的逻辑，是挑选的细胞分割结果最多的区域
-                第五个元素：细胞分割mask的intensity图，是plt.figure类型
+                - First element: Ratio of cell segmentation mask area to tissue mask area.
+                - Second element: Ratio of corrected mask area to tissue mask area.
+                - Third element: Intensity ratio between cell segmentation mask and tissue mask.
+                - Fourth element: List of images (of size `size`) with their corresponding coordinates (y_begin, y_end, x_begin, x_end).
+                - Fifth element: Intensity histogram figure of the cell segmentation mask.
+
         Examples:
-            >>> c_mask_p = "/media/Data/dzh/data/tmp/test_cseg_report/A01386A4_DAPI_mask.tif"
-            >>> t_mask_p = "/media/Data/dzh/data/tmp/test_cseg_report/A01386A4_DAPI_tissue_cut.tif"
-            >>> cor_mask_p = "/media/Data/dzh/data/tmp/test_cseg_report/A01386A4_DAPI_mask_edm_dis_10.tif"
-            >>> register_img_p = "/media/Data/dzh/data/tmp/test_cseg_report/A01386A4_DAPI_regist.tif"
-            >>> save_dir = "/media/Data/dzh/data/tmp/test_cseg_report"
-            >>> area_ratio, area_ratio_cor, int_ratio, cell_with_outline, fig = CellSegmentation.get_stats(c_mask_p=c_mask_p,
-            ... cor_mask_p=cor_mask_p,
-            ... t_mask_p=t_mask_p,
-            ... register_img_p=register_img_p,
-            ... save_dir=save_dir)
-            >>> assert area_ratio == 0.5619422933118077
-            >>> assert area_ratio_cor == 0.8134636910954126
-            >>> assert int_ratio == 0.7224478732571403
+            >>> c_mask_p = "/path/to/cell/mask.tif"
+            >>> t_mask_p = "/path/to/tissue/mask.tif"
+            >>> cor_mask_p = "/path/to/corrected/mask.tif"
+            >>> register_img_p = "/path/to/registered/image.tif"
+            >>> save_dir = "/path/to/save/directory"
+            >>> area_ratio, area_ratio_cor, int_ratio, cell_with_outline, fig = CellSegmentation.get_stats(
+            ...     c_mask_p=c_mask_p,
+            ...     cor_mask_p=cor_mask_p,
+            ...     t_mask_p=t_mask_p,
+            ...     register_img_p=register_img_p,
+            ...     save_dir=save_dir)
+            >>> assert area_ratio == expected_value
+            >>> assert area_ratio_cor == expected_value
+            >>> assert int_ratio == expected_value
             >>> fig.savefig(os.path.join(save_dir, f"test.png"))
         """
 
@@ -202,7 +237,7 @@ class CellSegmentation:
             from cellbin2.image.augmentation import f_ij_16_to_8_v2
             from cellbin2.image import cbimread, cbimwrite
 
-            # read image
+            # Read the input images and masks
             register_img = cbimread(register_img_p, only_np=True)
             c_mask = cbimread(c_mask_p, only_np=True)
             t_mask = cbimread(t_mask_p, only_np=True)
@@ -211,30 +246,31 @@ class CellSegmentation:
             else:
                 cor_mask = None
 
-            # 16 to 8
+            # Convert 16-bit images to 8-bit
             register_img = f_ij_16_to_8_v2(register_img)
 
-            # calculate area ratio
-            area_ratio = cal_area(cell_mask=c_mask, tissue_mask=t_mask)  # 细胞分割mask与tissue mask的面积比值
+            # Calculate the area ratio
+            area_ratio = cal_area(cell_mask=c_mask, tissue_mask=t_mask)
             clog.info(f"cell mask area / tissue mask area = {area_ratio}")
             if cor_mask is not None:
-                area_ratio_cor = cal_area(cell_mask=cor_mask, tissue_mask=t_mask)  # 修正mask与组织分割mask面积比值
+                area_ratio_cor = cal_area(cell_mask=cor_mask, tissue_mask=t_mask)
             else:
                 area_ratio_cor = fPlaceHolder
             clog.info(f"correct mask area / tissue mask area = {area_ratio_cor}")
-            # calculate intensity ratio
+
+            # Calculate the intensity ratio
             int_ratio = cal_int(
                 c_mask=c_mask,
                 t_mask=t_mask,
                 register_img=register_img
-            )  # 细胞分割mask与tissue mask的亮度比值
+            )
             clog.info(f"cell mask intensity / tissue mask intensity = {int_ratio}")
 
-            # get cell mask int
+            # Get the intensity histogram figure of the cell mask
             fig = cell_int_hist(c_mask=c_mask, register_img=register_img)
             clog.info(f"cell mask intensity calculation finished")
 
-            # get partial vis images
+            # Get partial visualization images
             cell_with_outline = get_partial_res(
                 c_mask=c_mask,
                 t_mask=t_mask,
@@ -255,20 +291,28 @@ class CellSegmentation:
 
 
 def s_main():
+    """
+    Main function to execute cell segmentation.
+    
+    This function parses command-line arguments and orchestrates the cell segmentation process.
+    It supports different stain types and can optionally perform tissue segmentation and fast correction.
+    """
     import argparse
     from cellbin2.image import cbimwrite
 
-    parser = argparse.ArgumentParser(description="you should add those parameter")
-    parser.add_argument('-i', "--input", required=True, help="the input img path")
-    parser.add_argument('-o', "--output", required=True, help="the output directory")
-    parser.add_argument("-p", "--model", required=True, help="model directory")
-    parser.add_argument("-s", "--stain", required=True, choices=['he', 'ssdna', 'dapi', 'scell'], help="stain type")
-    parser.add_argument("-f", "--fast", action='store_true', help="if run fast correct")
-    parser.add_argument("-t", "--tissue", action='store_true', help="if run tissue seg")
-    parser.add_argument("-m", "--mode", choices=['onnx', 'tf'], help="onnx or tf", default="onnx")
-    parser.add_argument("-g", "--gpu", type=int, help="the gpu index", default=0)
+    # Setting up argument parser
+    parser = argparse.ArgumentParser(description="Cell segmentation script. You should add parameters.")
+    parser.add_argument('-i', "--input", required=True, help="The input image path.")
+    parser.add_argument('-o', "--output", required=True, help="The output directory.")
+    parser.add_argument("-p", "--model", required=True, help="Model directory.")
+    parser.add_argument("-s", "--stain", required=True, choices=['he', 'ssdna', 'dapi', 'scell'], help="Stain type.")
+    parser.add_argument("-f", "--fast", action='store_true', help="If run fast correction.")
+    parser.add_argument("-t", "--tissue", action='store_true', help="If run tissue segmentation.")
+    parser.add_argument("-m", "--mode", choices=['onnx', 'tf'], help="Model mode: ONNX or TensorFlow.", default="onnx")
+    parser.add_argument("-g", "--gpu", type=int, help="The GPU index.", default=0)
     args = parser.parse_args()
 
+    # Mapping user stain type to internal TechType
     usr_stype_to_inner = {
         'ssdna': TechType.ssDNA,
         'dapi': TechType.DAPI,
@@ -276,6 +320,7 @@ def s_main():
         "scell": TechType.Transcriptomics
     }
 
+    # Extracting and validating arguments
     input_path = args.input
     output_path = args.output
     model_dir = args.model
@@ -285,17 +330,17 @@ def s_main():
     fast = args.fast
     tc = args.tissue
 
-    # stain type from user input to inner type
+    # Convert user stain type to internal type
     s_type = usr_stype_to_inner.get(user_s_type)
 
-    # name pattern
+    # Generate output file names
     name = os.path.splitext(os.path.basename(input_path))[0]
     os.makedirs(output_path, exist_ok=True)
     c_mask_path = os.path.join(output_path, f"{name}_v3_mask.tif")
     t_mask_path = os.path.join(output_path, f"{name}_tissue_mask.tif")
     f_mask_path = os.path.join(output_path, f"{name}_v3_corr_mask.tif")
 
-    # tissue segmentation
+    # Perform tissue segmentation if requested
     tm = None
     if tc:
         from cellbin2.utils.config import Config
@@ -313,7 +358,7 @@ def s_main():
         tm = to.tissue_mask
         cbimwrite(t_mask_path, tm * 255)
 
-    # get model path
+    # Configure model paths based on mode
     cfg = CellSegParam()
     for p_name in cfg.model_fields:
         default_name = getattr(cfg, p_name)
@@ -323,6 +368,7 @@ def s_main():
             default_name = default_name.replace(".onnx", ".hdf5")
         setattr(cfg, p_name, os.path.join(model_dir, default_name))
 
+    # Execute cell segmentation
     c_mask, f_mask = segment4cell(
         input_path=input_path,
         cfg=cfg,
@@ -333,7 +379,7 @@ def s_main():
     if tm is not None:
         c_mask = tm * c_mask
 
-    # save mask
+    # Save segmentation masks
     cbimwrite(c_mask_path, c_mask * 255)
     if f_mask is not None:
         if tm is not None:
@@ -348,6 +394,19 @@ def segment4cell(
         gpu: int,
         fast: bool
 ) -> Tuple[npt.NDArray[np.uint8], npt.NDArray[np.uint8]]:
+    """
+    Perform cell segmentation on the given input image.
+
+    Parameters:
+    - input_path (str): The path to the input image file.
+    - cfg (CellSegParam): Configuration parameters for cell segmentation.
+    - s_type (TechType): The type of staining technology used.
+    - gpu (int): The GPU device index to use for computation. Use -1 for CPU.
+    - fast (bool): Whether to apply fast correction to the segmentation mask.
+
+    Returns:
+    - Tuple[npt.NDArray[np.uint8], npt.NDArray[np.uint8]]: A tuple containing the original segmentation mask and the fast corrected mask (if fast correction is applied).
+    """
     # read user input image
     img = cbimread(input_path, only_np=True)
 

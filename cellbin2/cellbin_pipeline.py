@@ -28,10 +28,28 @@ DEFAULT_PARAM_FILE = os.path.join(CONFIG_PATH, 'default_param.json')
 SUPPORTED_TRACK_STAINED_TYPES = (TechType.ssDNA.name, TechType.DAPI.name, TechType.HE.name)
 SUPPORTED_STAINED_Types = []
 
+os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
+os.environ["HDF5_DISABLE_VERSION_CHECK"] = "1"
+
 
 class CellBinPipeline(object):
+    """
+    CellBinPipeline class is designed to handle the entire pipeline of cellular image processing and analysis.
+    It includes steps such as image quality control, image analysis, matrix extraction, metrics calculation, and report generation.
+    """
 
     def __init__(self, config_file: str, chip_mask_file: str, weights_root: str) -> None:
+        """
+        Initialize the CellBinPipeline class.
+
+        Args:
+            config_file (str): The path to the configuration file.
+            chip_mask_file (str): The path to the chip mask file.
+            weights_root (str): The path to the weights root directory.
+
+        Returns:
+            None
+        """
         # alg
         self._chip_mask_file = chip_mask_file
         self._config_file = config_file
@@ -49,7 +67,7 @@ class CellBinPipeline(object):
         # naming
         self._naming: Optional[naming.DumpPipelineFileNaming] = None
 
-        # 内部需要的
+        # required by internal
         self.pp: ProcParam
         self.config: Config
 
@@ -60,7 +78,17 @@ class CellBinPipeline(object):
         self.research: bool = False
 
     def image_quality_control(self, ):
-        """ 完成图像 QC 流程 """
+        """
+        Perform image quality control.
+
+        This method checks if the QC flag in the processing parameters is set.
+        If set, it imports the image_qc module and runs the image_quality_control function
+        with the specified parameters. If the function returns a non-zero status code,
+        the program exits with a status code of 1.
+
+        Returns:
+            None
+        """
         if self.pp.run.qc:
             from cellbin2.modules import image_qc
             # if self._naming.ipr.exists():
@@ -80,7 +108,14 @@ class CellBinPipeline(object):
                 sys.exit(1)
 
     def image_analysis(self, ):
-        """ 完成图像、配准、校准、分割、矩阵提取等分析流程 """
+        """
+        Perform various image processing tasks including alignment, registration, calibration, segmentation, and matrix extraction.
+
+        This method utilizes the scheduler pipeline to process the images based on the provided parameters.
+
+        Returns:
+            None
+        """
         if self.pp.run.alignment:
             from cellbin2.modules import scheduler
             # if self._naming.rpi.exists():
@@ -94,6 +129,14 @@ class CellBinPipeline(object):
                                          research_mode=self.research)
 
     def m_extract(self):
+        """
+        Extract matrices from the processed images.
+
+        This method runs the matrix extraction process if the corresponding flag is set in the processing parameters.
+
+        Returns:
+            None
+        """
         if self.pp.run.matrix_extract:
             from cellbin2.modules.extract.matrix_extract import extract4matrix
             mcf = self.pp.get_molecular_classify()
@@ -114,13 +157,21 @@ class CellBinPipeline(object):
                 )
 
     def metrics(self, ):
-        """ 计算指标 """
+        """
+        Calculate metrics for the processed images and matrices.
+
+        This method calculates various metrics if the corresponding flag is set in the processing parameters.
+
+        Returns:
+            None
+        """
         def _get_stitched(files: Dict[int, ProcFile], g_name: str, sn: str):
             for i, v in files.items():
                 if v.get_group_name(sn) == g_name:
                     return v.file_path
 
         if self.pp.run.report:
+            from cellbin2.modules.metrics import ImageSource
             from cellbin2.modules import metrics
             if self._naming.metrics.exists():
                 clog.info('Metrics step has been done')
@@ -130,7 +181,7 @@ class CellBinPipeline(object):
             files = pp.get_image_files(do_image_qc=False, do_scheduler=True, cheek_exists=True)
             ipr_file = str(self._naming.ipr)
             rpi_file = str(self._naming.rpi)
-            # 图片类的输入
+            # input image type
             ipr_r, channel_images = ipr.read(ipr_file)
             src_img_dict = {}
             for c_name, c_info in channel_images.items():
@@ -166,21 +217,42 @@ class CellBinPipeline(object):
                     )
                     matrix_dict[cur_m_type] = cur_m_src_files
             matrix_lists = list(matrix_dict.values())
+            if len(matrix_lists):
+                matrix_list = [matrix_lists[0]]
+            else:
+                matrix_list = []
+
             fs = metrics.FileSource(
-                ipr_file=ipr_file, rpi_file=rpi_file, matrix_list=[matrix_lists[0]], sn=self._chip_no,
-                image_dict=src_img_dict)  # TODO 蛋白矩阵没放进去
+                ipr_file=ipr_file, rpi_file=rpi_file, matrix_list=matrix_list, sn=self._chip_no,
+                image_dict=src_img_dict)  # TODO no protein matrix yet 
             metrics.calculate(param=fs, output_path=self._output_path)
             clog.info("Metrics generated")
 
     def export_report(self, ):
+        """
+        Export the analysis report.
+
+        This method generates and exports the report if the corresponding flag is set in the processing parameters.
+
+        Returns:
+            None
+        """
         if self.pp.run.report:
-            """ 生成及导出报告 """
             from cellbin2.modules import report_m
 
             src_file_path = self._naming.metrics
             report_m.creat_report(matric_json=src_file_path, save_path=self._output_path)
 
     def usr_inp_to_param(self):
+        """
+        Convert user input to processing parameters.
+
+        This method converts the user-provided input into a set of processing parameters that will be used
+        throughout the pipeline.
+
+        Returns:
+            None
+        """
         if self._kit.endswith("R"):
             self.research = True
         self.config = Config(self._config_file, self._weights_root)
@@ -206,7 +278,7 @@ class CellBinPipeline(object):
             nuclear_cell_idx = im_count
             im_count += 1
 
-            # 转录组矩阵
+            # Transcriptomics matrix 
             if self._matrix_path is not None:
                 trans_tp = pp.image_process[TechType.Transcriptomics.name]
                 trans_tp.file_path = self._matrix_path
@@ -227,8 +299,19 @@ class CellBinPipeline(object):
                         new_pp.image_process[str(im_count)] = im_process_cp
                         new_pp.image_process[str(im_count)].registration.reuse = nuclear_cell_idx
                         im_count += 1
+
+                    elif getattr(TechType, stain_type, None):
+                        # H&E, ssDNA, DAPI image
+                        inner_stain_type = getattr(TechType, stain_type, TechType.UNKNOWN) #TODO: add unknown to json
+                        im_process_cp = deepcopy(pp.image_process[inner_stain_type.name])
+                        im_process_cp.file_path = file_path
+                        # im_process_cp.tech_type = stain_type
+                        new_pp.image_process[str(im_count)] = im_process_cp
+                        new_pp.image_process[str(im_count)].registration.reuse = nuclear_cell_idx
+                        new_pp.image_process[str(im_count)].registration.trackline = False
+                        im_count += 1
                     else:
-                        # H&E
+                        # other stain
                         raise Exception("Not supported")
 
             if self._protein_matrix_path is not None:
@@ -241,7 +324,7 @@ class CellBinPipeline(object):
 
             # end of image part info parsing
 
-            # 矩阵提取
+            # extract matrix 
             if trans_exp_idx != -1:
                 trans_m_tp = pp.molecular_classify[TechType.Transcriptomics.name]
                 trans_m_tp.exp_matrix = trans_exp_idx
@@ -253,7 +336,8 @@ class CellBinPipeline(object):
                 protein_m_tp.exp_matrix = protein_exp_idx
                 protein_m_tp.cell_mask = [nuclear_cell_idx]
                 new_pp.molecular_classify['1'] = protein_m_tp
-            new_pp.run.report = True if self._if_report else False
+            if new_pp.run.report is False and self._if_report is True:
+                new_pp.run.report = True
             param_f_p = self._naming.input_json
             dict2json(new_pp.model_dump(), json_path=param_f_p)
             self._param_file = param_f_p
@@ -268,7 +352,33 @@ class CellBinPipeline(object):
     def run(self, chip_no: str, input_image: str, more_images: str,
             stain_type: str, param_file: str,
             output_path: str, matrix_path: str, protein_matrix_path: str, kit: str, if_report: bool, debug: bool):
-        """ 全分析流程 """
+        """
+        Run the full analysis pipeline.
+
+        This method runs the entire pipeline for image analysis, including the following steps:
+        - Convert user input to parameters
+        - Perform image quality control
+        - Perform image analysis
+        - Extract matrix
+        - Calculate metrics
+        - Generate report
+
+        Args:
+            chip_no (str): The serial number of the chip.
+            input_image (str): The path of the input image file.
+            more_images (str): The paths of other input image files.
+            stain_type (str): The stain type of the input image.
+            param_file (str): The path of the input parameter file.
+            output_path (str): The path of the output directory.
+            matrix_path (str): The path of the transcriptomics matrix file.
+            protein_matrix_path (str): The path of the protein matrix file.
+            kit (str): The version of the kit.
+            if_report (bool): Whether to generate a report.
+            debug (bool): Whether to run in debug mode.
+
+        Returns:
+            None
+        """
         self._chip_no = chip_no
         self._input_image = input_image
         self.more_images = more_images
@@ -284,11 +394,11 @@ class CellBinPipeline(object):
         # self.pipe_run_state = PipelineRunState(self._chip_no, self._output_path)
 
         self.usr_inp_to_param()
-        self.image_quality_control()  # 图像质控
-        self.image_analysis()  # 图像分析
-        self.m_extract()  # 矩阵提取
-        self.metrics()  # 指标计算
-        self.export_report()  # 生成报告
+        self.image_quality_control()  # image quality control 
+        self.image_analysis()  # image analysis 
+        self.m_extract()  # matrix extraction 
+        self.metrics()  # metrics calculation 
+        self.export_report()  # report generation 
 
 
 @process_decorator('GiB')
@@ -307,15 +417,20 @@ def pipeline(
         debug=False
 ):
     """
-        :param weights_root: CNN权重文件本地存储目录路径
-        :param chip_no: 样本芯片号
-        :param input_image: 染色图本地路径
-        :param stain_type: 染色图对应的染色类型
-        :param param_file: 入参文件本地路径
-        :param kit: 测序技术
-        :param output_path: 输出文件本地存储目录路径
-        :param matrix_path: 表达矩阵本地存储路径
-        :return: int(状态码)
+    This function is used to execute the cellbin pipeline.
+
+    Args:
+        weights_root (str): The local storage directory path of CNN weight files.
+        chip_no (str): The sample chip number.
+        input_image (str): The local path of the stained image.
+        stain_type (str): The staining type corresponding to the stained image.
+        param_file (str): The local path of the input parameter file.
+        kit (str): The sequencing technology.
+        output_path (str): The local storage directory path for output files.
+        matrix_path (str): The local storage path of the expression matrix.
+
+    Returns:
+        int: The status code.
     """
     os.makedirs(output_path, exist_ok=True)
     clog.log2file(output_path)
@@ -350,6 +465,22 @@ def pipeline(
 
 
 def main(args, para):
+    """
+    Main function to execute the cellbin pipeline.
+
+    This function acts as the entry - point for the cellbin pipeline. It retrieves the essential parameters
+    from the parsed command - line arguments and additional parameter dictionary, and then passes them to
+    the `pipeline` function for execution.
+
+    Args:
+        args (argparse.Namespace): The parsed command - line arguments, which hold various parameters necessary
+            for the pipeline operation.
+        para (dict): Additional parameters for the pipeline. These are typically used to provide supplementary
+            configuration details or context information.
+
+    Returns:
+        None
+    """
     chip_no = args.chip_no
     input_image = args.input_image
     more_images = args.more_images
@@ -395,7 +526,7 @@ if __name__ == '__main__':  # main()
                 f"-k  \"Stereo-CITE T FF V1.0 R\" \\ \n" \
                 f"-r"
 
-    # 负责接收字典类的参数
+    # responsible for receiving dictionary class parameters
     class MoreimsKwargs(argparse.Action):
         def __call__(self, parser, namespace, values, option_string=None):
             mif_im_count = 0

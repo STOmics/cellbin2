@@ -6,151 +6,239 @@
 </div>
 
 ## Introduction
+CellBin is an image processing pipeline designed to delineate cell boundaries for spatial analysis. It consists of several image analysis steps. Given the image and gene expression data as input, CellBin performs image registration, tissue segmentation, nuclei segmentation, and molecular labeling (i.e., cell border expanding), ultimately defining the molecular boundaries of individual cells. It incorporates a suite of self-developed algorithms, including deep-learning models, for each of the analysis task. The processed data is then mapped onto the chip to extract molecular information, resulting in an accurate single-cell expression matrix. (Cover image) For more information on CellBin, please refer to the following link.
+
+**Cellbin2** is an upgraded version of the original [CellBin](https://github.com/STOmics/CellBin) platform with two key enhancements:
+1. **Expanded Algorithm Library**: Incorporates additional image processing algorithms to serve broader application scenarios like single-cell RNA-seq, Plant cellbin.
+2. **Configurable Architecture**: Refactored codebase allows users to customize analysis pipelines through [JSON](cellbin2/config/demos/sample.json) and [YAML](cellbin2/config/cellbin.yaml) configuration files.
+
 [CellBin introduction](docs/md/CellBin_1.0/CellBin解决方案技术说明.md) (Chinese) 
 
 ***Tweets*** <br>
-[Stereo-seq CellBin introduction](https://mp.weixin.qq.com/s/PT3kPvsmrB3oQleEIMPkjQ)  (Chinese)  <br>
-[Stereo-seq CellBin database introduction](https://mp.weixin.qq.com/s/OYJhAH6Bq1X1CQIYwugxkw) (Chinese)  <br>
-[Stereo-seq CellBin cell segmentation intro](https://mp.weixin.qq.com/s/2-lE5OjPpjitLK_4Z0QI3Q) (Chinese)  <br>
+[Stereo-seq CellBin introduction](https://mp.weixin.qq.com/s/2-lE5OjPpjitLK_4Z0QI3Q) (Chinese)  <br>
+[Stereo-seq CellBin application intro](https://mp.weixin.qq.com/s/PT3kPvsmrB3oQleEIMPkjQ)  (Chinese)  <br>
+[Stereo-seq CellBin cell segmentation database introduction](https://mp.weixin.qq.com/s/OYJhAH6Bq1X1CQIYwugxkw) (Chinese)  <br>
+[CellBin: The Core Image Processing Pipeline in SAW for Generating Single-cell Gene Expression Data for Stereo-seq](https://en.stomics.tech/news/stomics-blog/1017.html) (English)  <br>
+[A Practical Guide to SAW Output Files for Stereo-seq](https://en.stomics.tech/news/stomics-blog/1108.html) (English)  <br>
 
 ***Paper related*** <br>
 [CellBin: a highly accurate single-cell gene expression processing pipeline for high-resolution spatial transcriptomics](https://www.biorxiv.org/content/10.1101/2023.02.28.530414v5) [(GitHub Link)](https://github.com/STOmics) <br>
-[CellBinDB: A Large-Scale Multimodal Annotated Dataset for Cell Segmentation with Benchmarking of Universal Models](https://www.biorxiv.org/content/10.1101/2024.11.20.619750v2) [(GitHub Link)](https://github.com/STOmics/cs-benchmark) <br>
 [Generating single-cell gene expression profiles for high-resolution spatial transcriptomics based on cell boundary images](https://gigabytejournal.com/articles/110) [(GitHub Link)](https://github.com/STOmics/STCellbin) <br>
+[CellBinDB: A Large-Scale Multimodal Annotated Dataset for Cell Segmentation with Benchmarking of Universal Models](https://www.biorxiv.org/content/10.1101/2024.11.20.619750v2) [(GitHub Link)](https://github.com/STOmics/cs-benchmark) <br>
 
 ***Video tutorial*** <br>
 [Cell segmentation tool selection and application](https://www.bilibili.com/video/BV1Ct421H7ST/?spm_id_from=333.337.search-card.all.click) (Chinese) <br>
 [One-stop solution for spatial single-cell data acquisition](https://www.bilibili.com/video/BV1Me4y1T77T/?spm_id_from=333.337.search-card.all.click) (Chinese) <br>
 [Single-cell processing framework for high resolution spatial omics](https://www.bilibili.com/video/BV1M14y1q7YR/?spm_id_from=333.788.recommend_more_video.12) (Chinese) 
 
-## Installation
+## Installation and Quick Start
 Linux
 ```shell
+# Clone the main repository
 git clone https://github.com/STOmics/cellbin2
+# git clone -b dev https://github.com/STOmics/cellbin2
+
+# Create and activate a Conda environment
 conda create --name cellbin2 python=3.8
+conda activate cellbin2
+
+# Install package dependencies
 cd cellbin2
-python install.py 12  # if your cuda version is 12.x
-python install.py 11  # if your cuda version is 11.x
-python demo.py  # run 3 demos, approximately 30-40 mins on GPU
+pip install .[cp,rs]
+
+# For development mode (optional):
+# pip install -e .[cp,rs]      # Editable install with basic extras
+# pip install -e .[cp,rs,rp]   # Editable install including report module
+
+# Execute the demo (takes ~30-40 minutes on GPU hardware)
+python demo.py
 ```
+
+**GPU Troubleshooting:**  
+If the demo runs on CPU instead of GPU, see our [troubleshooting guide]() to verify your GPU setup.
+
+**Output Verification:**  
+After completion, validate the output integrity by comparing your results with the [Outputs](#outputs). 
 
 
 ## Tutorials
+### Core Workflow
+The `cellbin_pipeline.py` script serves as the main entry point for CellBin2 analysis. It supports two configuration approaches:
+1. **Configuration files** : Use JSON files for full customization
+2. **Command-line arguments**: Quick setup using key parameters with kit-based defaults
+
+📘 **Configuration Guide**:<br>
+See [JSON Configuration Documentation](docs/v2/JsonConfigurationDocumention.md) for full parameter specifications.
+
+### Basic Usage
 ```shell
+# Minimal configuration (requires complete parameters in JSON)
+CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py -c <SN> -p <config.json> -o <output_dir> 
+
+# Kit-based configuration (auto-loads predefined settings)
+CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py -c <SN> -i <image.tif> -s <stain_type> -m <expression.gef> -o <output_dir> -k "Kit Name"
+
+# View all available parameters
+python cellbin2/cellbin_pipeline.py -h
+```
+
+### Key Parameters
+
+| Parameter | Required* | Description                                                                                                   | Examples                                                  |
+| :-------- | :-------- |:--------------------------------------------------------------------------------------------------------------|:----------------------------------------------------------|
+| `-c`      | ✓         | Serial number of chip                                                                                         | `SN`                                                      |
+| `-o`      | ✓         | Output directory                                                                                              | `results/SAMPLE123`                                       |
+| `-i`      | ✓△        | Primary image path (required for kit-based mode)                                                              | `SN.tif`                                                  |
+| `-s`      | ✓△        | Stain type (required for kit-based mode)                                                                      | `DAPI`, `ssDNA`, `HE`                                     |
+| `-p`      | △         | Path to custom configuration file<br/> [JSON Configuration Documentation](docs/v2/JsonConfigurationDocumention.md) | [`config/custom.json`](cellbin2/config/demos/sample.json) |
+| `-m`      | △         | Gene expression matrix                                                                                        | `SN.raw.gef`                                              |
+| `-mi`     | △         | Multi-channel images                                                                                          | `IF=SN_IF.tif`                                            |
+| `-pr`     | △         | Protein expression matrix                                                                                     | `SN_IF.protein.gef`                                       |
+| `-k`      | ✓△        | Kit type (required for kit-based mode,See kit list below)                                                     | `"Stereo-CITE T FF V1.1 R"`                               |
+
+> *✓ = Always required, ✓△ = Required for kit-based mode, △ = Optional
+
+### Supported Kit Types
+```python
 KIT_VERSIONS = (
-    'Stereo-seq T FF V1.2',
+    # Standard product versions
+    'Stereo-seq T FF V1.2',       
     'Stereo-seq T FF V1.3',
-    'Stereo-CITE T FF V1.0',
+    'Stereo-CITE T FF V1.0',   
     'Stereo-CITE T FF V1.1',
-    'Stereo-seq N FFPE V1.0',
+    'Stereo-seq N FFPE V1.0', 
+    
+    # Research versions
+    'Stereo-seq T FF V1.2 R',
+    'Stereo-seq T FF V1.3 R',
+    'Stereo-CITE T FF V1.0 R',
+    'Stereo-CITE T FF V1.1 R',
+    'Stereo-seq N FFPE V1.0 R',     
 )
-``` 
-***Each product line has the configurations of the product and R&D versions. You can visit [config.md](docs/v2/config.md) to view the detailed configurations.***
-
-### Research mode
-case 1:
-Stereo-CITE 
-DAPI + IF + trans gef
-```shell
-CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
--c A02677B5 \
--i A02677B5.tif \
--s DAPI \
--mi IF=A02677B5_IF.tif \
--m A02677B5.raw.gef \
--o test/A02677B5 \
--k "Stereo-CITE T FF V1.1 R"
 ```
 
-case 2: 
-Stereo-CITE
-DAPI + protein gef
-```shell
-CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
--c A03899A4 \
--i A03899A4_fov_stitched.tif \
--s DAPI \
--pr IF=A03899A4.protein.tissue.gef \
--o /test/A03899A4 \
--k "Stereo-CITE T FF V1.1 R"
-```
+> The kit controls the module switches and parameters in the JSON configuration to customize the analysis workflow. <br>
+> Detailed configurations per kit: [config.md](docs/v2/config.md). <br>
+> More introduction about kits type, you can view [STOmics official website](https://en.stomics.tech/products/stereo-seq-transcriptomics-solution/list.html).
 
-case 3:
-Stereo-CITE
-DAPI + IF + trans gef + protein gef
-```shell
-CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
--c A03599D1 \ # chip number
--i A03599D1_DAPI_fov_stitched.tif \  # ssDNA, DAPI, HE data path
--mi IF=A02677B5_IF.tif \
--s DAPI \  # stain type，(ssDNA, DAPI, HE)
--m A03599D1.raw.gef \  # Transcriptomics gef path
--pr A03599D1.protein.raw.gef \  # protein gef path
--o test/A03599D1 \ # output dir
--k "Stereo-CITE T FF V1.1 R"
-```
-### Official product
-case 1: 
-Stereo-seq T FF
-DAPI + mIF
-```shell
-CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
--c SS200000045_M5 \
--i SS200000045_M5_fov_stitched.tif \
--s DAPI \
--mi ATP_IF=SS200000045_M5_ATP_IF_fov_stitched.tif CD31_IF=SS200000045_M5_CD31_IF_fov_stitched.tif NeuN_IF=SS200000045_M5_NeuN_IF_fov_stitched.tif \
--m SS200000045_M5.raw.gef \
--o test/SS200000045_M5_11 \
--k "Stereo-seq T FF V1.2"
-```
-case 2: 
-Stereo-seq T FF
+### Common Use Cases
+
+#### Case 1:Stereo-seq T FF <br>
 ssDNA
 ```shell
 CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
--c SS200000135TL_D1 \
--i SS200000135TL_D1.tif \
+-c SN \
+-i SN.tif \
 -s ssDNA \
--m SS200000135TL_D1.raw.gef \
--o test/SS200000135TL_D1 \
+-m SN.raw.gef \
+-o test/SN \
 -k "Stereo-seq T FF V1.2"
 ```
-case 3: 
-Stereo-seq T FF
-H&E
+
+#### Case 2:Stereo-CITE <br>
+DAPI + IF + trans gef
 ```shell
 CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
--c C04042E3 \
--i C04042E3.tif \
--s HE \
--m C04042E3.raw.gef \
--o /test/C04042E3 \
--k "Stereo-seq T FF V1.2"
+-c SN \
+-i SN.tif \
+-s DAPI \
+-mi IF=SN_IF.tif \
+-m SN.raw.gef \
+-o test/SN \
+-k "Stereo-CITE T FF V1.1 R"
 ```
-more examples, please visit [example.md](docs/v2/example.md)
+
+#### Case 3:Stereo-CITE
+DAPI + protein gef
+```shell
+CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
+-c SN \
+-i SN_fov_stitched.tif \
+-s DAPI \
+-pr IF=SN.protein.tissue.gef \
+-o /test/SN \
+-k "Stereo-CITE T FF V1.1 R"
+```
+
+#### Case 4:Stereo-CITE
+DAPI + IF + trans gef + protein gef
+```shell
+CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
+-c SN \ # chip number
+-i SN_DAPI_fov_stitched.tif \  # ssDNA, DAPI, HE data path
+-mi IF=SN_IF.tif \
+-s DAPI \  # stain type (ssDNA, DAPI, HE)
+-m SN.raw.gef \  # Transcriptomics gef path
+-pr SN.protein.raw.gef \  # protein gef path
+-o test/SN \ # output dir
+-k "Stereo-CITE T FF V1.1 R"
+```
+
+#### Case 5:Single RNA <br>
+trans gef
+```shell
+CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
+-c SN \ # chip number
+-p only_matrix.json \ # Personalized Json File
+-o test/SN \ # output dir
+```
+please modify [only_matrix.json](cellbin2/config/demos/only_matrix.json)<br>
+
+
+#### Case 6: Plant cellbin<br>
+ssDNA + FB + trans gef
+```shell
+CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
+-c SN \ # chip number
+-p Plant.json \ # Personalized Json File
+-o test/SN \ # output dir
+```
+please modify [Plant.json](cellbin2/config/demos/Plant.json)<br>
+
+
+#### Case 7: Multi-stain cellbin <br>
+ssDNA + HE + trans gef
+ ```shell
+ CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
+ -c SN \ # chip number
+ -i SN_ssDNA_fov_stitched.tif \  # ssDNA,DAPI data path
+ -mi HE=SN_HE_fov_stitched.tif \ # HE data path. This image has been registered with ssDNA(DAPI) image
+ -s ssDNA \  # stain type (ssDNA, DAPI)
+ -m SN.raw.gef \  # Transcriptomics gef path
+ -o test/SN \ # output dir
+ -k "Stereo-CITE T FF V1.1 R"
+ ```
+
+> more examples, please visit [example.md](docs/v2/example.md)
 
 ## ErrorCode
 refer to [error.md](docs/v2/error.md)
 
-
+<a id="outputs"></a>
 ## Outputs
-
 | File Name | Description |
 | ---- | ---- |
-| A03599D1_cell_mask.tif | Final cell mask |
-| A03599D1_mask.tif | Final nuclear mask |
-| A03599D1_tissue_mask.tif | Final tissue mask |
-| A03599D1_params.json | CellBin 2.0 input params |
-| A03599D1.ipr | Image processing record |
+| SN_cell_mask.tif | Final cell mask |
+| SN_mask.tif | Final nuclear mask |
+| SN_tissue_mask.tif | Final tissue mask |
+| SN_params.json | CellBin 2.0 input params |
+| SN.ipr | Image processing record |
 | metrics.json | CellBin 2.0 Metrics |
 | CellBin_0.0.1_report.html | CellBin 2.0 report |
-| A03599D1.rpi | Recorded image processing (for visualization) |
-| A03599D1_DAPI_mask.tif | Cell mask on registered image |
-| A03599D1_DAPI_regist.tif | Registered image |
-| A03599D1_DAPI_tissue_cut.tif | Tissue mask on registered image |
-| A03599D1_IF_mask.tif | Cell mask on registered image |
-| A03599D1_IF_regist.tif | Registered image |
-| A03599D1_IF_tissue_cut.tif | Tissue mask on registered image |
+| SN.rpi | Recorded image processing (for visualization) |
+| SN.stereo | A JSON-formatted manifest file that records the visualization files in the result |
+| SN.tar.gz | tar.gz file |
+| SN_DAPI_mask.tif | Cell mask on registered image |
+| SN_DAPI_regist.tif | Registered image |
+| SN_DAPI_tissue_cut.tif | Tissue mask on registered image |
+| SN_IF_mask.tif | Cell mask on registered image |
+| SN_IF_regist.tif | Registered image |
+| SN_IF_tissue_cut.tif | Tissue mask on registered image |
+| SN_Transcriptomics_matrix_template.txt | Track template on gene matrix |
+
+- **Image files (`*.tif`):** Inspect using [ImageJ](https://imagej.net/ij/)
+- **Gene expression file** (generated only when matrix_extract module is enabled): 
+  Visualize with [StereoMap v4](https://www.stomics.tech/service/stereoMap_4_1/docs/kuai-su-kai-shi.html#ke-shi-hua-shu-ru-wen-jian).   
 
 
 ## Other content

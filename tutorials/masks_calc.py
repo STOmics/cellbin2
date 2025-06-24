@@ -71,10 +71,10 @@ def calc(a, b, overlap_threshold=0.5):
     a_mask_remove = a_mask_remove.astype('uint8')
     a_vis_path = os.path.splitext(a)[0] + "_remove" + os.path.splitext(a)[1]
     cbimwrite(a_vis_path, a_mask_remove)
-    # 重叠部分大于阈值/a mask的细胞数
+    # overlap above threshold /quatity of 'a'-mask cell
     overlap_counts_over_a = np.sum(the_chosen) / a_mask_cell_counts
 
-    # 重叠部分大于阈值/a mask的细胞数
+    # verlap above threshold /quatity of 'b'-mask cell
     overlap_counts_over_b = np.sum(the_chosen) / b_mask_cell_counts
 
     clog.info(f"overlap / {a_tag}: {round(overlap_counts_over_a, 2)}")

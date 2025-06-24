@@ -28,25 +28,35 @@ pt_enhance_method = {
 
 
 class TrackPointsParam(BaseModel, BaseModule):
-    detect_channel: int = Field(-1, description="若输入图为3通道，需指明检测通道。否则，程序会自动转为单通道图")
+    detect_channel: int = Field(
+        -1, description="If the input image is 3-channel, indicate the detection channel. "
+                        "Otherwise, the program will automatically switch to a single channel diagram"
+    )
     first_level_thr: int = Field(5, description="[th, th2) -> track_point_score = 1")
     second_level_thr: int = Field(20, description="[th2, inf) -> track_point_score = 2")
-    good_thresh: int = Field(5, description="大于该阈值的被计数为good_fov")
-    process: int = Field(1, description="点检测推理进程数设置")
-    conf_filter: float = Field(0.5, description="依据此数值对检测结果进行置信度过滤，若值小于0就不做过滤")  # 全局模板设置只要0.5以上的点
+    good_thresh: int = Field(5, description="Those exceeding the threshold are counted as good_fov")
+    process: int = Field(1, description="Point detection inference process number setting")
+    # Global template settings only require 0.5 or more points
+    conf_filter: float = Field(
+        0.5, description="Filter the confidence level of the detection results based on this value. "
+                         "If the value is less than 0, no filtering will be performed")
     high_freq_angle_thr: float = Field(0.05, )
     DEFAULT_STAIN_TYPE: TechType = TechType.ssDNA
     SUPPORTED_STAIN_TYPE: Tuple[TechType, TechType, TechType] = (TechType.ssDNA, TechType.DAPI, TechType.HE)
     ssDNA_weights_path: str = Field(
-        "points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx", description="ssDNA染色图对应的权重文件名")
+        "points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx",
+        description="The weight file name corresponding to the ssDNA staining image")
     DAPI_weights_path: str = Field(
-        "points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx", description="DAPI染色图对应的权重文件名")
+        "points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx",
+        description="The weight file name corresponding to the DAPI staining graph")
     HE_weights_path: str = Field(
-        "points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx", description="HE染色图对应的权重文件名")
+        "points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx",
+        description="The weight file name corresponding to the HE staining graph")
     IF_weights_path: str = Field(
-        "points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx", description="IF染色图对应的权重文件名")
-    GPU: int = Field(0, description="推理使用的GPU编号")
-    num_threads: int = Field(0, description="推理使用的线程数")
+        "points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx",
+        description="The weight file name corresponding to the IF staining graph")
+    GPU: int = Field(0, description="GPU number used for inference")
+    num_threads: int = Field(0, description="The number of threads used for inference")
 
     # def get_weights_path(self, stain_type: TechType):
     #     if stain_type == TechType.ssDNA: p = self.ssDNA_weights_path
@@ -127,8 +137,8 @@ class TrackPointQC(object):
             1. track pts count of each fov
             2. track pts dets confidence score of each fov
         Args:
-            cfg (TrackPtParam): 配置参数
-            stain_type: 染色类型
+            cfg (TrackPtParam): configuration parameter
+            stain_type:
 
         Result:
             self.track_result: track point detection result by deep learning method
@@ -156,10 +166,10 @@ class TrackPointQC(object):
         if stain_type not in cfg.SUPPORTED_STAIN_TYPE:
             clog.info(f"Track detect only support {[i.name for i in cfg.SUPPORTED_STAIN_TYPE]}, fail to initialize")
             return
-        # 初始化
+        # init
         self.cfg: TrackPointsParam = cfg
         self.stain_type = stain_type
-        self.ci = OBB5Detector()
+        self.ci = OBB5Detector(gpu=cfg.GPU, num_threads=cfg.num_threads)
         self.ci.load_model(
             weight_path=self.cfg.get_weights_path(self.stain_type)
         )
@@ -168,7 +178,7 @@ class TrackPointQC(object):
         # self.params: Optional[TrackPtParams] = None
         # self.track_conf: float = track_conf
 
-        # 结果
+        # result
         self.track_result: Dict[str, List[List[List[float]], Optional[float]]] = dict()  # {"0_0": [[[x, y, confidence], ...], angle], }
         self.score: float = -1.0
         self.fov_mask: np.ndarray = np.array([])
@@ -176,20 +186,20 @@ class TrackPointQC(object):
         self.good_fov_count: int = -1
         self.most_freq_angle: Tuple[float, int] = (-1.0, -1)  # angle, count
 
-        # 控制
+        # control
         self.rgb_warning = False
 
     def img_read(self, val, buffer) -> CBImage:
         if isinstance(val, str):
-            # 处理小图
+            # small image process
             img: CBImage = cbimread(files=val)
         elif isinstance(val, list) or isinstance(val, tuple):
-            # 处理大图
+            # big image process
             buffer: CBImage = cbimread(files=buffer)
             img: CBImage = buffer.crop_image(border=val)
         else:
             raise NotImplementedError
-        # 到这里就都是小图了
+        # That's all for the small pictures here
         if self.stain_type != TechType.HE and img.channel == 3:
             if self.cfg.detect_channel != -1:
                 img: CBImage = img.get_channel(channel=self.cfg.detect_channel)  # 2d array
@@ -216,10 +226,10 @@ class TrackPointQC(object):
 
         Args:
             img_dict (dict):
-                小图：{'row_col': img_path}
-                大图：{'row_col': [y_begin, y_end, x_begin, x_end]}
-            buffer: np.ndarray 大图
-            save_dir: str 保存路径
+                small image：{'row_col': img_path}
+                big image：{'row_col': [y_begin, y_end, x_begin, x_end]}
+            buffer: np.ndarray - big image
+            save_dir: str save path
         """
         self.track_result = dict()
         if not hasattr(self, 'ci'):
@@ -261,7 +271,7 @@ class TrackPointQC(object):
             for key, p, img_obj in processes:
                 cp, angle = p.get()
                 if save_dir is not None:
-                    # debug 模式
+                    # debug mode
                     save_result_on_image(enhance_func, img_obj, cp, save_dir, key)
                 if angle is None or len(cp) == 0:
                     continue
@@ -354,10 +364,10 @@ class TrackPointQC(object):
 
     def track_filter(self, angle_dif=1, track_conf=0.5):
         """
-        清除异常track检点
+        Clear abnormal track inspection points
         Args:
-            angle_dif: 与众数最大角度差异
-            track_conf: track点的最低置信度
+            angle_dif: Maximum angle difference from mode
+            track_conf: Minimum confidence level of track points
         """
         clog.info(f"Filtering track point result based on confidence > {track_conf}")
         new_result = dict()
@@ -422,7 +432,7 @@ def large_split(
 
 
 def image_location(src_fovs: dict, rows: int, cols: int):
-    """大图坐标生成函数"""
+    """Large image coordinate generation function"""
     location = np.zeros((rows, cols, 2), dtype=int)
     for k, v in src_fovs.items():
         row, col = [int(i) for i in k.split('_')]
@@ -440,7 +450,7 @@ def run_detect(
         overlap: Union[float, int],
         save_dir=None,
 ):
-    # 大图需要切图
+    # The large image needs to be cropped
     img_dict, buffer = large_split(
         large_path=img_file,
         save_dir=save_dir,

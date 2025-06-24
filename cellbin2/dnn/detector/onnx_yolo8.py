@@ -15,12 +15,13 @@ import onnxruntime as ort
 import cellbin2.image as cbi
 
 from cellbin2.image.augmentation import f_ij_16_to_8
+from cellbin2.utils import clog
 
 
 class Yolo8Detector(object):
     """YOLOv8 object detection model class for handling inference and visualization."""
 
-    def __init__(self, onnx_model, input_image, confidence_thres=0.5, iou_thres=0.5):
+    def __init__(self, onnx_model, input_image, confidence_thres=0.5, iou_thres=0.5, gpu="-1", num_threads=0):
         """
         Initializes an instance of the YOLOv8 class.
 
@@ -37,10 +38,21 @@ class Yolo8Detector(object):
         self.confidence_thres = confidence_thres
         self.iou_thres = iou_thres
 
+        self.providers = ["CPUExecutionProvider"]
+        self.predictor_id = [{'device': "-1"}]
+        self.gpu = int(gpu)
+        self.num_threads = num_threads
+
         self.preprocess_func = None
         self.postprocess_func = None
 
         self.parse_image(input_image)
+        self.f_init()
+
+    def f_init(self):
+        if self.gpu > -1:
+            self.providers = ["CUDAExecutionProvider"]
+            self.predictor_id = [{'device_id': str(self.gpu)}]
 
     def parse_image(self, img):
         # Read the input image using CBI
@@ -171,7 +183,38 @@ class Yolo8Detector(object):
             output_img: The output image with drawn detections.
         """
         # Create an inference session using the ONNX model and specify execution providers
-        session = ort.InferenceSession(self.onnx_model, providers=["CPUExecutionProvider"])
+
+        clog.info(f'loading weight from {self.onnx_model}')
+        sessionOptions = ort.SessionOptions()
+        try:
+            if (self.gpu < 0) and (self.num_threads > 0):
+                sessionOptions.intra_op_num_threads = self.num_threads
+            session = ort.InferenceSession(self.onnx_model,
+                                           providers=self.providers,
+                                           provider_options=self.predictor_id,
+                                           sess_options = sessionOptions)
+            active_provider = session.get_providers()[0]
+            expected_provider = self.providers[0]
+            if active_provider == expected_provider:
+                if self.gpu < 0:
+                    clog.info(f'onnx work on cpu,threads {self.num_threads}')
+                else:
+                    clog.info(f'onnx work on gpu {self.gpu}')
+            else:
+                # ['TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider']
+                clog.warning(f'Warning!!! expected: {expected_provider}, active: {active_provider}')
+                if active_provider == 'CPUExecutionProvider':
+                    clog.info(f'Warning!!! GPU call failed, onnx work on cpu,threads {self.num_threads}')
+                if active_provider == 'CUDAExecutionProvider':
+                    clog.info(f'onnx work on gpu')
+        except:
+            if self.num_threads > 0:
+                sessionOptions.intra_op_num_threads = self.num_threads
+            session = ort.InferenceSession(self.onnx_model,
+                                           providers=['CPUExecutionProvider'],
+                                           provider_options=[{'device_id': '-1'}],
+                                           sess_options=sessionOptions)
+            clog.info(f'Warning!!! GPU call failed, onnx work on cpu,threads {self.num_threads}')
 
         # Get the model inputs
         model_inputs = session.get_inputs()

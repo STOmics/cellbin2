@@ -27,7 +27,7 @@ def rotate(ptx, pty, angle, original_shape, new_shape):
 @njit(parallel=True)
 def multiply_sum(a, b):
     """
-    2023/09/20 @fxzhao 计算矩阵相乘后的累加和
+    2023/09/20 @fxzhao calculate the cumulative sum after matrix multiplication
     """
     res = 0
     (h, w) = a.shape
@@ -92,7 +92,7 @@ class AlignByTrack:
         self.transformed_cfov_pts = None
         self.vision_cfov_pts = None
 
-        # 兼容HE类型数据的配准方法
+        # registration method compatible with HE type data
         self.new_method: bool = False
 
     def set_chip_template(self, chip_template):
@@ -141,7 +141,7 @@ class AlignByTrack:
         )
 
         if flip:
-            new_px = new_shape[1] - 1 - new_px  # 翻转, 注意这里是用的图片的形状, 所以要-1
+            new_px = new_shape[1] - 1 - new_px  # flip, note that the shape of image is used here, so -1 is required for index calculation
             chip_xlen, chip_ylen = [len(chip_template[0]), len(chip_template[1])]
             ids[:, 0] = chip_xlen - 1 - ids[:, 0]
         pts_ids = np.hstack((new_px, new_py, ids))
@@ -173,20 +173,20 @@ class AlignByTrack:
     @staticmethod
     def cal_score(transformed_image, vision_image, offset, method=False):
         """
-        2023/09/20 @fxzhao 使用切片代替padding操作,加速并降低内存
+        2023/09/20 @fxzhao use slicing instead of padding to speed up and reduce memory usage
         """
         if method:
             left_x = int(round(abs(offset[0])))
-            if offset[0] < 0:
-                vision_image = f_padding(vision_image, 0, 0, left_x, 0)
+            if offset[0] > 0:
+                transformed_image = f_padding(transformed_image, 0, 0, left_x, 0)
             else:
-                vision_image = vision_image[:, int(round(offset[0])):]
+                vision_image = f_padding(vision_image, 0, 0, left_x, 0)
 
             up_y = int(round(abs(offset[1])))
-            if offset[1] < 0:
-                vision_image = f_padding(vision_image, up_y, 0, 0, 0)
+            if offset[1] > 0:
+                transformed_image = f_padding(transformed_image, up_y, 0, 0, 0)
             else:
-                vision_image = vision_image[int(round(offset[1])):, :]
+                vision_image = f_padding(vision_image, up_y, 0, 0, 0)
 
             shape_vision = np.shape(vision_image)
             shape_transform = np.shape(transformed_image)
@@ -200,7 +200,6 @@ class AlignByTrack:
                 transformed_image = f_padding(transformed_image, 0, 0, 0, shape_vision[1] - shape_transform[1])
             else:
                 vision_image = f_padding(vision_image, 0, 0, 0, shape_transform[1] - shape_vision[1])
-            # score = np.sum(np.multiply(vision_image, transformed_image))
             score = sub_sum(vision_image, transformed_image)
             return score
         else:
@@ -279,6 +278,7 @@ class AlignByTrack:
         score_max = np.Inf if self.new_method else 0
         offset_last = []
 
+        # Iterate through the matching scores of 9 surrounding FOVs 
         # 依次遍历上下左右9个FOV的匹配程度
         for row in self.search_range_x:
             for col in self.search_range_y:

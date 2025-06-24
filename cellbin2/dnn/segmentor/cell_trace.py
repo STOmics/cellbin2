@@ -20,8 +20,8 @@ def get_trace(mask):
 
 def get_trace_v2(mask):
     """
-    2023/09/20 @fxzhao get_trace的升级版本,分块处理,降低大数据量下的内存占用
-    2023/09/21 @fxzhao 增加数据量检测,当数据较小时使用不分块方法
+    2023/09/20 @fxzhao upgraded version of get_trace, featuring chunked processing, reduce memory usage with large datasets
+    2023/09/21 @fxzhao added data volume detection, switches to non-chunked method when processing small datasets
     """
     h, w = mask.shape[: 2]
     steps = 10000

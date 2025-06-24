@@ -1,5 +1,5 @@
 """
-图像变换类
+Image Transform
 """
 import os
 import platform
@@ -10,6 +10,7 @@ if platform.system() == 'Windows':
 import pyvips
 import numpy as np
 import math
+os.environ["G_MESSAGES_DEBUG"] = ""
 
 format_to_dtype = {
     'uchar': np.uint8,
@@ -124,7 +125,7 @@ class ImageTransform(pyvips.Image):
 
     def rot90(self, rot90_type: int, ret_dst=True):
         """
-        2023/09/21 @fxzhao 增加参数ret_dst,默认为True返回数据,否则返回None
+        2023/09/21 @fxzhao add parameter ret_dst, default return True, otherwise return None
         """
         self.__rigid_transform(rot_type=rot90_type)
         if ret_dst:
@@ -146,7 +147,7 @@ class ImageTransform(pyvips.Image):
         '''
         :param flip_type: 'ver' | 'hor'
         
-        2023/09/21 @fxzhao 增加参数ret_dst,默认为True返回数据,否则返回None
+        2023/09/21 @fxzhao add parameter ret_dst, default True and return data, otherwise return None 
         '''
         self.__rigid_transform(flip=flip_type)
         if ret_dst:
@@ -179,6 +180,7 @@ class ImageTransform(pyvips.Image):
 
     def __get_padding(self, rotate, h, w):
         """
+        For pyvips rotation angle padding calculation
         用于pyvips旋转角度 补齐量
         """
         if 360 - rotate % 360 > 180:
@@ -194,11 +196,11 @@ class ImageTransform(pyvips.Image):
 
     def __rigid_transform(self, flip=None, rot_type=None, offset=None, dst_shape=None):
         """
-        2023/4/6 @dengzhonghan 将扩展画布优先于offset挪动
-        2023/5/6 @dengzhonghan 画布扩展与offset挪动合并，不然需要判断两幅图尺寸大小的关系
-        2023/9/19 @fxzhao 修复用affine做旋转的问题,替换为pyvips自带的rot方法
-        2023/9/20 @lizepeng1 修复了pyvips所有旋转问题
-        刚性
+        2023/4/6 @dengzhonghan prioritize extending canvas over moving offset  
+        2023/5/6 @dengzhonghan merge canvas extending and offset moving, otherwise determine the size relation between two images
+        2023/9/19 @fxzhao fixed rotation issues by replacing affine transformation with pyvips' rot() method
+        2023/9/20 @lizepeng1 Resolved all remaining rotation issues in pyvips
+        rigid transformation
         """
         if flip is not None:
             if flip == 'ver':
@@ -238,7 +240,7 @@ class ImageTransform(pyvips.Image):
 
     def __affine_transform(self, scale_x=None, scale_y=None, rotation=None):
         """
-        仿射
+        affine transform
         """
         if scale_x is None: scale_x = 1
         if scale_y is None: scale_y = 1

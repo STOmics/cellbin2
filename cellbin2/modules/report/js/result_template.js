@@ -671,7 +671,13 @@ const resultJson = {"sampleId": "SS200000135",
   },
   	"image1_chipbox": {
     "title": "Chip Box",
-	"src": ".\\assets\\rna\\adjusted\\MIDCount.png"
+	"src": ".\\assets\\rna\\adjusted\\MIDCount.png",
+    "chipbox_part_image":{
+      "chipbox_part_image1_src":"",
+      "chipbox_part_image2_src":"",
+      "chipbox_part_image3_src":"",
+      "chipbox_part_image4_src":"",
+    }
   },
     "image1_trackpoint": {
         "title": "Track Point",
@@ -984,8 +990,14 @@ const resultJson = {"sampleId": "SS200000135",
   },
   	"image2_chipbox": {
     "title": "Chip Box",
-	"src": ".\\assets\\rna\\adjusted\\MIDCount.png"
-  },
+	"src": ".\\assets\\rna\\adjusted\\MIDCount.png",
+    "chipbox_part_image":{
+      "chipbox_part_image1_src":"",
+      "chipbox_part_image2_src":"",
+      "chipbox_part_image3_src":"",
+      "chipbox_part_image4_src":"",
+      }
+    },
     "image2_trackpoint": {
     "title": "Track Point",
 	"src": ".\\assets\\rna\\adjusted\\MIDCount.png",
@@ -1296,9 +1308,15 @@ const resultJson = {"sampleId": "SS200000135",
 	"src": ".\\assets\\rna\\adjusted\\MIDCount.png"
   },
   	"image3_chipbox": {
-    "title": "Chip Box",
-	"src": ".\\assets\\rna\\adjusted\\MIDCount.png"
-  },
+      "title": "Chip Box",
+      "src": ".\\assets\\rna\\adjusted\\MIDCount.png",
+      "chipbox_part_image": {
+        "chipbox_part_image1_src": "",
+        "chipbox_part_image2_src": "",
+        "chipbox_part_image3_src": "",
+        "chipbox_part_image4_src": "",
+      }
+    },
     "image3_trackpoint": {
     "title": "Track Point",
 	"src": ".\\assets\\rna\\adjusted\\MIDCount.png",
@@ -1611,8 +1629,14 @@ const resultJson = {"sampleId": "SS200000135",
   },
   	"image4_chipbox": {
     "title": "Chip Box",
-	"src": ".\\assets\\rna\\adjusted\\MIDCount.png"
-  },
+	"src": ".\\assets\\rna\\adjusted\\MIDCount.png",
+    "chipbox_part_image": {
+        "chipbox_part_image1_src": "",
+        "chipbox_part_image2_src": "",
+        "chipbox_part_image3_src": "",
+        "chipbox_part_image4_src": ""
+      }
+    },
     "image4_trackpoint": {
     "title": "Track Point",
 	"src": ".\\assets\\rna\\adjusted\\MIDCount.png",
@@ -1630,4 +1654,4 @@ const resultJson = {"sampleId": "SS200000135",
         }
   },
 }
-}; 
+}

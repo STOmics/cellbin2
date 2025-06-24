@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cellbin2"
+# Parse version number
+dynamic = ["version"]
+description = "A framework for generating single-cell gene expression data"
+authors = [
+    { name = "cell bin research group", email = "bgi@genomics.cn" }
+]
+dependencies = [
+    "numpy==1.23.5",
+    "h5py==3.8.0",
+    "objtyping",
+    "pydantic",
+    "opencv-python==4.8.0.76",
+    "imagecodecs==2023.3.16",
+    "aenum",
+    "tqdm==4.65.0",
+    "tifffile==2023.2.3",
+    "scipy",
+    "scikit-image==0.21.0",
+    "numba==0.56.4",
+    "onnxruntime-gpu==1.15.1",
+    "scikit-learn==1.3.0",
+    "imreg_dft==2.0.0",
+    "prettytable==3.11.0",
+    "PyYAML",
+    "matplotlib==3.7.1",
+    "requests",
+    "pandas==1.5.3",
+    "pyvips-binary",  # if pip install pyvips error, use conda install instead. (conda install --channel conda-forge pyvips)
+    "pyvips"
+]
+requires-python = ">=3.8"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = { attr = "cellbin2.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[project.optional-dependencies]
+cp = ['cellpose==3.0.11', 'patchify==0.2.3']
+rs = [
+    'gefpy==1.2.3',  # generate cellbin matrix
+]
+rp = [
+    'mapbox_earcut',
+    'fastcluster==1.2.6',
+    'stereopy==1.6.0', # research report
+    'beautifulsoup4',
+    'csscompressor',
+    'jsmin'
+]
