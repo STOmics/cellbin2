@@ -1,12 +1,12 @@
 {
   "image_process": {
     "0": {
-      "file_path": "Path/SN_ssDNA.tif",
-      "tech_type": "ssDNA",
-      "chip_detect": false,
+      "file_path": "/storeData/USER/data/01.CellBin/00.user/fanjinghong/data/10xHD/v2paper/A04547A1C3.tif",
+      "tech_type": "HE",
+      "chip_detect": true,
       "quality_control": false,
-      "tissue_segmentation": false,
-      "cell_segmentation": false,
+      "tissue_segmentation": true,
+      "cell_segmentation": true,
       "correct_r": 10,
       "channel_align": -1,
       "registration": {
@@ -15,34 +15,19 @@
         "reuse": -1
       }
     },
-     "1": {
-      "file_path": "Path/SN.gem.gz",
+    "1": {
+      "file_path": "/storeData/USER/data/01.CellBin/00.user/fanjinghong/data/10xHD/v2paper/A04547A1C3.gem.gz",
       "tech_type": "Transcriptomics",
       "chip_detect": false,
       "quality_control": false,
-      "tissue_segmentation": false,
+      "tissue_segmentation": true,
       "cell_segmentation": false,
-      "correct_r": -1,
+      "correct_r": 0,
       "channel_align": -1,
       "registration": {
         "fixed_image": -1,
-        "trackline": false,
+        "trackline": true,
         "reuse": -1
-      }
-    },
-    "2": {
-      "file_path": "Path/SN_FB.tif",
-      "tech_type": "IF",
-      "chip_detect": false,
-      "quality_control": false,
-      "tissue_segmentation": false,
-      "cell_segmentation": true,
-      "correct_r": -1,
-      "channel_align": 0,
-      "registration": {
-        "fixed_image": -1,
-        "trackline": false,
-        "reuse": 0
       }
     }
   },
@@ -50,13 +35,13 @@
     "0": {
       "exp_matrix": 1,
       "cell_mask": [
-        2
+        0
       ],
       "extra_method": ""
     }
   },
   "run": {
-    "qc": true,
+    "qc": false,
     "alignment": true,
     "matrix_extract": true,
     "report": false,

@@ -50,6 +50,12 @@ model_preprocess = {
     },
     SUPPORTED_MODELS[2]: {
         TechType.Transcriptomics: f_pre_rna
+    },
+    SUPPORTED_MODELS[3]: {
+        TechType.DAPI: f_pre_ssdna,
+    },
+    SUPPORTED_MODELS[4]: {
+         TechType.HE: f_pre_he,
     }
 }
 
@@ -60,20 +66,20 @@ class CellSegPreprocess:
         self.m_preprocess: dict = model_preprocess[self.model_name]
 
     def __call__(self, img: Union[str, npt.NDArray], stain_type):
-        # support image reading 
+        # 支持读图
         if isinstance(img, str):
             img = self.im_read(img)
 
-        # basic operation
+        # 基操
         img = np.squeeze(img)
         if img.dtype != 'uint8':
             img = f_ij_16_to_8_v2(img)
 
-        # different process for diffrent staining 
+        # 不同染色不同操作
         pre_func = self.m_preprocess.get(stain_type)
         img = pre_func(img)
 
-        # basic operation
+        # 基操
         if img.dtype != np.float32:
             img = np.array(img).astype(np.float32)
         img = np.ascontiguousarray(img)

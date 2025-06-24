@@ -65,7 +65,7 @@ class StitchingWSI(object):
 
     def mosaic(self, src_image: dict, loc = None, down_sample = 1, multi = False, fuse_flag = True):
 
-        k = [i * (90 / self._fuse_size) for i in range(0, self._fuse_size)][::-1]  # fusion ratio
+        k = [i * (90 / self._fuse_size) for i in range(0, self._fuse_size)][::-1]  # 融合比值
 
         self.fov_rows, self.fov_cols = loc.shape[:2]
         self._init_parm(src_image)

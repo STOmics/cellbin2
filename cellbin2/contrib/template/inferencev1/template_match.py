@@ -7,7 +7,7 @@ from cellbin2.utils import clog
 
 
 def intersect(s1, s2, s_idx, template, tolerance=15):
-    # Calculate the degree of matching
+    # 计算匹配程度
     o_itcp = []
     o_idx = []
     tp_tmp = [template[idx] for idx in s_idx]
@@ -18,7 +18,7 @@ def intersect(s1, s2, s_idx, template, tolerance=15):
     while i < len(s1) and j < len(s2):
         if abs(s1[i] - s2[j]) <= tolerance:
             err_dist += abs(s1[i] - s2[j])
-            # If the actual intercept and theoretical intercept are considered to match within the tolerance range
+            # 如果实际截距和理论截距在容忍范围内认为匹配
             if len(o_itcp) == 0:
                 st = i
             o_itcp.append(s2[j])
@@ -29,7 +29,7 @@ def intersect(s1, s2, s_idx, template, tolerance=15):
         elif s1[i] - s2[j] < 0:
             i += 1
         else:
-            # Set the index to -1 for values that cannot be matched in the actual intercept
+            # 实际截距中无法匹配的值index置为-1
             o_idx.append(-1)
             j += 1
 
@@ -37,7 +37,7 @@ def intersect(s1, s2, s_idx, template, tolerance=15):
         for k in range(len(s2) - len(o_idx)):
             o_idx.append(-1)
 
-    # Calculate the total width of the standard template through an effective index
+    # 通过有效index计算标准模板的总宽度
     if st == ed:
         tp_dist = 0
     else:
@@ -47,14 +47,14 @@ def intersect(s1, s2, s_idx, template, tolerance=15):
 
 
 def map_by_intercept(intercept, template, length=2040, scale_min=0.2, scale_max=2.5):
-    # Obtain template width based on index
+    # 根据index获取模板宽度
     def get_template(idx):
         if idx < 0 or idx >= len(template):
             return template[idx % len(template)]
         else:
             return template[idx]
 
-    # Calculate the actual width based on the actual intercept
+    # 通过实际截距计算实际宽度
     interval = [(intercept[i + 1] - intercept[i]) for i in range(len(intercept) - 1)]
     # count = len(interval)
     # template_len = len(template)
@@ -67,7 +67,7 @@ def map_by_intercept(intercept, template, length=2040, scale_min=0.2, scale_max=
     tp_dist = 0
     o_score = 0
     err_min = 0
-    # Perform enumeration calculation using each actual intercept and each template width
+    # 用每一个实际截距和每一个模板宽度进行枚举计算
     for i in range(len(interval)):
         val = interval[i]
         itcp = intercept[i]
@@ -77,12 +77,12 @@ def map_by_intercept(intercept, template, length=2040, scale_min=0.2, scale_max=
             fake_itcp = [itcp]
             fake_idx = [j]
 
-            # Calculate temporary scale
+            # 计算临时scale
             scale_tmp = val / template[j]
             if scale_tmp < scale_min or scale_tmp > scale_max:
                 continue
 
-            # Calculate the theoretical intercept list and corresponding index list for this temporary scale
+            # 推算该临时scale下的理论截距列表和对应的index列表
             k = j - 1
             st = itcp - get_template(k) * scale_tmp
             while st >= 0:
@@ -102,7 +102,7 @@ def map_by_intercept(intercept, template, length=2040, scale_min=0.2, scale_max=
             for n in range(len(fake_idx)):
                 fake_idx[n] = fake_idx[n] % len(template)
 
-            # Calculate and determine the degree of matching
+            # 计算和判断匹配程度
             o_itcp, o_idx, tmp_dist, err_dist = intersect(fake_itcp, intercept, fake_idx, template)
             if len(o_itcp) > o_score:
                 o_score = len(o_itcp)
@@ -118,13 +118,13 @@ def map_by_intercept(intercept, template, length=2040, scale_min=0.2, scale_max=
                     tp_dist = tmp_dist
                     err_min = err_dist
 
-    # Result filtering and exception handling
+    # 结果过滤和异常处理
     if o_score <= 2:
         return -1, -1, -1, -1
     if tp_dist == 0:
         return -1, -1, -1, -1
 
-    # Calculate scale
+    # 计算scale
     im_dist = eff_itcp[-1] - eff_itcp[0]
 
     scale = im_dist / tp_dist

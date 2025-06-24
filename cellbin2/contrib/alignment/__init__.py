@@ -12,11 +12,8 @@ from cellbin2.utils import clog
 class RegistrationInput(BaseModel):
     moving_image: ChipFeature
     fixed_image: Optional[ChipFeature] = None
-    ref: Tuple[List, List] = Field(
-        ...,
-        description="Template cycle, only used in template related registration methods"
-    )
-    dst_shape: Optional[Tuple[int, int]] = Field(None, description="The shape of fixed image ")
+    ref: Tuple[List, List] = Field(..., description="模板周期，仅在模板相关配准方法下用到")
+    dst_shape: Optional[Tuple[int, int]] = Field(None, description="the shape of fixed image ")
     from_stitched: bool
     rot90_flag: bool
     flip_flag: bool
@@ -26,7 +23,7 @@ class RegistrationOutput(BaseModel):
     counter_rot90: int = Field(0, description='')
     flip: bool = Field(True, description='')
     register_score: int = Field(-999, description='')
-    # Due to offset various reasons, the four directions are tentatively set as preliminary
+    # offset 多样原因为前置为暂定四个方向
     offset: Union[Dict, Tuple[float, float]] = Field((0., 0.), description='')
     register_mat: Any = Field(None, description='')
     method: AlignMode = Field(AlignMode.TemplateCentroid, description='')
@@ -78,11 +75,11 @@ def registration(moving_image: ChipFeature,
                  rot90_flag: bool = True,
                  ) -> (RegistrationOutput, RegistrationOutput):
     """
-    :param moving_image: The image to be registered is usually a stained image (such as ssDNA, HE)
-    :param fixed_image: Fixed image, usually a matrix, supports TIF/GEM/GEF and arrays
-    :param ref: Template cycle, only used in template related registration methods
-    :param from_stitched: Registration from stitched images
-    :param qc_info: QC flag info
+    :param moving_image: 待配准图，通常是染色图（如ssDNA、HE）
+    :param fixed_image: 固定图，通常是矩阵，支持TIF/GEM/GEF及数组
+    :param ref: 模板周期，仅在模板相关配准方法下用到
+    :param from_stitched: 从拼接图配准
+    :param qc_info: QC flag 信息
     :param flip_flag:
     :param rot90_flag:
     :return: RegistrationInfo
@@ -155,7 +152,7 @@ if __name__ == '__main__':
     template_ref = ([240, 300, 330, 390, 390, 330, 300, 240, 420],
                     [240, 300, 330, 390, 390, 330, 300, 240, 420])
 
-    # move image
+    # 移动图像信息
     moving_image = ChipFeature()
     moving_image.tech_type = TechType.DAPI
     moving_mat = cbimread(r'E:\03.users\liuhuanlin\01.data\cellbin2\stitch\A03599D1_DAPI.tif')
@@ -176,7 +173,7 @@ if __name__ == '__main__':
                           is_available=True)
     moving_image.set_chip_box(img_box)
 
-    # fix object information
+    # 固定对象信息
     fixed_image = ChipFeature()
     fixed_image.tech_type = TechType.Transcriptomics
     fixed_image.set_mat(r'E:\03.users\liuhuanlin\01.data\cellbin2\stitch\A03599D1_gene.tif')
@@ -189,7 +186,7 @@ if __name__ == '__main__':
     matrix_box = ChipBoxInfo(left_top=[124., 1604.], left_bottom=[124., 21596.],
                              right_bottom=[20116., 21596.], right_top=[20116., 1604.])
 
-    # multi-method test 
+    # 多种方案的测试
     methods = [AlignMode.TemplateCentroid, AlignMode.Template00Pt, AlignMode.ChipBox, AlignMode.Voting]
     for m in methods[:1]:
         info = registration(moving_image=moving_image, fixed_image=fixed_image,

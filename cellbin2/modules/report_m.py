@@ -18,12 +18,12 @@ COLORS = ["#E64B35", "#4DBBD5", "#00A087", "#3C5488", "#F39B7F", "#8491B4", "#91
 
 
 class Report(object):
-    """ report: unlimited format (HTML) """
+    """ 报告: 不限制形式（HTML ） """
 
     def __init__(self, matrics_json, save_path=RESULT_JSON_PARH, json_template=JSON_TEMPLATE):
         """
-        :param json_template:  json template for report generation 生成报告的需要的json文件模板
-        :param matrics_json:  calculated matrics json file 
+        :param json_template:  生成报告的需要的json文件模板
+        :param matrics_json:  计算出的指标json文件
         """
         self.json_path = json_template
         with open(json_template, 'r') as file:
@@ -198,8 +198,7 @@ class Report(object):
                 temp_dict["marker"]["size"] = 1.56
                 temp_dict["marker"]["opacity"] = 1.0
                 temp_dict["marker"]["symbol"] = "circle"
-                if i < 49:
-                    temp_dict["marker"]["color"] = COLORS[i] # if the category is less than 50, use the COLORS list
+                temp_dict["marker"]["color"] = COLORS[i]
                 self._json["cellbin"][matrix_type]["clustering"]["data"]["spatial"].append(temp_dict)
                 temp_dict = {"mode": "markers", "name": f"Cluster {c}", "type": "scattergl", "hovertemplate": " ",
                              "marker": {}}
@@ -207,8 +206,7 @@ class Report(object):
                 temp_dict["marker"]["size"] = 1.56
                 temp_dict["marker"]["opacity"] = 1.0
                 temp_dict["marker"]["symbol"] = "circle"
-                if i < 49:
-                    temp_dict["marker"]["color"] = COLORS[i] # if the category is less than 50, use the COLORS list
+                temp_dict["marker"]["color"] = COLORS[i]
                 self._json["cellbin"][matrix_type]["clustering"]["data"]["umap"].append(temp_dict)
 
         if len(self.matrics_data["matrix"]["RNA"]["cluster"]) > 0:
@@ -236,21 +234,14 @@ class Report(object):
         self._json["image"]["summary"]["data"].append(_set_data_dict("ImageSizey (mm)",
                                                                      int(self.matrics_data["image"]["param"][
                                                                              "sizey"]) * RESOLUTION))
-        layers = list(self.matrics_data["image_ipr"].keys())
-        layers.remove("ManualState")
+        layers = list(self.matrics_data["image_ipr"].keys());
+        layers.remove("ManualState");
         layers.remove("StereoResepSwitch")
         self._json["image"]["image_num"] = len(layers)
 
-        main_stain = set(layers) & set(['HE', 'DAPI', 'ssDNA'])
-        if len(main_stain) > 1:
-            # choice stain type
-            layer_ = max(main_stain, key=lambda x: len(self.matrics_data["image_ipr"].get(x, {}).keys()))
-        else:
-            layer_ = list(main_stain)[0]
         for num, layer in enumerate(layers):
-            if layer != layer_:
+            if layer not in ['HE', 'DAPI', 'ssDNA']:
                 continue
-
             self._json["image"]["summary"]["data"].append(_set_data_dict(f"Image_{num} name", layer))
             self._json["image"]["summary"]["data"].append(_set_data_dict(f"Image_{num} channel",
                                                                          self.matrics_data["image_ipr"][layer][
@@ -279,24 +270,18 @@ class Report(object):
             ### set image trackpoint and chipbox
             self._json["image"][f"image{num + 1}_trackpoint"]["src"] = self.matrics_data["image_ipr"][layer][
                 "trackpoint"]
-            self._json["image"][f"image{num + 1}_chipbox"]["src"] = self.matrics_data["image_ipr"][layer][
-                "chipbox"]
 
             ### set small trackpoint image
             img_num = len(self._json["image"][f"image{num + 1}_trackpoint"]["small_chip_image"])
             for i in range(img_num):
-                #trackpoint small
-                self._json["image"][f"image{num + 1}_trackpoint"]["small_chip_image"][f"chip_image{i+1}_src"] = \
-                    self.matrics_data["image_ipr"][layer][f"trackpoint_cp_image_{i+1}"]
+                self._json["image"][f"image{num + 1}_trackpoint"]["small_chip_image"][f"chip_image{i+1}_src"] = self.matrics_data["image_ipr"][layer][f"trackpoint_cp_image_{i+1}"]
                 self._json["image"][f"image{num + 1}_trackpoint"]["small_tissue_image"][f"tissue_image{i+1}_src"] = \
-                    self.matrics_data["image_ipr"][layer][f"trackpoint_tissue_image_{i+1}"]
-                #chipbox part
-                self._json["image"][f"image{num + 1}_chipbox"]["chipbox_part_image"][f"chipbox_part_image{i+1}_src"] = \
-                    self.matrics_data["image_ipr"][layer][f"chipbox_part_image_{i + 1}"]
-            # self._json["image"][f"image{num + 1}_trackpoint"]["src"] = self.matrics_data["image_ipr"][layer][
-            #     "trackpoint"]
+                self.matrics_data["image_ipr"][layer][f"trackpoint_tissue_image_{i+1}"]
 
-
+            self._json["image"][f"image{num + 1}_trackpoint"]["src"] = self.matrics_data["image_ipr"][layer][
+                "trackpoint"]
+            self._json["image"][f"image{num + 1}_chipbox"]["src"] = self.matrics_data["image_ipr"][layer][
+                "chipbox"]
 
             ### set image register infor
             self._json["image"][f"image{num + 1}_registration"]["data"] = []
@@ -373,9 +358,8 @@ class Report(object):
 
     def _falsified_data(self, layer):
         """
-           when image information cannot be read from ipr, temporarily generate fake names
-           when file size data cannot be read from ipr, temporarily generate a fake file size value
-
+           ipr 里读不到图片信息，暂时用伪造的方式做一个名称
+           ipr 里读不到文件大小的信息，暂时伪造一个文件大小的数字
         """
         self.matrics_data["image_ipr"][layer]["image_info"]["imagename"] = "SS200000135TL_D1.tif"
         self.matrics_data["image_ipr"][layer]["image_info"]["imagesize"] = "4.12"

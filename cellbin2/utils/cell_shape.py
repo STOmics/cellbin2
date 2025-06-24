@@ -19,23 +19,23 @@ import h5py
 import mapbox_earcut as earcut
 import numpy as np
 
-# 500K cells
+# 50w 个细胞
 # file = 'D:/gef/FP200000616TL_A3C4.cellbin.gef'
 # output_folder = 'D:/ng_local_data/cell_border/2D_data/FP200000616TL_A3C4'
-# 50K cells
+# 5w 个细胞
 # file = 'D:/gef/SS200000135TL_D1.cellbin.gef'
 # output_folder = 'D:/ng_local_data/cell_border/2D_data/SS200000135TL_D1'
-# 1M cells
+# 100w 个细胞
 # file = 'D:/gef/SS200000144TR_C1E4.cellbin.gef'
 # output_folder = 'D:/ng_local_data/cell_border/2D_data/SS200000144TR_C1E4'
-# 1M cells
+# 100w 个细胞
 # file = 'D:/gef/SS200000144TR_C1E4.cellbin-new.gef'
 # output_folder = 'D:/ng_local_data/cell_border/2D_data/SS200000144TR_C1E4'
-# TODO :need to input some info to set properties. The properties needs to be configurable.
-# fixed number, number of points of cell contour
+# TODO 需要另外输入info中设置properties，properties中内容需要可配置
+# 细胞轮廓点数量，固定值
 final_border_length = 16
 
-# TODO : will be changed to read the data subscript corresponding to the attribute name in the gef file.
+# TODO 需要改成读取gef文件中的属性名称对应的数据下标
 attr_x_index = 1
 attr_y_index = 2
 attr_gene_count_index = 4
@@ -45,16 +45,16 @@ attr_area_index = 7
 attr_cell_type_id_index = 8
 attr_cluster_id_index = 9
 
-# h5 file pointer
+# h5文件指针
 H5_FILE_POINT: h5py.File
 
 
 def create_group(group_name):
     """
-    h5file creation group
+    h5文件创建group
 
-    :param group_name: group name
-    :return: group object 
+    :param group_name: group 名称
+    :return: group 对象
     """
     global H5_FILE_POINT
     if H5_FILE_POINT.get(group_name):
@@ -64,11 +64,11 @@ def create_group(group_name):
 
 def set_attrs(group: h5py.Group, key, values):
     """
-    h5 group set attribute 
+    h5 group 设置属性
 
-    :param group: group name
-    :param key: attribute name 
-    :param values: attribute values
+    :param group: group 名称
+    :param key: 属性名
+    :param values: 属性值
     :return:
     """
     group.attrs[key] = values
@@ -76,11 +76,11 @@ def set_attrs(group: h5py.Group, key, values):
 
 def create_dataset(group: h5py.Group, name, data, dtype=None):
     """
-    h5 group create dataset
-    :param group: group name
-    :param name: dataset name
-    :param data: data
-    :param dtype: data type **not in use yet
+    h5 group 创建数据集
+    :param group: group名称
+    :param name: 数据集名称
+    :param data: 数据
+    :param dtype: 数据类型 **暂未用到
     :return:
     """
     group.create_dataset(name, data=data)
@@ -98,7 +98,7 @@ def print_running_time(func):
     return wrapper
 
 
-# create 'info json' file
+# 创建info json文件
 @print_running_time
 def create_info_json_2d(resolution, lower_bound, upper_bound, chunk_size, grid_shape, empty_chunk, output_folder,
                         group):
@@ -128,7 +128,7 @@ def create_info_json_2d(resolution, lower_bound, upper_bound, chunk_size, grid_s
             ],
             'emptyChunk': empty_chunk
             }
-    # if not os.path.exists(output_folder):  # determine if current path exist, creat folder if not exist 
+    # if not os.path.exists(output_folder):  # 判断当前路径是否存在，没有则创建文件夹
     #     os.makedirs(output_folder)
     # with open(output_folder + '/info', 'w') as write_f:
     #     write_f.write(json.dumps(info, indent=4, ensure_ascii=False))
@@ -147,7 +147,7 @@ def divChunk(cell_count, bounding_size_x, bounding_size_y):
         min_size = bounding_size_y
         max_size = bounding_size_x
         min_dim = 1
-    # 1.415, approximate value for suqare root of 2
+    # 1.415为根号2的近似值
     target_size = 1.415 * min_size
     pre_div_times = 0
 
@@ -188,7 +188,7 @@ def getCellInfoList(file, output_folder):
         bounding_size_y = upper_bound[1] - lower_bound[1]
 
         grid_shape = divChunk(cell_count, bounding_size_x, bounding_size_y)
-        # calculate the chunk size based on the chunk grid ratio and boundary value
+        # 根据分块网格比例以及边界值，计算分块大小
         chunk_size = [bounding_size_x / grid_shape[0], bounding_size_y / grid_shape[1]]
         cell_basic_info_list = list(map(list, cell_data[:]))
 
@@ -211,14 +211,14 @@ def getCellInfoList(file, output_folder):
         border_data = gef_file.get('cellBin/cellBorder')
         cell_border_list = []
 
-        # for testing exporting a specified number of cells
+        # 用于测试导出指定个数的细胞
         targe_cell_count = cell_count
         # targe_cell_count = 10
 
         for i in range(targe_cell_count):
             cell_border_list.append([list(j) for j in border_data[i]])
 
-        # get the list of all the cell 
+        # 获取所有的细胞列表
         all_cell_list = []
         if len(cell_border_list[0]) > 31:
             for i in range(targe_cell_count):
@@ -226,7 +226,7 @@ def getCellInfoList(file, output_folder):
                 is_split_cell = two_cell_border_info[1] is not None
                 cell1 = create_cell_dict(cell_basic_info_list[i][0], cell_basic_info_list[i],
                                          CellBorder(i, two_cell_border_info[0], is_split_cell))
-                # random cell insertion, ensures frontend rendering avoids visible tiling artifacts during display
+                # 随机插入细胞，前台渲染部分渲染时才能避免出现若隐若现的分块形状
                 all_cell_list.insert(int(random.random() * len(all_cell_list)), cell1)
 
                 if is_split_cell:
@@ -240,7 +240,7 @@ def getCellInfoList(file, output_folder):
                 cell = create_cell_dict(i, cell_basic_info_list[i], CellBorder(i, border_data[:valid_len]))
                 all_cell_list.insert(int(random.random() * len(all_cell_list)), cell)
 
-        # put cell in chunk according to location 
+        # 将所有细胞根据位置放入分块中
         chunk_cells_dict = create_chunk_grids_dict(grid_shape, output_folder)
 
         for cell in all_cell_list:
@@ -262,17 +262,17 @@ def getCellInfoList(file, output_folder):
                             H5_FILE_POINT['codedCellBlock'])
 
 
-# split the 32-vertex cell outline point into two 16-vertex cell outline points
-# should consider the splitting of cells with strange shapes such as gourd shape and S shape
+# 将32个顶点的细胞轮廓点，拆分成两个16个顶点的细胞轮廓点
+# 需要考虑葫芦形，S形等怪异形状细胞的拆分。
 # @print_running_time
 def split_32points_cell_border(border_data):
     border_data_len = len(border_data)
-    # handle situation that the cell contour points exceeding 32 counts, discard when exceeding 32 counts 
+    # 处理细胞轮廓点的数量大于32个的情况，多于32个点直接舍弃
     if border_data_len > 31:
         border_data = border_data[:32]
     valid_len = get_valid_border_len(border_data)
     valid_border_point_list = border_data[:valid_len]
-    # If have more than 30 points, downsample to 30 contour points (allowing splitting into two 16-point cells with 2 duplicated points)
+    # 如果点数超过30，就做剔除，留下30个轮廓点。因为30个点的细胞轮廓拆分出来后，有两个点是复制出来的，刚好能拆成两个16个点的细胞
     simply_point_list = valingam_whyatt_shape_simplification(30, valid_border_point_list, False)["point_list"]
     point_length = len(simply_point_list)
     if point_length > 16:
@@ -280,16 +280,16 @@ def split_32points_cell_border(border_data):
         vertex = np.array(simply_point_list)
         rings = np.array([point_length])
 
-        # ear cut, identify split point, ensuring neither resultant cell contour exceeds 16 points
+        # 进行耳切，找到切分点。切出来的两个细胞轮廓点的数量不能大于16
         index_arr = earcut.triangulate_float32(vertex, rings)
         triangle_count = int(len(index_arr) / 3)
 
         slit_point_1_index = None
         slit_point_2_index = None
         is_got_split_line = False
-        # locate the intermediate cutting line after ear cut 
-        # to correctly split gourd-shaped or S-shaped cells into two valid sub-cells, the cutting line must not exceed the original cell contour
-        # after ear cut, output 'triangle_count' times triangular faces, where every 3 consecutive indices in index_arr represent the vertex indices of a triangle
+        # 找到earcut后的中间切线。为了将葫芦形或者S形的细胞拆分成正确的两个细胞，切线不能超过原有的细胞轮廓。
+        # 耳切法三角剖分后，找到任意一条线，能将细胞切成两个轮廓点小于等于16的小细胞。
+        # 耳切后，得到数量为triangle_count的三角面，index_arr中3个为一组代表一个三角面的下标顶点
         for i in range(triangle_count):
 
             slit_point_1_index = int(index_arr[i * 3])
@@ -319,15 +319,14 @@ def split_32points_cell_border(border_data):
 
             start_list = simply_point_list[start_index:end_index + 1]
             end_list = simply_point_list[end_index:] + simply_point_list[:start_index + 1]
-            # prioritize cell contours with higher vertex counts by placing them first
-            # during rendering, when the LOD switches to 6 vertices, the smaller half of the cell can be omitted to improve rendering performance
+            # 截取到顶点数量比较多的细胞轮廓，放到第一个。渲染时，LOD等级切换到6个顶点时，可不渲染小的那半部分的细胞，提高渲染性能
             if len(end_list) > len(start_list):
                 start_list, end_list = end_list, start_list
-        # if no suitable edge is found after ear cut, indicates that the cell shape is a convex polygon
+        # 如果耳切后，没有适合的边，意味着这个细胞形状为凸多边形。
         else:
-            # set the first segmented cell with the first 16 contour points
+            # 将前16个轮廓点抽出作为第一个切分细胞
             start_list = border_data[:16]
-            # set the second cell outline with 16th to the last valid point, in addition, copy the first point to the second segmented cell
+            # 第16个点到最后一个有效点为第二个细胞轮廓，另外还要将第一个点复制到第二个切分的细胞。
             end_list = border_data[15:len(simply_point_list)]
             end_list.append(border_data[0])
     else:
@@ -337,12 +336,12 @@ def split_32points_cell_border(border_data):
     return [start_list, end_list]
 
 
-# fetch the quatity of valid cell contour points
+# 获取有效的细胞轮廓点数量
 # @print_running_time
 def get_valid_border_len(border_data):
     length = len(border_data)
     border_vertex_len = length
-    # calculete the quatity of valid cell contour points
+    # 计算细胞轮廓有效点的数量
     for index in range(length):
         pos_arr = border_data[index]
         if index < length - 1:
@@ -366,12 +365,12 @@ def append_cell_to_chunk(cell, chunk_cells_dict, lower_bound, chunk_size, grid_s
     chunk_cells_dict[chunk_key].cell_list.append(cell)
 
 
-# create chunk dictionary, key:String e.g.: 0_0_0  value: list<Cell>
+# 创建分块字典 key:String 例如：0_0_0  value: list<Cell>
 @print_running_time
 def create_chunk_grids_dict(_grid_shape, output_folder):
     result_dict = dict()
     # byte_file_dir = output_folder + '/L0'
-    # if not os.path.exists(byte_file_dir):  # determine if the current path exist, create new folder if not exist
+    # if not os.path.exists(byte_file_dir):  # 判断当前路径是否存在，没有则创建文件夹
     #     os.makedirs(byte_file_dir)
 
     byte_file_dir = 'codedCellBlock/L0'
@@ -414,7 +413,7 @@ def get_triangle_area(point1, point2, point3):
 
 
 # @print_running_time
-# keep valid area (Visvalingam-Whyatt) algorithm, remove part of the points, keep list of length 'target_len'
+# 保留有效面积 (Visvalingam-Whyatt) 算法，剔除部分点。保留target_len长度的list
 def valingam_whyatt_shape_simplification(target_count, point_list, is_need_earcut=True):
     point_list_len = len(point_list)
     if point_list_len <= target_count:
@@ -507,7 +506,7 @@ class CellBorder:
 
     # @print_running_time
     def get_LOD_vertices_index(self):
-        # flatten 2D array of valid contour points into a 1D array, with a maximum of 16 points
+        # 将有效轮廓点的二维数组降维成一维数组，最多有16个点
         vertex = np.array(self.border_data[0:self.border_vertex_len])
         rings = np.array([self.border_vertex_len])
         index_arr_lod_level_1 = earcut.triangulate_float32(vertex, rings)
@@ -539,7 +538,7 @@ class CellBorder:
         for vertex_index in index_arr_lod_level_3:
             vertices_index_arr[offset] = vertex_index
             offset += 1
-        # cell segmentation flag
+        # 细胞是否被拆分的标识
         if self.is_split_cell:
             vertices_index_arr[66] = 1
 
@@ -597,7 +596,7 @@ class Chunk:
                 buf = cell_border.get_LOD_vertices_index()
                 bytes_out += buf
 
-            # TODO bytes_out :Now concatenation efficiency is poor. The issue might be that when concatenating bytes_out, its length is indeterminate, necessitating frequent length expansions, which degrades performance. Performance optimization is required.
+            # TODO bytes_out拼接效率很低，可能是bytes_out拼接时长度不定，需要不定时扩展长度，导致性能下降。需要做性能优化
             f_out.write(gzip.compress(bytes_out))
 
     def write_h5(self, group):

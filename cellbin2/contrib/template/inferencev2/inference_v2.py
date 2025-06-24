@@ -17,19 +17,19 @@ from pydantic import BaseModel, Field
 class TemplateReferenceV2Param(BaseModel):
     v2_ssDNA_pass_thr: float = Field(0.1, description="")
     v2_HE_pass_thr: float = Field(0.01, description="")  # TODO: lzp add HE qc pass
-    v2_scale_range_thr: List[float] = Field([0.3, 1.7], description="Scale adaptation range")
-    v2_rotate_range_thr: int = Field(35, description="Angle adaptation range")
-    v2_search_range_thr: int = Field(500, description="Search threshold")
+    v2_scale_range_thr: List[float] = Field([0.3, 1.7], description="尺度适配范围")
+    v2_rotate_range_thr: int = Field(35, description="角度适配范围")  # TODO：未用到，删除？@lizep
+    v2_search_range_thr: int = Field(500, description="搜索阈值")  # TODO：未用到，删除？@lizep
     v2_rotate_fov_min_thr: int = Field(7, description="")
     v2_scale_limits: float = Field(0.5, description="Upper and lower limits")
 
 
 class TemplateReferenceV2(TemplateReferenceV1):
     """
-    Template derivation algorithm V2
-    Fit approximate angles and scales separately through points
-    Obtain precise angular scale values of the local area through preliminary calibration
-    Final global derivation template
+    模板推导算法V2
+    分别通过点来拟合大致角度和尺度
+    再通过初步校准得到局部区域的精确角度尺度值
+    最终全局推导模板
     """
 
     MINIMIZE_METHOD = ['nelder-mead', 'slsqp', 'bfgs']
@@ -46,7 +46,7 @@ class TemplateReferenceV2(TemplateReferenceV1):
         self.set_scale_flag = False
         self.set_rotate_flag = False
 
-        # Added FOV information for developing and integrating track line templates on August 28, 2023
+        # 2023/08/28新增 用于开发对接track线模板FOV信息
         self.fov_index = None
         self.fov_best_point = None
 
@@ -58,7 +58,7 @@ class TemplateReferenceV2(TemplateReferenceV1):
                          rotate_range=None,
                          rotate_fov_min=None):
         """
-        Template derivation of V2 threshold
+        模板推导V2阈值
         """
         if scale_range is not None:
             if isinstance(scale_range, (int, float)):
@@ -102,15 +102,15 @@ class TemplateReferenceV2(TemplateReferenceV1):
     def _template_correct(self, qc_pts, n=5):
         """
         Args:
-            qc_pts: Point set sorted by points max ->min
-            n: Track angle traversal to search for the required number of FOV
+            qc_pts: 已按照点数排序的点集 max->min
+            n: track角度遍历搜索所需FOV数量
         """
         rotate_list = list()
         point_list = list()
         best_point = None
         index = 0
 
-        # Angle search
+        #####角度搜索
         if not self.set_rotate_flag:
             rs = RotateSearch()
             for pts in qc_pts[:n]:
@@ -153,7 +153,7 @@ class TemplateReferenceV2(TemplateReferenceV1):
             # index = tmp_ind
             index_list = [i for i, r in enumerate(rotate_list) if r == self.rotation][:n]
 
-        # Scale search
+        #####尺度搜索
         info_list = list()
         if not self.set_scale_flag:
             rs = ScaleSearch(chip_template=self.chip_no, search_range=self.scale_range)
@@ -164,7 +164,7 @@ class TemplateReferenceV2(TemplateReferenceV1):
         return info_list
 
     def reference_template_v2(self, method_threshold=0.1):
-        """ Template derivation algorithm V2 """
+        """模板推导算法V2"""
         self._check_parm()
         # self._qc_points_to_gloabal(all_points=True)
 
@@ -217,7 +217,7 @@ class TemplateReferenceV2(TemplateReferenceV1):
                     if re_conf > best_method_re_conf:
                         best_method_result = [self.template.copy(),
                                               self.scale_x, self.scale_y, self.rotation,
-                                              self.fov_index, self.fov_best_point.copy(), self.flag_skip_reference]
+                                              self.fov_index, self.fov_best_point.copy()]
                         best_method_re_conf = re_conf
 
                     if valid_area > method_threshold or re_conf > method_threshold:
@@ -240,7 +240,7 @@ class TemplateReferenceV2(TemplateReferenceV1):
 
         try:
             self.template, self.scale_x, self.scale_y, self.rotation, \
-            self.fov_index, self.fov_best_point, self.flag_skip_reference = best_fov_result
+            self.fov_index, self.fov_best_point = best_fov_result
         except NameError:
             self.flag_skip_reference = True
             clog.info("Template is None, quit template reference.")

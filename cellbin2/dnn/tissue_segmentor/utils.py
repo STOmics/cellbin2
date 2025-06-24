@@ -8,11 +8,11 @@ class SupportModel(object):
         clog.info('SupportModel init start')
         self.ONNX_EXT = '.onnx'
         self.SUPPORTED_MODELS = [
-            'tissueseg_bcdu_SDI_230523_tf',   # DAPI correspond V230523 common model for ssDNA and DAPI
+            'tissueseg_bcdu_SDI_230523_tf',   # DAPI对应V230523 ssDNA和DAPI共同的模型
             'tissueseg_bcdu_S_240618_tf',
             'tissueseg_bcdu_H_20240201_tf',
-            'tissueseg_bcdu_H_20241018_tf',   # newest HE R&D version V241018
-            'tissueseg_bcdu_rna_220909_tf',    # rna model
+            'tissueseg_bcdu_H_20241018_tf',   # HE最新研发版本V241018
+            'tissueseg_bcdu_rna_220909_tf',    # rna 模型
             '-'
         ]
         self.SUPPORTED_STAIN_TYPE_BY_MODEL = {

@@ -2,46 +2,24 @@ from typing import Optional, Tuple, List
 
 import numpy as np
 import onnxruntime
-import os
+
 from cellbin2.dnn.detector.util import letterbox
 from cellbin2.dnn.detector.util import scale_polys
 from cellbin2.dnn.detector.util import rbox2poly
 from cellbin2.dnn.detector.util import non_max_suppression_obb_np
 from cellbin2.image import CBImage
-from cellbin2.utils import clog
 
-def init_session(model_path, gpu=-1, providers=['CPUExecutionProvider'],
-                 providers_id=[{'device_id': '-1'}], num_threads = 0):
-    if os.path.exists(model_path):
-        sessionOptions = onnxruntime.SessionOptions()
-        try:
-            if (gpu < 0) and (num_threads > 0):
-                sessionOptions.intra_op_num_threads = num_threads
-            sess = onnxruntime.InferenceSession(model_path, providers=providers,
-                                                provider_options=providers_id,
-                                                sessionOptions=sessionOptions)
-            # if gpu<0:
-            #     clog.info(f'onnx work on cpu, threads {num_threads}')
-            # else:
-            #     clog.info(f'onnx work on gpu {gpu}')
-        except:
-            if num_threads>0:
-                sessionOptions.intra_op_num_threads = num_threads
-            sess = onnxruntime.InferenceSession(model_path, providers=['CPUExecutionProvider'],
-                                                sessionOptions=[{'device_id': '-1'}],
-                                                sess_options=sessionOptions)
-            # clog.info(f'onnx work on cpu, threads {num_threads}')
 
-        return sess
+def init_session(model_path):
+    EP_list = ['CPUExecutionProvider']
+    sess = onnxruntime.InferenceSession(model_path, providers=EP_list)
+    return sess
+
 
 class PickableInferenceSession:  # This is a wrapper to make the current InferenceSession class pickable.
-    def __init__(self, model_path, gpu, providers, providers_id, num_threads):
-        self.gpu = gpu
-        self.providers = providers
-        self.providers_id = providers_id
-        self.num_threads = num_threads
+    def __init__(self, model_path):
         self.model_path = model_path
-        self.sess = init_session(self.model_path, gpu, providers, providers_id, num_threads)
+        self.sess = init_session(self.model_path)
 
     def run(self, input_name, data):
         return self.sess.run(None, {f"{input_name}": data})
@@ -59,17 +37,14 @@ class OBB5Detector(object):
             self,
             conf_thresh=0.25,
             iou_thresh=0.1,
-            gpu="-1",
+            gpu=-1,
             num_threads=0,
             img_func=None
     ):
         self.conf_thresh: float = conf_thresh
         self.iou_thresh: float = iou_thresh
-        self.gpu: int = int(gpu)
+        self.gpu: int = gpu
         self.num_threads: int = num_threads
-
-        self.providers = ['CPUExecutionProvider']
-        self.providers_id = [{'device_id': '-1'}]
         # if img_func is None:
         #     self.img_func = pt_enhance_method.get(TechType.ssDNA.value)  # default using ssDNA enhance
         # else:
@@ -80,16 +55,9 @@ class OBB5Detector(object):
         self.img_size = (1024, 1024)
 
         self.model: Optional[PickableInferenceSession] = None
-        self._f_init()
-
-    def _f_init(self):
-        if self.gpu > -1:
-            self.providers = ['CUDAExecutionProvider']
-            self.providers_id = [{'device_id': str(self.gpu)}]
-
 
     def load_model(self, weight_path):
-        self.model = PickableInferenceSession(weight_path, self.gpu, self.providers, self.providers_id, self.num_threads)
+        self.model = PickableInferenceSession(weight_path)
         self.img_size = self.model.sess.get_inputs()[0].shape[-2:]
 
     def set_func(self, fun):
@@ -101,7 +69,7 @@ class OBB5Detector(object):
         padded_img = letterbox(enhance_img, self.img_size)
         # Convert
         adjust_img = padded_img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
-        adjust_img = np.ascontiguousarray(adjust_img)  # convert to a C-contiguous array (memory contiguous) for faster processing 
+        adjust_img = np.ascontiguousarray(adjust_img)  # 变成C连续数组(内存连续), 处理速度更快
         adjust_img = np.float32(adjust_img)  # must do this for onnx
         adjust_img /= 255
         return ori_shape, adjust_img

@@ -14,16 +14,14 @@ from typing import List
 
 
 class TemplateInfo(BaseModel):
-    template_points: np.ndarray = Field(np.array([]), description="All exported template points")
-    template_recall: float = Field(
-        fPlaceHolder, description="The proportion of identified track points that can be matched back to the template")
-    template_valid_area: float = Field(fPlaceHolder, description="Proportion of track point distribution area")
-    trackcross_qc_pass_flag: int = Field(
-        iPlaceHolder, description="Whether the number and distribution of track points meet the requirements")
-    trackline_channel: int = Field(iPlaceHolder, description="Detecting the channel of the track line")
-    rotation: float = Field(fPlaceHolder, description="Horizontal angle of track line")
-    scale_x: float = Field(fPlaceHolder, description="Horizontal scale")
-    scale_y: float = Field(fPlaceHolder, description="Vertical scale")
+    template_points: np.ndarray = Field(np.array([]), description="推导出的所有模板点")
+    template_recall: float = Field(fPlaceHolder, description="识别到的track点可以匹配回模板的占比")
+    template_valid_area: float = Field(fPlaceHolder, description="track点分布的面积占比")
+    trackcross_qc_pass_flag: int = Field(iPlaceHolder, description="track点数目及分布是否达到要求")
+    trackline_channel: int = Field(iPlaceHolder, description="检测track line的通道")
+    rotation: float = Field(fPlaceHolder, description="track line的水平角")
+    scale_x: float = Field(fPlaceHolder, description="水平尺度")
+    scale_y: float = Field(fPlaceHolder, description="竖直尺度")
 
     class Config:
         arbitrary_types_allowed = True
@@ -177,13 +175,13 @@ class TemplateReference(object):
         self.overlap = overlap
         self.est_scale = est_scale
 
-        # Step 1: Point detection
+        # 步骤1：点检测
         self._detect_track_points()
 
-        # Step 2: Based on point matching template
+        # 步骤2：基于点匹配模板
         template_info_v2 = self._inference_v2()
 
-        # Step 3: If 2 fails, use the line matching template
+        # 步骤3：如果2失败，使用线匹配模板
         template_info_v1 = None
         # TODO: @dzh update threshold based on stain_type, lzp check this
         if self.stain_type == TechType.HE:
@@ -223,9 +221,6 @@ def template_inference(file_path: str,
                        fov_wh=[2000, 2000],
                        est_scale=1.0
                        ):
-    """
-    Template reference starting entry
-    """
     clog.info('Next execute Template, it include module [Points detect, line detect, inference]')
     tr = TemplateReference(stain_type=stain_type,
                            ref=ref,

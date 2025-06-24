@@ -13,12 +13,12 @@ from .image import Image
 
 class Stitching:
     """
-    The splicing module class includes splicing coordinate calculation and template derivation
+    拼接模块类 包含拼接坐标计算及模板推导
     """
     def __init__(self, is_stitched=False):
         """
         Args:
-            is_stitched: True | False Used to determine whether it is a spliced large image
+            is_stitched: True | False 用于判断是否是拼接大图
 
         Returns:
 
@@ -80,8 +80,8 @@ class Stitching:
         """
 
         Args:
-            rows:
-            cols:
+            rows:行数
+            cols:列数
 
         Returns:
 
@@ -103,7 +103,7 @@ class Stitching:
         """
 
         Args:
-            loc:Splicing coordinate information
+            loc:拼接坐标信息
 
         Returns:
 
@@ -116,8 +116,8 @@ class Stitching:
         """
 
         Args:
-            h_j: Horizontal offset matrix
-            v_j: Vertical offset matrix
+            h_j: 水平方向偏移矩阵
+            v_j: 竖直方向偏移矩阵
 
         Returns:
 
@@ -129,10 +129,10 @@ class Stitching:
 
     def _get_jitter(self, src_fovs, fft_channel=0, process=5):
         """
-        Calculate FFT feature offset
+        计算FFT特征偏移量
         Args:
             src_fovs: {'row_col':'image_path'}
-            fft_channel: Calculate FFT feature offset
+            fft_channel: 选择fft特征通道
         """
         jitter_model = FOVAligner(src_fovs,
                                   self.rows, self.cols,
@@ -174,7 +174,7 @@ class Stitching:
 
     def _get_location(self, ):
         """
-        Returns:
+        Returns: 坐标生成
         """
         if self.fov_location is None:
             start_time = time.time()
@@ -247,9 +247,9 @@ class Stitching:
         """
         Args:
             src_fovs: {'row_col':'image_path'}
-            stitch: Do you want to stitch the images together
-            process_rule: Splicing rules
-            fft_channel: Select FFT feature channel
+            stitch: 是否拼接图像
+            process_rule: 拼接规则
+            fft_channel: 选择fft特征通道
             fuse_flag:
             down_size:
             stitch_method: 'cd' | 'LS-V' | 'LS-H'
@@ -266,12 +266,13 @@ class Stitching:
 
         if not self._is_stitched:
             if not self._set_location_flag:
-
+                # 求解偏移矩阵
                 self._get_jitter(src_fovs=src_fovs, fft_channel=fft_channel)
 
+                # 求解拼接坐标
                 self._get_location()
 
-            # stitch
+            # 拼接
             if stitch:
                 start_time = time.time()
                 glog.info('Start stitch mode.')
@@ -297,7 +298,7 @@ class Stitching:
     def get_all_eval(self):
         """
 
-        Returns: Dict Various evaluation indicators
+        Returns: Dict 各项评估指标
 
         """
         eval = dict()
@@ -328,14 +329,14 @@ class Stitching:
     def get_template_global_eval(self):
         """
 
-        Returns: Array Matrix for template evaluation
+        Returns: Array 模板评估的矩阵
 
         """
         return self.__template_global_diff
 
     def get_jitter_eval(self):
         """
-        Returns: Splicing offset heatmap display, microscope splicing
+        Returns: 拼接偏移量热图展示用, 显微镜拼接
         """
         if not self._is_stitched:
             return self.__jitter_x_diff, self.__jitter_y_diff
@@ -343,7 +344,7 @@ class Stitching:
 
     def get_stitch_eval(self, ):
         """
-        Returns: Splicing offset heatmap display, self-developed splicing
+        Returns: 拼接偏移量热图展示用，自研拼接
         """
         jitter_x_diff = np.zeros([self.rows, self.cols]) - 1
         jitter_y_diff = np.zeros([self.rows, self.cols]) - 1

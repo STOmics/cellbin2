@@ -16,16 +16,16 @@ from cellbin2.utils.pro_monitor import process_decorator
 
 
 class MaskManagerInfo(BaseModel):
-    tissue_mask: Any = Field(None, description='tissue segmentation mask')
-    cell_mask: Any = Field(None, description='cell segmentation mask')
-    chip_box: Optional[ChipBoxInfo] = Field(None, description='chip box')
-    stain_type: TechType = Field(None, description='staining type')
-    method: int = Field(None, description='usage, 0 for stable version, 1 for development version')
+    tissue_mask: Any = Field(None, description='组织分割mask')
+    cell_mask: Any = Field(None, description='细胞分割mask')
+    chip_box: Optional[ChipBoxInfo] = Field(None, description='芯片框')
+    stain_type: TechType = Field(None, description='染色类型')
+    method: int = Field(None, description='使用方法，0：稳定版，1：研发版')
 
 
 class BestTissueCellMaskInfo(BaseModel):
-    best_tissue_mask: Any = Field(None, description='fusioned tissue segmentation mask')
-    best_cell_mask: Any = Field(None, description='fusioned cell segmentation mask')
+    best_tissue_mask: Any = Field(None, description='融合后的组织分割mask')
+    best_cell_mask: Any = Field(None, description='融合后的细胞分割mask')
 
 
 class BestTissueCellMask:
@@ -107,21 +107,13 @@ class BestTissueCellMask:
 
     @classmethod
     def get_best_tissue_cell_mask(cls, input_data: MaskManagerInfo) -> BestTissueCellMaskInfo:
+
         """
-        Perform operations on masks based on input data.
 
-        Args:
-            input_data (MaskManagerInfo):
-                The input data containing the following:
-                - tissue mask: The tissue mask data.
-                - cell mask: The cell mask data.
-                - method (int): Currently can be 0 or 1. 0 represents the default operation, using tissue segmentation to filter cell segmentation; 1 represents the R & D version, using all information to output filtered cell and tissue segmentation.
-                - stain type (TechType): The staining type from the TechType enumeration.
-                - chip box (ChipBoxInfo, optional): Information about the chip box.
-
-        Returns:
-            BestTissueCellMaskInfo:
-                The output containing the optimized cell mask and the optimized tissue mask.
+        :param input_data: MaskManagerInfo结构体类型，入参包含tissue mask, cell mask, method(目前可选0，1,0代表默认操作，
+                            使用组织分割过滤细胞分割，1代表研发版本，使用所有信息输出过滤后的细胞分割和组织分割）,
+                            stain type(TechType枚举类型）, chip box(ChipBoxInfo类型，可选）
+        :return: BestTissueCellMaskInfo结构提类型，出参包含优化后的cell mask和优化后的tissue mask
         """
         cls.init_flag = False
 
@@ -163,7 +155,7 @@ class BestTissueCellMask:
 
         crop_tissue_mask, crop_cell_mask = tissue_mask, cell_mask  # TODO: hdd check this
         if chip_box:
-            if 0:  # TODO chip detect is not stable, turn it off for now by dzh 2025/03/25
+            if chip_box.IsAvailable:
                 crop_tissue_mask, crop_cell_mask = cls.crop_chip_mask(chip_box, tissue_mask, cell_mask)
             else:
                 clog.warning('chip box is not available')
@@ -212,17 +204,17 @@ def merge_cell_mask(
         conflict_cover: str = "nuclear"
 ) -> CBImage:
     """
-    :param nuclear_mask: original nuclear_mask
-        -- instance format: (0 for background, each cell is assigned a unique ID), maximum pixel value is total number of cells
-        -- semantic format (binary mask)
+    :param nuclear_mask: 原始nuclear_mask
+        -- 实例格式（背景是0，然后各个细胞赋值一个ID），图像最大值是细胞的个数
+        -- 语义格式（01数组）
 
-    :param membrane_mask: original membrane_mask
-        -- instance format: (0 for background, each cell is assigned a unique ID), maximum pixel value is total number of cells
-        -- semantic format (binary mask)
+    :param membrane_mask: 原始membrane_mask
+        -- 实例格式（背景是0，然后各个细胞赋值一个ID），图像最大值是细胞的个数
+        -- 语义格式（01数组）
 
-    :param conflict_cover: conflict subjects nuclear | membrane
+    :param conflict_cover: 冲突主体 nuclear | membrane
 
-    :return: merged mask
+    :return: 合并mask
     """
     if len(np.unique(nuclear_mask)) != 2:
         nuclear_mask_sem = instance2semantics(nuclear_mask)
@@ -269,7 +261,7 @@ if __name__ == '__main__':
 
     chip_box = ChipBoxInfo()
 
-    # HE test data, path for cell segementation mask and tissue segmentation mask
+    # HE测试数据细胞分割mask和组织分割mask路径
     cell_mask_path = r"F:\01.users\hedongdong\cellbin2_test\cell_mask\C04042E3_HE_regist_v3_mask.tif"
     tissue_mask_path = r"F:\01.users\hedongdong\cellbin2_test\result_mask\C04042E3_HE_regist.tif"
 
@@ -282,7 +274,7 @@ if __name__ == '__main__':
     stain_type = TechType.DAPI
     method = 1
 
-    # # ssDNA test data, path for cell segementation mask and tissue segmentation mask 
+    # # ssDNA测试数据细胞分割mask和组织分割mask路径
     # cell_mask_path = r"F:\01.users\hedongdong\cellbin2_test\cell_mask\A04535A4C6_fov_stitched_v3_mask.tif"
     # tissue_mask_path = r"F:\01.users\hedongdong\cellbin2_test\result_mask\A04535A4C6_fov_stitched.tif"
     #

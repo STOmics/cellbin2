@@ -11,7 +11,7 @@ import scipy.spatial as spt
 
 class GlobalLocation(object):
     """
-    Only receive the offset matrix and solve for the final stitching coordinates
+    只接收偏移量矩阵并求解最终拼接坐标
     """
     def __init__(self):
         self.overlap_x = self.overlap_y = 0.1
@@ -59,7 +59,7 @@ class GlobalLocation(object):
 
     def create_location(self, mode='cd'):
         """
-        :param mode: Generate final coordinates 'cd'
+        :param mode:生成最终坐标 'cd'
         """
         if mode == 'cd':
             coord_model = CenterLrDiffuseStitch(self.rows, self.cols)
@@ -89,17 +89,15 @@ class GlobalLocation(object):
 
 
 ##################################
-"""Coordinate generation method"""
+"""坐标生成方法"""
 ##################################
-
-
 class LineScanStitch:
     """
-    Line scanning splicing, with no overlap or a constant overlap in a certain direction
+    线扫拼接，在某一方位无overlap或者恒定一个overlap
     """
 
     def __init__(self, rows, cols, ls = 0):
-        # line-scaning orientation: 0 for horizontal, 1 for vertical
+        # 线扫方位 0表示水平 1表示竖直
         self.line_scan = ls
 
         self.overlap_x = self.overlap_y = 0.1
@@ -139,7 +137,7 @@ class LineScanStitch:
         self.overlap_y = overlap_y
 
     def set_scope_loc_by_overlap(self, h, w):
-        """Calculate the original stitching coordinates of the microscope"""
+        """计算显微镜的原始拼接坐标"""
         scope_global_loc = np.zeros(shape=(self.rows, self.cols, 2), dtype=np.int32)
         self.fov_height = h
         self.fov_width = w
@@ -212,7 +210,7 @@ class LineScanStitch:
 
 class CenterLrDiffuseStitch:
     '''
-        Derive the corresponding splicing sequence from the central position of the organizational connected domain
+        从组织连通域中心位置，推导出对应的拼接顺序
         * * *    * # *    # # #
         * # * -> # # # -> # # #
         * * *    * # *    # # #
@@ -220,9 +218,9 @@ class CenterLrDiffuseStitch:
 
     def __init__(self, rows, cols):
         '''
-        rows, cols:
+        rows, cols:总行列
         cumulate_thread: int: cumulative departure by centerLrDiffuseStitch
-        src: (row, col)
+        src: 目标位置(row, col)
         '''
         self.scope_global_loc = None
         self.rows = rows
@@ -236,13 +234,13 @@ class CenterLrDiffuseStitch:
 
         # self.src = src
 
-        self.jitter_mask = np.zeros((self.rows, self.cols), dtype=int) + 999  # Connected domain information
-        self.stitch_mask = np.zeros((self.rows, self.cols), dtype=int)  # Index to be spliced
-        self.stitch_masked = np.zeros((self.rows, self.cols), dtype=int)  # Spliced index
+        self.jitter_mask = np.zeros((self.rows, self.cols), dtype=int) + 999  # 连通域信息
+        self.stitch_mask = np.zeros((self.rows, self.cols), dtype=int)  # 待拼接索引
+        self.stitch_masked = np.zeros((self.rows, self.cols), dtype=int)  # 已拼接的索引
         self.global_loc = np.zeros((self.rows, self.cols, 2), dtype=int) + 999
-        self.stitch_list = list()  # Final splicing sequence
-        self.connect_domains = dict()  # Connected domain information
-        self.domains = -1  # Connected domain number
+        self.stitch_list = list()  # 最终拼接顺序
+        self.connect_domains = dict()  # 连通域信息
+        self.domains = -1  # 连通域编号
         self.offset_diff = np.zeros(shape=(self.rows, self.cols)) - 1  # estimate accumulative error
 
         # output
@@ -256,7 +254,7 @@ class CenterLrDiffuseStitch:
         self.vertical_jitter = v_j
 
     def set_scope_loc(self, scope_loc: np.ndarray):
-        """set scope location"""
+        """set scope loction"""
         self.scope_global_loc = scope_loc
 
     def set_fov_size(self, fov_height, fov_width):
@@ -265,7 +263,7 @@ class CenterLrDiffuseStitch:
         self.fov_width = fov_width
 
     def set_scope_loc_by_overlap(self, h, w, overlap_x, overlap_y):
-        """calculate the original stitching coordinates of microscopy """
+        """计算显微镜的原始拼接坐标"""
         scope_global_loc = np.zeros(shape=(self.rows, self.cols, 2), dtype=np.int32)
         self.fov_height = h
         self.fov_width = w
@@ -334,8 +332,8 @@ class CenterLrDiffuseStitch:
         return None
 
     def _getFirstPosition(self, r=True):
-        '''get the first position of connect domain
-        r: a parameter controls wheather add name for connect domain 
+        '''寻找连通域起始点
+        r: 控制是否增加连通域名
         '''
         for i in range(self.rows):
             for j in range(self.cols):
@@ -347,7 +345,7 @@ class CenterLrDiffuseStitch:
         return None
 
     def _indexIsLegal(self, index):
-        ''' determine whether the row and column indexes are valid'''
+        '''判断行列号是否合法'''
         row, col = index
         if 0 <= row < self.rows and \
                 0 <= col < self.cols:
@@ -355,7 +353,7 @@ class CenterLrDiffuseStitch:
         return False
 
     def caculateCenter(self, dst=None):
-        ''' recursion for searching connect domain '''
+        '''递归寻找连通域'''
         h_flag = False
         new_dst = list()
         if dst is None:
@@ -399,7 +397,7 @@ class CenterLrDiffuseStitch:
             return
 
     def caculateDomains(self):
-        ''' repeatedly search for connected domains until search complete
+        '''多次寻找连通域直至寻找结束
         return: jitter_mask, connect_domains
         '''
         while self._getFirstPosition(r=False) is not None:
@@ -416,12 +414,12 @@ class CenterLrDiffuseStitch:
             nearst pts
         '''
         tree = spt.cKDTree(data=dst_pts[:, :2])
-        distance, index = tree.query(src_pt, k=1)  # find the closest point to template point 
+        distance, index = tree.query(src_pt, k=1)  # 寻找离模板点最佳的一个点.
         template_point = dst_pts[index]
         return distance, template_point
 
     def getStitchCenter(self, max_domain=None):
-        ''' get the index of stitching center of the max connect domain '''
+        '''获得最大连通域拼接中心索引'''
         if max_domain is None:
             max_domain = max(self.connect_domains.values(), key=list(self.connect_domains.values()).count)
         else:
@@ -440,11 +438,11 @@ class CenterLrDiffuseStitch:
         return center_row, center_col
 
     '''
-        connect to studio
+        接入studio
         '''
 
     def _getStitchOrder_by_domain(self, stitch_order):
-        ''' get the order by domain  '''
+        '''获得顺序'''
         domain_mask = np.zeros(shape=(self.rows, self.cols))
         stitch_list = []
         for key, value in self.connect_domains.items():
@@ -463,7 +461,7 @@ class CenterLrDiffuseStitch:
         return stitch_list
 
     def _getStitchOrder(self, stitch_order):
-        '''get the order'''
+        '''获得顺序'''
         # domain_mask = np.zeros(shape=(self.rows,self.cols))
         stitch_list = []
 
@@ -478,9 +476,9 @@ class CenterLrDiffuseStitch:
         return stitch_list
 
     def centerToGlobal(self, row=None, col=None):
-        '''find the stitch order from center 
-        support key input: row, col
-        otherwise calculate the central of max connected domain  
+        '''从中心开始拓展出所有拼接顺序
+        支持外部键入row, col
+        否则计算最大连通域中心
         '''
         if row is None and col is None:
             self.caculateDomains()
@@ -496,7 +494,7 @@ class CenterLrDiffuseStitch:
 
     def domain_order(self, max_domain):
         """
-        start from specified connected domain, stitch the corresponding connected domain by sequence
+        从指定的连通域开始, 按顺序拼接对应的连通域
         :param max_domain:
         :return:
         """
@@ -519,9 +517,9 @@ class CenterLrDiffuseStitch:
         return domain_list
 
     def multi_connect_domain_center(self):
-        '''find the stitch order from central 
-        support key input: row, col
-        otherwise calculate the central of max connected domain  
+        '''从中心开始拓展出所有拼接顺序
+        支持外部键入row, col
+        否则计算最大连通域中心
         '''
 
         # if row is None and col is None:
@@ -546,11 +544,11 @@ class CenterLrDiffuseStitch:
             stitch_list = self._getStitchOrder_by_domain(stitch_order)
             self.get_domain_Loc(self.fov_height, self.fov_width, stitch_list)
 
-            # train the linear model 
+            # 训练线性模型
             self.lr.fit(self.scope_global_loc[np.where(self.stitch_masked == 1)],
                         self.global_loc[np.where(self.stitch_masked == 1)])
 
-        # predict the fov coordinate of non-connect domain with trained linear area 
+        # 利用训练好的线性模型, 预测非连通域的fov坐标
         # for row,col in np.vstack(np.where(self.stitch_masked!=1)).T:
         #     self.global_loc[row,col] = self.lr.predict([self.scope_global_loc[row,col]])
         #     self.stitch_masked[row,col] = 1
@@ -582,7 +580,7 @@ class CenterLrDiffuseStitch:
 
     def _fixJitter(self, ):
         '''
-        complete the horizontal and vertical offset matrix
+        补全横纵偏移量矩阵
         '''
         h_x = np.mean([self.horizontal_jitter[i, j, 0] for i in range(self.rows)
                        for j in range(self.cols) if self.horizontal_jitter[i, j, 0] != 999])
@@ -611,7 +609,7 @@ class CenterLrDiffuseStitch:
                             self.vertical_jitter[i, j] = [round(v_x), round(v_y)]
 
     def get_nearest_points(self, input_point, template_points):
-        # get the 2 nearest points from the input point 
+        # 获得最靠近的点
         tree = spt.cKDTree(data=template_points)
         distance, index = tree.query(input_point, k=2)
         neighbor_point = template_points[index[0]]
@@ -619,7 +617,7 @@ class CenterLrDiffuseStitch:
         return distance, neighbor_point
 
     def get_nearest_domain_fov(self, current_domain, stitched_loc):
-        """ get the row and column index of the FOV closest to the connected domain in current connect domain """
+        """获得当前连通域中,离已经拼接的连通域最近的FOV的行列号"""
         min_distance = 999
         nearst_domain = None
         for fov_loc in current_domain:
@@ -631,7 +629,7 @@ class CenterLrDiffuseStitch:
         return nearst_domain, min_distance
 
     def get_domain_Loc(self, height, width, stitch_list):
-        ''' get the stitch location of the connect domain '''
+        '''获得连通域的拼接坐标'''
         # self._fixJitter()
         stitch_mask = np.zeros(shape=(self.rows, self.cols))
 
@@ -640,7 +638,7 @@ class CenterLrDiffuseStitch:
             row, col = item
             self.stitch_masked[row, col] = 1
             if np.max(stitch_mask) == 0:
-                # get the closest FOV to the stitched connected domain in current domain  寻找当前domain中, 与已经拼接的连通域 最近的fov
+                # 寻找当前domain中, 与已经拼接的连通域最近的fov
                 stitched_loc = np.where(self.stitch_masked == 1)
                 stitched_loc = np.vstack(stitched_loc).T
                 nearest_domain_fov, _ = self.get_nearest_domain_fov(stitch_list, stitched_loc)
@@ -682,7 +680,7 @@ class CenterLrDiffuseStitch:
                 else:
                     stitch_list.append(item)
                     # glog.info("{}:{} no stitch neighbor".format(row, col))
-        # adjust the location of FOV of nearest-neighbor domain to predicted location 将最近邻连通域的FOV的位置调整到预测位置
+        # 将最近邻连通域的FOV的位置调整到预测位置
         if nearest_domain_fov is not None:
             nearest_fov_scope_loc = self.scope_global_loc[nearest_domain_fov[0], nearest_domain_fov[1]]
             offset = self.global_loc[nearest_domain_fov[0], nearest_domain_fov[1]] - \
@@ -691,7 +689,7 @@ class CenterLrDiffuseStitch:
             self.global_loc[np.where(stitch_mask == 1)] -= offset.astype(np.int32)
 
     def getLastGlobalLoc(self, height, width):
-        '''get the final stitch coordinate '''
+        '''获得最终的拼接坐标'''
         self._fixJitter()
         for item in self.stitch_list:
             row, col = item
@@ -781,12 +779,12 @@ class CenterLrDiffuseStitch:
             if len(loc) != 0:
                 self.global_loc[row, col] = np.mean(loc, axis=0)
                 self.stitch_masked[row, col] = 1
-                flag = True  # stitch succcess 
+                flag = True  # 拼接成功
         return flag
 
     def fix_unstitch_loc(self):
         """
-        The unstitching FOV is estimated to be stitched
+        The unstitching FOV is estimated to be stitching
         :return:
         """
         fix_list = self.check_feature_matrix(self.stitch_masked)
@@ -800,13 +798,13 @@ class CenterLrDiffuseStitch:
                 flag = self.check_up_stitch(dst[0], dst[1])
                 if flag is False:
                     h_mean_list = [self.horizontal_jitter[row, dst[1], :] for row in range(self.rows)
-                                   if self.horizontal_jitter[row, dst[1], 0] != 999]  # extract all the offset from this row
+                                   if self.horizontal_jitter[row, dst[1], 0] != 999]  # 该列所有的offset取出来
                     h_mean = np.mean(h_mean_list, axis=0) if len(h_mean_list) > 0 else h_mean_all
                     v_mean_list = [self.vertical_jitter[dst[0], col, :] for col in range(self.cols)
-                                   if self.vertical_jitter[dst[0], col, 0] != 999]  # extract all the offset from this column 
+                                   if self.vertical_jitter[dst[0], col, 0] != 999]  # 该列所有的offset取出来
                     v_mean = np.mean(v_mean_list, axis=0) if len(v_mean_list) > 0 else v_mean_all
 
-                    # find the stitched neighbors surround the current dst 
+                    # 找到当前dst四周已经拼好的neighbor
                     neighbor = self.neighbor(dst[0], dst[1], self.stitch_masked)
                     tem_loc = []
                     for src in neighbor:

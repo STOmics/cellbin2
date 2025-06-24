@@ -23,7 +23,7 @@ def get_tissue_mask(mask: npt.NDArray[np.uint8]) -> npt.NDArray[np.uint8]:
 def get_cell_outline(mask: npt.NDArray[np.uint8], line_width=1) -> npt.NDArray[np.uint8]:
     # TODO: official product -> line_width = 2
     image = np.where(mask != 0, 1, 0).astype(np.uint8)
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))  # elliptical structure
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))  # 椭圆结构
     image = cv2.morphologyEx(image, cv2.MORPH_ERODE, kernel, iterations=None)
     edge = np.zeros((image.shape), dtype=np.uint8)
     contours, hierachy = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -127,7 +127,7 @@ class RecordPyramidImage(HDF5):
 
 def read(h5_path: Union[str, Path]) -> Tuple[Type[RecordPyramidImage], Dict[Any, Type[ChannelImage]]]:
     """
-    :param h5_path: local rpi file path
+    :param h5_path: 本地rpi文件路径
     :return:
     """
 
@@ -151,8 +151,8 @@ def read(h5_path: Union[str, Path]) -> Tuple[Type[RecordPyramidImage], Dict[Any,
 
 def write(h5_path: Union[str, Path], extra_images: Dict[str, Dict[str, str]]):
     """
-    :param h5_path: local path for saving rpi file 
-    :param extra_images: image set path
+    :param h5_path: rpi文件待保存的本地路径
+    :param extra_images: 组图路径
     :return:
     """
     if not isinstance(h5_path, Path):

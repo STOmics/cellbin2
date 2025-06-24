@@ -1,4 +1,4 @@
-# Matrix Quality Control: registration, CellBin matrix extraction
+# 矩阵质控：配准、CellBin 矩阵提取
 
 class MatrixQC(object):
     def __init__(self):

@@ -1,14 +1,14 @@
 import os
 import numpy as np
 import tifffile as tif
-# from cellbin2.utils import rc_key
+from cellbin2.utils.file_manager import rc_key
 
 
 class TrackROIPicker(object):
     """
-    Return images that can be used for template derivation at 20x or 40x
-    20x - Return three FOV images
-    40x - Return seven FOV images
+    20x或40x返回可用于做模板推导的图像
+    20x -- 返回三张FOV图
+    40x -- 返回七张FOV图
     """
 
     def __init__(self, images_path,
@@ -65,9 +65,9 @@ class TrackROIPicker(object):
 
     def getRoiImages(self, k=5, threold=None):
         """
-        :param k:
-        :param threold:
-        Return partially stitched image pairs
+        :param k: 取前K对
+        :param threold: track点阈值
+        返回局部拼接好的图像对
         """
         all_dst_list = list()
         for row in range(self.rows):

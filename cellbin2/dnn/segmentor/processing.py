@@ -39,13 +39,13 @@ def normalize_to_0_255(arr):
     if v_max == 0:
         return arr
 
-    # check if there is value in range 0-255 
+    # 判断是否存在值在0-255的区间内
     if 0 <= v_min <= 255 or 0 <= v_max <= 255 or (v_max > 255 and v_min < 0):
-        # if true, multiply the arry values by factor 
+        # 如果存在，将这些值乘以一个因子
         factor = 1000
         np.multiply(arr, factor)
 
-    # normalization 
+    # 进行归一化
     arr_min = np.min(arr)
     arr_max = np.max(arr)
     return ((arr - arr_min) * 255) / (arr_max - arr_min)

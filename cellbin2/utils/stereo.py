@@ -5,12 +5,12 @@ from cellbin2 import __version__
 
 
 def generate_stereo_file(
-        save_path: pathlib.Path,
-        registered_image: pathlib.Path = pathlib.Path(""),
-        compressed_image: pathlib.Path = pathlib.Path(""),
-        matrix_template: pathlib.Path = pathlib.Path(""),
-        gef: pathlib.Path = pathlib.Path(""),
-        cellbin_gef: pathlib.Path = pathlib.Path(""),
+        save_path: pathlib.PosixPath,
+        registered_image: pathlib.PosixPath = pathlib.PosixPath(""),
+        compressed_image: pathlib.PosixPath = pathlib.PosixPath(""),
+        matrix_template: pathlib.PosixPath = pathlib.PosixPath(""),
+        gef: pathlib.PosixPath = pathlib.PosixPath(""),
+        cellbin_gef: pathlib.PosixPath = pathlib.PosixPath(""),
         sn="",
 ):
     import json

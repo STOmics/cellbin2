@@ -20,15 +20,6 @@ from cellbin2.utils.ipr import bPlaceHolder, fPlaceHolder, iPlaceHolder, sPlaceH
 
 
 def map_kit2type(kit_name: str):
-    """
-    Maps the kit name to its corresponding type.
-
-    Args:
-        kit_name (str): The name of the kit.
-
-    Returns:
-        str: The type of the kit, which can be 'Transcriptomics', 'Protein', or 'UNKNOWN'.
-    """
     if 'Stereo-seq' in kit_name:
         return TechType.Transcriptomics.name
     if 'Stereo-CITE' in kit_name:
@@ -37,23 +28,12 @@ def map_kit2type(kit_name: str):
 
 
 class ProcRegistration(BaseModel):
-    """
-    A class to represent a process registration.
-
-    Attributes:
-        fixed_image (int): The fixed image identifier.
-        trackline (bool): A flag indicating whether to track the line.
-        reuse (int): The reuse identifier.
-    """
     fixed_image: int
     trackline: bool
     reuse: int
 
 
 class ProcFile(BaseModel):
-    """
-    ProcFile class to handle file operations and validations for processing.
-    """
     file_path: str
     tech_type: str
     chip_detect: bool
@@ -67,67 +47,53 @@ class ProcFile(BaseModel):
     _supported_image = ['.tif', '.tiff', '.TIF', '.TIFF']
 
     @property
-    def tech(self,) -> TechType:
-        """
-        Returns the TechType enum value corresponding to the tech_type string.
-        """
+    def tech(self, ) -> TechType:
         return TechType[self.tech_type]
 
     @property
-    def is_image(self,) -> bool:
-        """
-        Checks if the file is an image based on its suffix.
-        """
+    def is_image(self, ) -> bool:
         if pathlib.Path(self.file_path).suffix in self._supported_image:
             return True
         else:
             return False
 
     @property
-    def is_matrix(self,) -> bool:
-        """
-        Checks if the file is a matrix based on its suffix.
-        """
+    def is_matrix(self, ) -> bool:
         if pathlib.Path(self.file_path).suffix in self._supported_matrix:
             return True
         else:
             return False
 
     @property
-    def tag(self,):
-        """
-        Returns the tag extracted from the file name.
-        """
+    def tag(self, ):
         return os.path.basename(self.file_path).split('.')[0]
 
     @property
-    def is_exists(self,):
-        """
-        Checks if the file exists at the given file_path.
-        """
+    def is_exists(self, ):
         return pathlib.Path.exists(pathlib.Path(self.file_path))
 
     def get_group_name(self, sn, pattern='IF'):
         """
-        Generates a group name based on the serial number (sn) and pattern.
+        两种情况：
+            1. SN_Protein_IF_xxx.tif
+            2. SN_IF_xxx.tif
         """
         if pattern in self.tag:
-            if sn in self.tag:
-                _n = self.tag.split(sn)
-                g_name = '_'.join(_n).strip("_")
+            start_index = self.tag.find(sn) + len(sn)
+            end_index = self.tag.find(pattern)
+            middle = self.tag[start_index: end_index]
+            middle = middle.strip("_")
+            if middle:
+                # SN_Protein_IF_xxx.tif
+                g_name = middle + "_" + self.tech.name
             else:
-                _n = self.tag.split(pattern)
-                g_name = '_'.join(_n).strip("_") + f'_{pattern}'
-        elif self.tech == TechType.IF:
-            g_name = self.tag + f'_{pattern}'
+                # SN_IF_xxx.tif
+                g_name = sn + "_" + self.tech.name
         else:
             g_name = self.tech.name
         return g_name
 
     def valid_check(self, cfg: Config):
-        """
-        Validates the file processing parameters against the provided configuration.
-        """
         # chip_detect valid check
         if self.chip_detect and self.tech not in chip_detector.SUPPORTED_STAIN_TYPE:
             clog.warning(
@@ -163,30 +129,12 @@ class ProcFile(BaseModel):
 
 
 class ProcMolecularFile(BaseModel):
-    """
-    A class to represent a processed molecular file.
-
-    Attributes:
-        exp_matrix (int): The experimental matrix.
-        cell_mask (List[int]): The cell mask.
-        extra_method (str): An additional molecular classification method, currently not used.
-    """
     exp_matrix: int
     cell_mask: List[int]
-    extra_method: str = ''  # additional molecular classification methods, currently not available
+    extra_method: str = ''  # 额外的分子归类方法，当前没有
 
 
 class Run(BaseModel):
-    """
-    A class representing a Run object with various boolean attributes.
-    
-    Attributes:
-        qc (bool): Whether or not quality control is performed.
-        alignment (bool): Whether or not alignment is performed.
-        matrix_extract (bool): Whether or not matrix extraction is performed.
-        report (bool): Whether or not a report is generated.
-        annotation (bool): Whether or not annotation is performed.
-    """
     qc: bool
     alignment: bool
     matrix_extract: bool
@@ -195,23 +143,12 @@ class Run(BaseModel):
 
 
 class ProcParam(BaseModel):
-    """
-    ProcParam class is used to handle and validate the parameters for image and molecular file processing.
-    It contains methods for printing file information, checking inputs, and retrieving image files.
-    """
     image_process: Dict[str, ProcFile] = {}
     molecular_classify: Dict[str, ProcMolecularFile] = {}
     run: Run = None
 
     @staticmethod
     def print_files_info(files: dict, mode: str = 'imageQC'):
-        """
-        Prints the information of files to be processed in a tabular format.
-        
-        Args:
-            files (dict): Dictionary of files to be processed.
-            mode (str): Mode of processing, either 'imageQC' or 'Scheduler'.
-        """
         a_table = PrettyTable()
         if mode == 'imageQC':
             a_table.field_names = ['ID', 'file_name', 'stain_type', 'template', 'detect_chip', 'clarity', 'align']
@@ -227,29 +164,12 @@ class ProcParam(BaseModel):
         clog.info('{} files to be processed, the information as follows,\n{}'.format(len(files), a_table))
 
     def check_inputs(self, cfg: Config):
-        """
-        Checks the validity of the input configuration for each image file.
-        
-        Args:
-            cfg (Config): Configuration object for validation.
-        """
         for i, v in self.image_process.items():
             v.valid_check(cfg=cfg)
 
     def get_image_files(self, do_image_qc: bool = True,
                         do_scheduler: bool = True,
                         cheek_exists: bool = False) -> Dict[int, ProcFile]:
-        """
-        Retrieves and filters image files based on the specified criteria.
-        
-        Args:
-            do_image_qc (bool): Flag to include image QC files.
-            do_scheduler (bool): Flag to include scheduler files.
-            cheek_exists (bool): Flag to check if files exist.
-        
-        Returns:
-            Dict[int, ProcFile]: Dictionary of filtered image files.
-        """
         images = copy.copy(self.image_process)
         images = {int(idx): image for idx, image in images.items()}
         if do_image_qc:
@@ -280,27 +200,11 @@ class ProcParam(BaseModel):
         return images
 
     def get_molecular_classify(self) -> Dict[int, ProcMolecularFile]:
-        """
-        Retrieves molecular classification files.
-        
-        Returns:
-            Dict[int, ProcMolecularFile]: Dictionary of molecular classification files.
-        """
         files = {int(idx): f for idx, f in self.molecular_classify.items()}
         return files
 
 
 def print_main_modules(pp: ProcParam, sn: str):
-    """
-    Print the main modules of the processing pipeline.
-
-    Args:
-        pp (ProcParam): The processing parameters object.
-        sn (str): The sample name.
-
-    Returns:
-        None
-    """
     show_table = PrettyTable()
     show_table.field_names = ["SN", "QC", "Alignment", "Matrix_extract", "Report", "Annotation"]
     show_table.add_row([sn, pp.run.qc, pp.run.alignment, pp.run.matrix_extract, pp.run.report, pp.run.annotation])
@@ -309,15 +213,8 @@ def print_main_modules(pp: ProcParam, sn: str):
 
 def read_param_file(file_path: str, cfg: Config, out_path: Optional[str] = None) -> ProcParam:
     """
-    Reads a parameter file and returns a ProcParam object.
-
-    Args:
-        file_path (str): Path to the parameter file.
-        cfg (object): Configuration object.
-        out_path (str, optional): Optional path to save the processed parameters as a JSON file.
-
-    Returns:
-        ProcParam: A ProcParam object containing the parameters read from the file.
+    :param file_path:
+    :return:
     """
     with open(file_path, 'r') as fd:
         dct = json.load(fd)

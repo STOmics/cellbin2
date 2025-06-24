@@ -245,7 +245,7 @@ def f_equalize_adapthist(img, kernel_size=None):
             defaults to 1/8 of image size.
     :return: numpy.array:Pre-processed image
 
-    2023/09/20 @fxzhao replace scikit-image methods with OpenCV methods, improve computational speed and reduce memory usage
+    2023/09/20 @fxzhao 使用cv方法替换skimage方法,提高计算速度并降低内存占用
     """
     # return equalize_adapthist(img, kernel_size=kernel_size)
     if kernel_size is None:
@@ -255,7 +255,7 @@ def f_equalize_adapthist(img, kernel_size=None):
     img = clahe.apply(img)
     return img
 
-def f_equalize_adapthist_V2(img, kernel_size=None):    #this function is originally f_equalize_adapthist() from cellbin1.2.0.16, since there is already a function with the same name, it has been renamed to V2.
+def f_equalize_adapthist_V2(img, kernel_size=None):    #该函数是cellbin1.2.0.16中的f_equalize_adapthist()，由于已经有同名函数，因此重命名为V2
     """
     Pre-process images using Contrast Limited Adaptive
     Histogram Equalization (CLAHE).
@@ -357,8 +357,8 @@ def enhance_vision_image(vision_img, down_size=10):
 @njit(parallel=True)
 def f_ij_16_to_8_v2(img):
     """
-    2023/09/20 @fxzhao upgrade vesion for f_ij_16_to_8,accelarate with numba
-    2023/10/16 @fxzhao support 3-channel image input 
+    2023/09/20 @fxzhao f_ij_16_to_8的升级版本,使用numba加速
+    2023/10/16 @fxzhao 支持三通道图片输入
     """
 
     dst = np.zeros(img.shape, np.uint8)

@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 
 class TrackLinesParam(BaseModel):
-    score_thr: int = Field(0, description="Score threshold")
+    score_thr: int = Field(0, description="得分阈值")
     topk: int = Field(10, description="topK")
     channel: int = Field(-1, description="topK")
 

@@ -18,15 +18,15 @@ from jsmin import jsmin
 # outfile = 'StereoReport_v8.2.0_merge.html'
 
 def minify_html(html_string):
-  # html_string = re.sub(r'\/\/.*', '', html_string) # space, newline
-  html_string = re.sub(r'\s+', ' ', html_string) # space, newline 空格、换行
-  html_string = re.sub(r'>\s+<', '><', html_string) #between labels
-  html_string = re.sub(r'=\s*"(.*?)"', '="\g<1>"', html_string) #space between attributes 
-  html_string = re.sub(r'<!--(.*?)-->', '', html_string) #comment  
+  # html_string = re.sub(r'\/\/.*', '', html_string) # 空格、换行
+  html_string = re.sub(r'\s+', ' ', html_string) # 空格、换行
+  html_string = re.sub(r'>\s+<', '><', html_string) #标签之间
+  html_string = re.sub(r'=\s*"(.*?)"', '="\g<1>"', html_string) #属性之间空格
+  html_string = re.sub(r'<!--(.*?)-->', '', html_string) #注释  
   html_string = re.sub(r'console.log\(.*?\);', '', html_string) #  
-  html_string = re.sub(r'\s*([{};=])\s*', '\g<1>', html_string) #comment  
-  html_string = re.sub(r'([:])\s*', '\g<1>', html_string) #comment  
-  html_string = re.sub(r'\s+([><])\s+', '\g<1>', html_string) #comment  
+  html_string = re.sub(r'\s*([{};=])\s*', '\g<1>', html_string) #注释  
+  html_string = re.sub(r'([:])\s*', '\g<1>', html_string) #注释  
+  html_string = re.sub(r'\s+([><])\s+', '\g<1>', html_string) #注释  
   return html_string
 # only min html:
 # with open(infile, 'r', encoding = 'utf-8') as file:
@@ -65,68 +65,68 @@ def image_to_base64(image_path):
     return 'data:image/png;base64,' + encoded_string
   
 def operat_html(html_path,outfile):
-    # read HTML file 读取HTML文件
+    # 读取HTML文件
     with open(html_path, 'r', encoding = 'utf-8') as file:
         html_content = file.read()
     html_content = minify_html(html_content)
-    # parse HTML file 
+    # 解析HTML文件
     soup = BeautifulSoup(html_content, 'html.parser')
 
-    # get all script tags 
+    # 获取所有的script标签
     script_tags = soup.find_all('script')
-    # get all link tags
+    # 获取所有的link标签
     link_tags = soup.find_all('link')
-    # get all img tags 
+    # 获取所有的img标签
     img_tags = soup.find_all('img')
-    # iterate through script tags
+    # 遍历script标签
     for script_tag in script_tags:
-        # get the src attribute and content from script tags 
+        # 获取script标签中的src属性和内容
         src = script_tag.get('src')
         content = script_tag.string
 
-        # if src attribute exist, fetch and compress corresponding local JS file 
+        # 如果src属性存在，则读取对应的本地JS文件内容进行压缩
         if src:
             with open(src, 'r', encoding = 'utf-8') as js_file:
                 content = js_file.read()
             del script_tag["src"]
 
-            # compress the JS file content 
+            # 压缩JS文件内容
             if 'module' in src:
                 content = minify_html(content)
             if 'result.js' in src:
                 content = jsmin(content)
 
-        # replace the script tag content with compressed JS file content 
+        # 替换script标签的内容为压缩后的JS文件内容
             script_tag.string = content
 
 
-    # iterate through link tags 
+    # 遍历link标签
     for link_tag in link_tags:
-        # get the href attribute from link tag 
+        # 获取link标签中的href属性
         href = link_tag.get('href')
 
-        # if href attribute exist, fetch corresponding CSS file content
+        # 如果href属性存在，则获取对应的CSS文件内容
         if href and href.endswith('css'):
             with open(href, 'r', encoding = 'utf-8') as file:
               css_content = file.read()
 
-            # compress CSS file content
+            # 压缩CSS文件内容
             compressed_css_content = compress(css_content)
 
-            # creat 'style' tag and assign compressed CSS file content to 'string' attribute in 'style' tag 
+            # 创建style标签并将压缩后的CSS文件内容赋值给style标签的string属性
             style_tag = soup.new_tag('style')
             style_tag.string = compressed_css_content
 
-            # replace link tag with style tag
+            # 替换link标签为style标签
             link_tag.replace_with(style_tag)
         else:
             link_tag['href'] = image_to_base64(link_tag['href'])
 
-    # iterate through img tags 
+    # 遍历img标签
     for img_tag in img_tags:
-        # get the src attribute from img tags 
+        # 获取img标签中的src属性
         src = img_tag.get('src')
-        # if href attribute exist, fetch the corresponding CSS file content 
+        # 如果href属性存在，则获取对应的CSS文件内容
         if src:
             img_tag['src'] = image_to_base64(img_tag['src'])
 
@@ -134,7 +134,7 @@ def operat_html(html_path,outfile):
 
     html_content = convert_png_to_base64(str(soup))
 
-    # write the replaced HTML in new file 
+    # 将替换后的HTML写入新的文件中
     with open(outfile, 'w', encoding='utf-8') as file:
         file.write(html_content)
           

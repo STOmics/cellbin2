@@ -86,8 +86,8 @@ def write_qupath_object(out_file, mask):
 
 def del_files(filepath):
     """
-    delete all files or folders under the file path
-    :param filepath: file path
+    删除某一目录下的所有文件或文件夹
+    :param filepath: 路径
     :return:
     """
     if os.path.isfile(filepath):
@@ -139,10 +139,10 @@ def split_and_save(img_file, mask_file, tar_path, win_size=256):
 
 
 if __name__ == '__main__':
-    img_input = r"C:\Users\shican\Desktop\test\img"  # input image folder path 
-    mask_input = r"C:\Users\shican\Desktop\test\mask"  # input mask folder path 
-    tar_path = r"C:\Users\shican\Desktop\test\json"  # output folder path 
-    win_size = 256  # tile image size 
+    img_input = r"C:\Users\shican\Desktop\test\img"  # 输入图片文件夹路径
+    mask_input = r"C:\Users\shican\Desktop\test\mask"  # 输入mask文件夹路径
+    tar_path = r"C:\Users\shican\Desktop\test\json"  # 输出文件夹路径
+    win_size = 256  # 小图大小
 
     for img_file in glob.glob(img_input + "/*.tif"):
         file_name = img_file.replace('\\', '/').split('/')[-1].split('.')[0]

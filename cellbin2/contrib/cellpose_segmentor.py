@@ -19,19 +19,9 @@ from cellbin2.utils import clog
 
 
 def asStride(arr, sub_shape, stride):
-    """
-    Get a strided sub-matrices view of an ndarray.
-
-    This function is similar to `skimage.util.shape.view_as_windows()`.
-
-    Args:
-        arr (ndarray): The input ndarray.
-        sub_shape (tuple): The shape of the sub-matrices.
-        stride (tuple): The step size along each axis.
-
-    Returns:
-        ndarray: A view of strided sub-matrices.
-    """
+    '''Get a strided sub-matrices view of an ndarray.
+    See also skimage.util.shape.view_as_windows()
+    '''
     s0, s1 = arr.strides[:2]
     m1, n1 = arr.shape[:2]
     m2, n2 = sub_shape
@@ -42,19 +32,18 @@ def asStride(arr, sub_shape, stride):
 
 
 def poolingOverlap(mat, ksize, stride=None, method='max', pad=False):
-    """
-    Perform overlapping pooling on 2D or 3D data.
-
-    Args:
-        mat (ndarray): The input array to pool.
-        ksize (tuple of 2): Kernel size in (ky, kx).
-        stride (tuple of 2, optional): Stride of the pooling window. If None, it defaults to the kernel size (non - overlapping pooling).
-        method (str, optional): Pooling method, 'max' for max - pooling, 'mean' for mean - pooling.
-        pad (bool, optional): Whether to pad the input matrix or not. If not padded, the output size will be (n - f)//s+1, where n is the matrix size, f is the kernel size, and s is the stride. If padded, the output size will be ceil(n/s).
-
-    Returns:
-        ndarray: The pooled matrix.
-    """
+    '''Overlapping pooling on 2D or 3D data.
+    <mat>: ndarray, input array to pool.
+    <ksize>: tuple of 2, kernel size in (ky, kx).
+    <stride>: tuple of 2 or None, stride of pooling window.
+              If None, same as <ksize> (non-overlapping pooling).
+    <method>: str, 'max for max-pooling,
+                   'mean' for mean-pooling.
+    <pad>: bool, pad <mat> or not. If no pad, output has size
+           (n-f)//s+1, n being <mat> size, f being kernel size, s stride.
+           if pad, output has size ceil(n/s).
+    Return <result>: pooled matrix.
+    '''
 
     m, n = mat.shape[:2]
     ky, kx = ksize
@@ -64,42 +53,27 @@ def poolingOverlap(mat, ksize, stride=None, method='max', pad=False):
 
     _ceil = lambda x, y: int(np.ceil(x / float(y)))
 
-    # Replace zeros with NaNs to handle them in max and mean calculations
     mat = np.where(mat == 0, np.nan, mat)
 
     if pad:
-        # Calculate the padded size
         ny = _ceil(m, sy)
         nx = _ceil(n, sx)
         size = ((ny - 1) * sy + ky, (nx - 1) * sx + kx) + mat.shape[2:]
         mat_pad = np.full(size, np.nan)
         mat_pad[:m, :n, ...] = mat
     else:
-        # Ensure the matrix is large enough for the kernel if not padding
         mat_pad = mat[:(m - ky) // sy * sy + ky, :(n - kx) // sx * sx + kx, ...]
 
-    # Create a view of the matrix with the specified stride
     view = asStride(mat_pad, ksize, stride)
     if method == 'max':
-        # Perform max-pooling and convert NaNs back to zeros
         result = np.nanmax(view, axis=(2, 3))
     else:
-        # Perform mean-pooling and convert NaNs back to zeros
         result = np.nanmean(view, axis=(2, 3))
     result = np.nan_to_num(result)
     return result
 
 
 def f_instance2semantics_max(ins):
-    """
-    Processes an instance segmentation mask to remove small objects and converts it to a semantic segmentation mask.
-
-    Args:
-        ins (numpy.ndarray): The instance segmentation mask.
-
-    Returns:
-        numpy.ndarray: The semantic segmentation mask.
-    """
     ins_m = poolingOverlap(ins, ksize=(2, 2), stride=(1, 1), pad=True, method='mean')
     mask = np.uint8(np.subtract(np.float64(ins), ins_m))
     ins[mask != 0] = 0
@@ -117,21 +91,17 @@ def main(
         photo_step=2000,
 ) -> np.ndarray:
     """
-    Main function to perform cell segmentation using Cellpose model.
-
     Args:
-        file_path (str): Path to the input image file.
-        gpu (int): Index of the GPU to be used.
-        model_dir (str): Directory where the Cellpose model is stored.
-        model_name (str, optional): Name of the model to be used. Defaults to 'cyto2'.
-        output_path (str, optional): Path to save the output file. Defaults to None.
-        photo_size (int, optional): Size of the patches to be used for segmentation. Defaults to 2048.
-        photo_step (int, optional): Step size for patch extraction. Defaults to 2000.
+        file_path: 待处理图像存储为文件夹路径
+        photo_size: 剪裁成小图时，小图的大小
+        photo_step: 剪裁图像时的步长
+        model_name: 模型名，默认cyto2
+        output_path: 保存的文件夹
 
     Returns:
-        np.ndarray: Segmented cell mask as a numpy array.
+        cropped_1: 细胞分割结果（semantic）
     """
-    os.environ['CELLPOSE_LOCAL_MODELS_PATH'] = model_dir  # Set the path for Cellpose to find the model
+    os.environ['CELLPOSE_LOCAL_MODELS_PATH'] = model_dir  # 这样设置后，cellpose会去这里找
     os.environ["CUDA_VISIBLE_DEVICES"] = f"{gpu}"
     try:
         import cellpose
@@ -146,12 +116,12 @@ def main(
         pip.main(['install', 'patchify==0.2.3'])
     from cellpose import models
     import patchify
-    import logging
+
     overlap = photo_size - photo_step
     if (overlap % 2) == 1:
         overlap = overlap + 1
     act_step = ceil(overlap / 2)
-    logging.getLogger('cellpose.models').setLevel(logging.WARNING)
+
     model = models.Cellpose(gpu=True, model_type=model_name)
 
     img = cbimread(file_path, only_np=True)

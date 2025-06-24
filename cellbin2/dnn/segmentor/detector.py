@@ -74,8 +74,8 @@ class Segmentation:
         """
 
         :param img:CHANGE
-        :return: full-size mask image
-        2023/09/21 @fxzhao set need_fun_ret as False, this result is not ued in current version 
+        :return: 掩模大图
+        2023/09/21 @fxzhao 设置need_fun_ret为False,当前版本未用到此结果
         """
         # 1. preprocess image
         img = self.preprocess(

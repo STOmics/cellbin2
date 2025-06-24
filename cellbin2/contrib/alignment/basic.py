@@ -21,19 +21,19 @@ class AlignMode(Enum):
 
 
 class ChipBoxInfo(BaseModel):
-    LeftTop: List[float] = Field([fPlaceHolder, fPlaceHolder], description='Left-Up XY')
-    LeftBottom: List[float] = Field([fPlaceHolder, fPlaceHolder], description='Left-Down XY')
-    RightTop: List[float] = Field([fPlaceHolder, fPlaceHolder], description='Right-Up XY')
-    RightBottom: List[float] = Field([fPlaceHolder, fPlaceHolder], description='Right-Down XY')
-    ScaleX: float = Field(fPlaceHolder, description='The x scale of fixed image')
-    ScaleY: float = Field(fPlaceHolder, description='The y scale of fixed image')
-    ChipSize: Tuple[float, float] = Field((fPlaceHolder, fPlaceHolder), description='Chip shape')
-    Rotation: float = Field(fPlaceHolder, description='Chip rotate')
-    IsAvailable: bool = Field(bPlaceHolder, description='Do you recommend downstream processes to use this parameter')
+    LeftTop: List[float] = Field([fPlaceHolder, fPlaceHolder], description='左上角XY')
+    LeftBottom: List[float] = Field([fPlaceHolder, fPlaceHolder], description='左下角XY')
+    RightTop: List[float] = Field([fPlaceHolder, fPlaceHolder], description='右上角XY')
+    RightBottom: List[float] = Field([fPlaceHolder, fPlaceHolder], description='右下角XY')
+    ScaleX: float = Field(fPlaceHolder, description='相对固定图的X尺度')
+    ScaleY: float = Field(fPlaceHolder, description='相对固定图的Y尺度')
+    ChipSize: Tuple[float, float] = Field((fPlaceHolder, fPlaceHolder), description='芯片宽高')
+    Rotation: float = Field(fPlaceHolder, description='芯片放置角度')
+    IsAvailable: bool = Field(bPlaceHolder, description='是否建议下游流程使用该参数')
 
     @property
     def chip_box(self) -> np.ndarray:
-        """Arrange in the top left, bottom left, bottom right, bottom right, and top right directions
+        """以左上 左下 右下 右上排布
 
         Returns:
 
@@ -55,9 +55,9 @@ class ChipFeature(BaseModel):
     tech_type: TechType = TechType.ssDNA
     chip_box: ChipBoxInfo = ChipBoxInfo()
     template: TemplateInfo = TemplateInfo()
-    point00: Tuple[int, int] = (0, 0)
+    point00: Tuple[int, int] = (0, 0)  # xy,相对于芯片而不是矩阵的位置坐标
     mat: Union[str, CBImage] = ''
-    anchor_point: Tuple[int, int] = (0, 0)
+    anchor_point: Tuple[int, int] = (0, 0)  # xy, 用于配准前置的辅助锚点
 
     class Config:
         arbitrary_types_allowed = True
@@ -102,7 +102,7 @@ class ChipFeature(BaseModel):
 
 
 class Alignment(object):
-    """ Registration base class
+    """ 配准基类
 
     """
 
@@ -142,8 +142,7 @@ class Alignment(object):
             self,
             file: Union[str, np.ndarray, CBImage]
     ):
-        """ To treat the transformed image, call the image processing library to return
-        the normalized image according to the normalization parameters """
+        """ 对待变换的图像，调用图像处理库按照归一化参数，返回标准化后的图 """
 
         if not isinstance(file, CBImage):
             image = cbimread(file)
@@ -159,8 +158,7 @@ class Alignment(object):
 
     def registration_image(self,
                            file: Union[str, np.ndarray, CBImage]):
-        """ To treat the transformed image, call the image processing library to return
-        the transformed image according to the alignment parameters """
+        """ 对待变换的图像，调用图像处理库按照对齐参数，返回变换后的图 """
 
         if not isinstance(file, CBImage):
             image = cbimread(file)
@@ -180,9 +178,10 @@ class Alignment(object):
 
     def get_coordinate_transformation_matrix(self, shape, scale, rotate):
         """
-        The true transformation matrix of the positions of points before and after image transformation,
-        Unlike cv2. getRotationMatrix2D and cv2. warp Perspective,
-        which are coordinate systems based on the origin (0,0)
+        图像变换后，点的变换前后位置的真实变换矩阵
+        不同于 cv2.getRotationMatrix2D 和 cv2.warpPerspective等
+        为基于原点(0, 0)的坐标系
+        ** 此函数矩阵始终以图像左上为原点的坐标系
 
         Args:
             shape: h, w
@@ -192,21 +191,21 @@ class Alignment(object):
         Returns:
 
         """
-        # central rotate transform matrix 
+        # 中心旋转的变换矩阵
         mat_scale_rotate = self.scale_rotate2mat(scale, rotate)
         mat_center_f = self._matrix_eye_offset(-shape[1] / 2, -shape[0] / 2)
 
-        # get size and offset of transformed image 
+        # 获得变换后的图像尺寸及offset
         x, y, _, _ = self.get_scale_rotate_shape(shape, scale, rotate)
         mat_offset = self._matrix_eye_offset(x / 2, y / 2)
 
-        # final transform matrix 
+        # 最终变换矩阵
         mat_result = mat_offset * mat_scale_rotate * mat_center_f
         return mat_result
 
     def get_scale_rotate_shape(self, shape, scale, rotate):
         """
-        Obtain the scale size of the rotated and scaled image
+        得到旋转缩放后的图像尺度大小
         Args:
             shape: h, w
             scale:
@@ -237,13 +236,14 @@ class Alignment(object):
             rotate_first_flag: bool = True
     ) -> np.matrix:
         """
-        Matrix transformation of scaling, rotating, and then translating
-
+        先缩放、旋转 后平移的矩阵变换
         Args:
             scale:
             rotate:
-            offset: [x, y] Default Last Action
+            offset: [x, y] 默认最后做
             rotate_first_flag:
+                -- 若scale为两个方向不同值，则会出现旋转的优先级问题，即先做旋转还是先做缩放，
+                两个方法所得到的变换矩阵不一样，具体体现在旋转会改变轴的方向，使得缩放的程度会不一样
 
         Returns:
 
@@ -281,7 +281,7 @@ class Alignment(object):
     @staticmethod
     def get_points_by_matrix(points, mat):
         """
-        New coordinates of image points after transformation matrix
+        图像点在变换矩阵后的新坐标
         Args:
             points:
             mat:
@@ -310,7 +310,7 @@ class Alignment(object):
                              dst_shape: tuple = None
                              ):
         """
-        Obtain matrix through point transformation
+
         Args:
             src:
             points_src:
@@ -337,7 +337,7 @@ class Alignment(object):
     @staticmethod
     def transform_points(**kwargs):
         """
-        Corner Flip
+        角点翻转
         Args:
             **kwargs:
                 points:
@@ -448,7 +448,7 @@ class Alignment(object):
     @njit(parallel=True)
     def multiply_sum(a, b):
         """
-        Calculate the cumulative sum of matrix multiplication
+        计算矩阵相乘后的累加和
         """
         res = 0
         (h, w) = a.shape
@@ -469,21 +469,19 @@ def transform_points(
     """
 
     Args:
-        points: n * 2/4 array size -- (x, y)
-        src_shape: original image size -- (h, w)
+        points: n * 2/4大小数组 -- (x, y)
+        src_shape: 原始图像尺寸 -- (h, w)
         scale:
         rotation:
-        offset: This value is defined as the value obtained after completing all transformation operations -- (x, y)
-        flip: -1 means not flipping 0 to x coordinate and flipping 1 to y coordinate
+        offset: 该值定义为做完所有变换操作后再操作 -- (x, y)
+        flip: -1 表示不做  0为x坐标翻转 1为y坐标翻转
 
     Returns:
         new_points:
-        mat: Only the transformation matrix for scale and rotate
+        mat: 仅为scale和rotate的变换矩阵
 
     """
     align = Alignment()
-
-    src_shape = list(map(lambda x: x - 1, src_shape))
 
     mat = align.get_coordinate_transformation_matrix(shape=src_shape, scale=scale, rotate=rotation)
     if flip == 0:
@@ -504,17 +502,17 @@ def transform_points(
 
 
 if __name__ == "__main__":
-    src_points = np.array([[0, 0],
-                           [0, 99],
-                           [99, 99],
-                           [99, 0]])
-    dst_points = transform_points(src_points,
-                                  src_shape=(100, 100),
-                                  scale=1,
-                                  rotation=180,
-                                  offset=(0, 0),
-                                  flip=0)
-    print(dst_points)
+    # src_points = np.array([[0, 0],
+    #                        [0, 100],
+    #                        [100, 100],
+    #                        [100, 0]])
+    # dst_points = transform_points(src_points,
+    #                               src_shape=(100, 100),
+    #                               scale=2,
+    #                               rotation=30,
+    #                               offset=(10, 10),
+    #                               flip=0)
+    # print(dst_points)
 
     _points, _ = transform_points(
         np.loadtxt(r"D:\02.data\temp\A03599D1\00pt\temp_rot0.txt"),

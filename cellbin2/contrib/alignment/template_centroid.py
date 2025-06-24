@@ -7,8 +7,7 @@ from typing import List, Tuple
 
 class TemplateCentroid(Alignment):
     """
-    Satisfy CellBin's requirements, utilize template periodicity and organizational form,
-    and obtain transformation parameters through traversal. Realize registration with an error of approximately 10pix
+    满足CellBin需求，利用模板周期性及组织形态，通过遍历实现变换参数的获取。实现配准，误差约10pix
     """
     def __init__(
             self,
@@ -123,10 +122,10 @@ def centroid(moving_image: ChipFeature,
              rot90_flag: bool = True
              ):
     """
-    :param moving_image: The image to be registered is usually a stained image (such as ssDNA, HE)
-    :param fixed_image: Fixed graph, usually a matrix, supports TIF/GEM/GEF and arrays
-    :param ref: Template cycle, only used in template related registration methods
-    :param from_stitched: Starting from the stitching diagram
+    :param moving_image: 待配准图，通常是染色图（如ssDNA、HE）
+    :param fixed_image: 固定图，通常是矩阵，支持TIF/GEM/GEF及数组
+    :param ref: 模板周期，仅在模板相关配准方法下用到
+    :param from_stitched: 从拼接图开始
     :param flip_flag:
     :param rot90_flag:
     :return: RegistrationInfo
@@ -159,7 +158,7 @@ if __name__ == '__main__':
     template_ref = ([240, 300, 330, 390, 390, 330, 300, 240, 420],
                     [240, 300, 330, 390, 390, 330, 300, 240, 420])
 
-    # move image 
+    # 移动图像信息
     moving_image = ChipFeature()
     moving_image.tech_type = TechType.DAPI
     moving_mat = cbimread(r'E:\03.users\liuhuanlin\01.data\cellbin2\stitch\A03599D1_DAPI.tif')
@@ -171,7 +170,7 @@ if __name__ == '__main__':
                            np.loadtxt(r"E:/03.users/liuhuanlin/01.data/cellbin2/stitch/DAPI_matrix_template.txt"))
     moving_image.set_template(img_tpl)
 
-    # fix object information 
+    # 固定对象信息
     fixed_image = ChipFeature()
     fixed_image.tech_type = TechType.Transcriptomics
     fixed_image.set_mat(r'E:\03.users\liuhuanlin\01.data\cellbin2\stitch\A03599D1_gene.tif')

@@ -50,7 +50,7 @@ class Image(object):
                 self.image = buffer[y0: y1, x0: x1]
         else:
             return 1
-        if self.image is None or len(self.image) == 0:  # for damaged image file 
+        if self.image is None or len(self.image) == 0:  # 针对有损坏的图像文件
             raise Exception(f"Reading {image} error!")
         self.ndim = self.image.ndim
         self.dtype = self.image.dtype
@@ -83,7 +83,7 @@ class Image(object):
             tifffile.imwrite(output_path, image)
 
     def get_channel(self, ch):
-        # TODO: return new image without covering self.image
+        # TODO: 返回新的image，不要覆盖self.image
         if self.channel == 1 or ch == -1:
             return
         else:

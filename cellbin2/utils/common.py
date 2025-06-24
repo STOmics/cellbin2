@@ -57,7 +57,7 @@ class ErrorCode(Enum):
     unexpectedError = (254, 'unexpected error')
 
     def __new__(cls, value, doc):
-        # create a new enumeration member instance
+        # 创建新的枚举成员实例
         obj = object.__new__(cls)
         obj._value_ = value
         obj.doc = doc

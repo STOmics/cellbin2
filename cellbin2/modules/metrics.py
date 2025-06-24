@@ -22,36 +22,36 @@ from cellbin2.modules.naming import DumpPipelineFileNaming
 from cellbin2.contrib.alignment.basic import ChipBoxInfo
 
 
-# define all the input parameters required by metrics, use this method to add other parameters in the future
+# 这里定义metrics所需要的所有入参，后面再加也需要用这个方式
 class MatrixArray(BaseModel):
-    bin1_matrix: str = Field(..., description="path for original Bin1 matrix")
-    tissue_bin_matrix: str = Field(..., description="path for TissueBin matrix")
-    cell_bin_matrix: str = Field(..., description="absolute path for raw CellBin matrix")
-    cell_bin_adjusted_matrix: str = Field(..., description="absolute path for adjusted CellBin matrix")
-    matrix_type: TechType = Field(..., description="sequencing matrix technology types, including Transcriptomics and Protein")
+    bin1_matrix: str = Field(..., description="原始Bin1矩阵路径")
+    tissue_bin_matrix: str = Field(..., description="TissueBin矩阵路径")
+    cell_bin_matrix: str = Field(..., description="CellBin修正前的矩阵的绝对路径")
+    cell_bin_adjusted_matrix: str = Field(..., description="CellBin修正后的矩阵的绝对路径")
+    matrix_type: TechType = Field(..., description="测序矩阵采用的技术类型，包含：Transcriptomics 和 Protein")
 
 
 class ImageSource(BaseModel):
-    stitch_image: str = Field(..., description="path for stitch image")
+    stitch_image: str = Field(..., description="拼接图路径")
     cell_mask: str = Field(default=..., description="cell mask")
-    registration_image: str = Field(default=..., description="registration image")
+    registration_image: str = Field(default=..., description="配准图")
     tissue_mask: str = Field(default=..., description="tissue mask")
     cell_correct_mask: str = Field(default=..., description="cell correct mask")
 
 
 class FileSource(BaseModel):
-    ipr_file: str = Field(..., description="absolute path of image analysis record file")
-    rpi_file: str = Field(..., description="absolute path of the image pyramid file")
-    matrix_list: List[MatrixArray] = Field(..., description="list of new matrices generated from multiple extraction methods applied to each Bin1 matrix")
-    sn: str = Field(..., description="chip id for the gef files")
-    image_dict: Dict[str, ImageSource] = Field(..., description="cellbin2 file must be named the same as ipr")
+    ipr_file: str = Field(..., description="图像分析记录文件绝对路径")
+    rpi_file: str = Field(..., description="图像金字塔文件绝对路径")
+    matrix_list: List[MatrixArray] = Field(..., description="对每个Bin1矩阵进行多种提取方式后的新矩阵列表")
+    sn: str = Field(..., description="这些gef文件的芯片号")
+    image_dict: Dict[str, ImageSource] = Field(..., description="cellbin2 的文件，要求跟ipr的命名一致")
 
 
 BIN_OUTPUT_VIEW = 10
 
 
 class Metrics(object):
-    """ Metrics: aggregate and compute module-specific metrics from pipeline results for report generation """
+    """ 指标：基于流程结果，汇总及计算各个模块指标，服务于报告 """
 
     def __init__(self, filesource: FileSource, output_path: str):
         self.filesource = filesource
@@ -82,21 +82,21 @@ class Metrics(object):
             print("-" * 50)
             self.output_figure_path = os.path.join(self._output_path, "assets")
             print(f"Creat report required path in {self.output_figure_path}")
-            ### RNA menu
+            ### RNA 目录
             self.output_figure_path_rna_cellbin = os.path.join(self.output_figure_path, "rna", "cellbin")
             os.makedirs(self.output_figure_path_rna_cellbin, exist_ok=True)
             self.output_figure_path_rna_adjusted = os.path.join(self.output_figure_path, "rna", "adjusted")
             os.makedirs(self.output_figure_path_rna_adjusted, exist_ok=True)
-            ### protein menu
+            ### protein 目录
             self.output_figure_path_protein_cellbin = os.path.join(self.output_figure_path, "protein", "cellbin")
             self.output_figure_path_protein_adjusted = os.path.join(self.output_figure_path, "protein", "adjusted")
             os.makedirs(self.output_figure_path_protein_cellbin, exist_ok=True)
             os.makedirs(self.output_figure_path_protein_adjusted, exist_ok=True)
             print("-" * 50)
-            ### image menu
+            ### image 目录
             self.output_figure_path_image = os.path.join(self.output_figure_path, "image")
             os.makedirs(self.output_figure_path_image, exist_ok=True)
-            # temperary menu
+            # 临时目录
             self.output_tmp_dir = os.path.join(self.output_figure_path_image, "tmp")
             os.makedirs(self.output_tmp_dir, exist_ok=True)
         else:
@@ -135,8 +135,6 @@ class Metrics(object):
 
     def set_image_list(self):
         if self.filesource.rpi_file == "":
-            return
-        elif not os.path.exists(self.filesource.rpi_file):
             return
         else:
             h5 = h5py.File(self.filesource.rpi_file, 'r')
@@ -280,15 +278,15 @@ class Metrics(object):
         pass
 
     def image_array_to_base64(self, img_array):
-        png_path = os.path.join(self.output_path,'temp.png')
+        png_path = './temp.png'
         if len(img_array.shape) == 3 and img_array.shape[-1] == 3:
             img_array = img_array[:, :, (2, 1, 0)]
         cv2.imwrite(png_path, img_array)
-        with open(png_path, "rb") as f:
+        with open('./temp.png', "rb") as f:
             img_b = f.read()
             b = io.BytesIO(img_b)
-
-        os.remove(png_path)
+        cmd = 'rm ' + png_path
+        os.system(cmd)
         return 'data:image/png;base64,{}'.format(base64.b64encode(b.getvalue()).decode())
 
     def set_cellbin_scatterplot(self):
@@ -346,7 +344,7 @@ class Metrics(object):
             return
         else:
             _ipr, channel_images = ipr.read(self.filesource.ipr_file)
-            # if len(self.filesource.image_dict) != len(_ipr.layers):  TODO: turn off, test single staining image first
+            # if len(self.filesource.image_dict) != len(_ipr.layers):  TODO: 先关了，先测单个染色的
             #     raise Exception(
             #         f"the stain file is {len(self.filesource.image_dict)}, which is not match .ipr file number")
             # (self.output_data["image_ipr"]["ManualState"],
@@ -426,8 +424,6 @@ class Metrics(object):
             with h5py.File(self.filesource.ipr_file, "r") as f:
                 template_points = f[layer]["Register"]["RegisterTemplate"][...]
                 track_points = f[layer]["Register"]["RegisterTrackTemplate"][...]
-                if template_points.size == 0:
-                    continue
                 img, cp_image_list, tissue_image_list = template_painting(
                     image_data=self.filesource.image_dict[layer].registration_image,
                     tissue_seg_data=self.filesource.image_dict[layer].tissue_mask,
@@ -462,24 +458,19 @@ class Metrics(object):
                 # trackpoint_name = os.path.join(self.output_figure_path_image, f"{layer}_trackpoint.png")
                 # self.output_data["image_ipr"][layer]["trackpoint"] = os.path.relpath(trackpoint_name,
                 #                                                                      self._output_path)
-                chipbox_painting_path = os.path.join(self.output_figure_path_image, f"{layer}_chipbox.png")
+                chipbox_painting = os.path.join(self.output_figure_path_image, f"{layer}_chipbox.png")
                 tmp_chipbox_info = ChipBoxInfo()
                 tmp_chipbox_info.LeftTop = f[layer]["QCInfo"]["ChipBBox"]['LeftTop'][...]
                 tmp_chipbox_info.LeftBottom = f[layer]["QCInfo"]["ChipBBox"]['LeftBottom'][...]
                 tmp_chipbox_info.RightBottom = f[layer]["QCInfo"]["ChipBBox"]['RightBottom'][...]
                 tmp_chipbox_info.RightTop = f[layer]["QCInfo"]["ChipBBox"]['RightTop'][...]
 
-                _image, chipbox_part_image_lists = chip_box_painting(image_data=self.filesource.image_dict[layer].stitch_image,
+                img = chip_box_painting(image_data=self.filesource.image_dict[layer].stitch_image,
                                         chip_info=tmp_chipbox_info,
                                         layer=layer,
                                         draw_thickness=3)
-                cv2.imwrite(chipbox_painting_path, _image)
-                self.output_data["image_ipr"][layer]["chipbox"] = os.path.relpath(chipbox_painting_path, self._output_path)
-                for i in range(len(chipbox_part_image_lists)):
-                    tmp_chipbox_part_image = chipbox_part_image_lists[i]
-                    tmp_chipbox_part_image_path = os.path.join(self.output_figure_path_image,f"{layer}_chipbox_part_image_{i + 1}.png")
-                    cv2.imwrite(tmp_chipbox_part_image_path, tmp_chipbox_part_image)
-                    self.output_data["image_ipr"][layer][f"chipbox_part_image_{i + 1}"] = os.path.relpath(tmp_chipbox_part_image_path, self._output_path)
+                cv2.imwrite(chipbox_painting, img)
+                self.output_data["image_ipr"][layer]["chipbox"] = os.path.relpath(chipbox_painting, self._output_path)
 
     @property
     def output_path(self):
@@ -488,15 +479,15 @@ class Metrics(object):
 
 def calculate(param: FileSource, output_path: str):
     """
-    :param param: CellBin result files (multiple)
-    :param output_path: temporary and static files generated after metrics calculation, for report generation 
+    :param param: CellBin结果文件（多个）
+    :param output_path: 指标统计结束后生成的临时及静态文件，服务于报告生成
     :return: None
     """
     pass
     # TODO: zhangying
     mcs = Metrics(param, output_path=output_path)
     mcs.set_report_para()
-    mcs.save_json_file(os.path.join(mcs.pipe_naming.metrics))  # unified naming management
+    mcs.save_json_file(os.path.join(mcs.pipe_naming.metrics))  # 命名统一管理
 
 
 def main():
@@ -504,7 +495,7 @@ def main():
     main_s_type = "ssDNA"
     # path = r"/media/Data/wqs/hedongdong/tissue_segmentation/cellbin2_test/report_test_data/SS200000135TL_D1_demo"
     path = r"F:\01.users\hedongdong\cellbin2_test\report_result\pipline\SS200000135TL_D1"
-    sn = "SS200000135TL_D1"  ###chip id
+    sn = "SS200000135TL_D1"  ###芯片号
     ipr_file = glob(os.path.join(path, f"**.ipr"))[0]
     rpi_file = glob(os.path.join(path, f"**.rpi"))[0]
     tissue_gef = glob(os.path.join(path, f"**.tissue.gef"))[0]

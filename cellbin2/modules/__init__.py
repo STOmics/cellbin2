@@ -1,1 +1,1 @@
-#  Business Submodule: Adaptation to outer workflow, manual processes, communication files -- ipr, tool files -- rpi, evaluation scoring, etc.
+#  业务子模块：适配与外层流程、手动流程、通信文件-ipr、工具文件-rpi等等，评估打分等

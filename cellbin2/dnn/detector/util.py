@@ -12,10 +12,8 @@ pi = 3.141592
 def letterbox(im, new_shape=(640, 640), color=(114, 114, 114)):
     """
     Resize and pad image while meeting stride-multiple constraints
-    
-    This module resizes non-square images by scaling the long edge to new_shape, then pads the short edge, to form a square
-    For square images, directly resize to new_shape
-    
+    该模块将非正方形图片先以长边与new_shape的比例进行resize, 再补齐短边形成正方形
+    如果是正方形图片, 就是直接resize成new_shape
     Returns:
         im (array): (height, width, 3)
         ratio (array): [w_ratio, h_ratio]
@@ -29,8 +27,8 @@ def letterbox(im, new_shape=(640, 640), color=(114, 114, 114)):
     r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
 
     # Compute padding
-    new_unpad = int(round(shape[0] * r)), int(round(shape[1] * r)),  # w h get the size of new image (no padded yet) 
-    dw, dh = new_shape[1] - new_unpad[1], new_shape[0] - new_unpad[0]  # wh padding the difference between new_shape and new_unpad gives the difference in size  
+    new_unpad = int(round(shape[0] * r)), int(round(shape[1] * r)),  # w h 这一步得到新的图片大小(未做padding)
+    dw, dh = new_shape[1] - new_unpad[1], new_shape[0] - new_unpad[0]  # wh padding 通过新的大小与new_unpad的差值可得出还差多少
 
     dw /= 2  # divide padding into 2 sides
     dh /= 2
@@ -106,16 +104,16 @@ def nms_rotate_cpu(boxes, scores, iou_threshold, max_output_size):
     return: the remaining index of box
     """
     keep = []
-    order = scores.argsort()[::-1]  # sort scores in descending order, return indices
-    num = boxes.shape[0]  # total number of bbox 
-    suppressed = np.zeros((num), dtype=int)  # record the indices of discarded boxes
+    order = scores.argsort()[::-1]  # 对score进行从高到低排序排序, 返回index
+    num = boxes.shape[0]  # 一共有多少个bbx
+    suppressed = np.zeros((num), dtype=int)  # 记录不要的box的index
     for _i in range(num):
-        if len(keep) >= max_output_size:  # break when output quantity reaches the maximum value 
+        if len(keep) >= max_output_size:  # 当输出数量达到最大值结束
             break
-        i = order[_i]  # current index
-        if suppressed[i] == 1:  # continue when the index in suppressed 
+        i = order[_i]  # 当前index
+        if suppressed[i] == 1:  # 如果在不要的里面, 那么就继续
             continue
-        keep.append(i)  # save in keep
+        keep.append(i)  # 放入到keep中
         tmp_dist = cdist(boxes[i, :2].reshape(-1, 2), boxes[order[_i + 1:], :2])
         tmp = order[_i + 1:][np.where(tmp_dist <= np.min(boxes[i, 2: 4]))[1]]
         suppressed[tmp] = 1

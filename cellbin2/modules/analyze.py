@@ -1,7 +1,7 @@
-# Clustering and Annotation Module: facilitates HTML report generation
+# 聚类、注释模块：便于产出HTML报告
 
 class Analyze(object):
-    """ clustering, annotation part """
+    """ 聚类，注释部分 """
     # TODO:zhangying
     def __init__(self, data_path: str):
         self.data = None

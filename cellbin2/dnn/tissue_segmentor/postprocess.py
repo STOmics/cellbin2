@@ -49,7 +49,7 @@ def f_post_ssdna_240618(img: npt.NDArray, src_shape: tuple) -> npt.NDArray:
     clog.info("postprocessing data type: ssDNA")
     clog.info("version: 240618")
     img = np.uint8(rescale_intensity(img, out_range=(0, 255)))
-    for i in range(5):  # iteratively upscale and apply mean filtering to smooth the edges of the generated mask
+    for i in range(5):  # 迭代放大以及做均值滤波，平滑生成的mask边缘
         img = cv2.resize(img, None, fx=2, fy=2, interpolation=cv2.INTER_LINEAR)
         img = cv2.blur(img, (5, 5))
     img = cv2.resize(img, (src_shape[1], src_shape[0]), interpolation=cv2.INTER_LINEAR)

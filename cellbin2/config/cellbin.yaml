@@ -2,41 +2,29 @@
 # ssDNA=1, DAPI=2, HE=3, IF=4, Transcriptomics=5, Protein=6, UNKNOWN=10
 
 trackPoints:
-  detect_channel: -1 # for inputing 3-channel image, specify detection channel, defaults to convert to single channel
+  detect_channel: -1 # 若输入图为3通道，需指明检测通道。否则，程序会自动转为单通道图
   first_level_thr: 5  # [th  # th2) -> track_point_score = 1
   second_level_thr: 20  # [th2  # inf) -> track_point_score = 2
-  good_thresh: 5  # Minimum score threshold for FOV to be counted as "good"
-  process: 10  # Number of parallel processes for point detection inference
-  conf_filter: 0.5  # Confidence filter threshold (<0 = disable filtering). Global template requires >0.5
-  high_freq_angle_thr: 0.05  # High-frequency angle threshold for point detection
-  DEFAULT_STAIN_TYPE: 1  # ssDNA
-  SUPPORTED_STAIN_TYPE: [1, 2, 3]  # ssDAN, DAPI，HE
-  ssDNA_weights_path: points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx  # Model weights for ssDNA
-  DAPI_weights_path: points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx  # Model weights for DAPI
-  HE_weights_path: points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx  # Model weights for HE
-  IF_weights_path: points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx  # Model weights for IF
-  GPU: 0  # GPU device ID for inference (-1 = CPU)
-  num_threads: 0  # Number of CPU threads for inference (0 = auto-detect)
-  good_thresh: 5  # value above this threshold is counted as good_fov
-  process: 10  # number of inference process for point detection
-  conf_filter: 0.5  # filter detection results base on this threshold, no filtering applied for values lower than 0 # only points with score above 0.5 are kept for global template
-  high_freq_angle_thr: 0.05  #
-  DEFAULT_STAIN_TYPE: 1  # staining type ssDNA
-  SUPPORTED_STAIN_TYPE: [1, 2, 3]  # staining type ssDAN, DAPI,HE
-  ssDNA_weights_path: points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx  # checkpoint file for ssDNA staining image
-  DAPI_weights_path: points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx  # checkpoint file for DAPI staining image
-  HE_weights_path: points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx  # checkpoint file for HE staining image
-  IF_weights_path: points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx  # checkpoint file for IF staining image
-  GPU: 0  # GPU id used for inference
-  num_threads: 0  # number of threads used for inference
+  good_thresh: 5  # 大于该阈值的被计数为good_fov
+  process: 10  # 点检测推理进程数设置"
+  conf_filter: 0.5  # 依据此数值对检测结果进行置信度过滤，若值小于0就不做过滤")  # 全局模板设置只要0.5以上的点
+  high_freq_angle_thr: 0.05  # 
+  DEFAULT_STAIN_TYPE: 1  # ssDNA染色
+  SUPPORTED_STAIN_TYPE: [1, 2, 3]  # ssDAN染色, DAPI染色，HE染色
+  ssDNA_weights_path: points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx  # ssDNA染色图对应的权重文件名
+  DAPI_weights_path: points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx  # DAPI染色图对应的权重文件名
+  HE_weights_path: points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx  # HE染色图对应的权重文件名
+  IF_weights_path: points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx  # IF染色图对应的权重文件名
+  GPU: 0  # 推理使用的GPU编号
+  num_threads: 0  # 推理使用的线程数
 
 clarity:
-  GPU: 0  # GPU id used for inference
-  num_threads: 0  # number of threads used for inference
-#  DEFAULT_STAIN_TYPE: 1  # staining type ssDNA
-#  SUPPORTED_STAIN_TYPE: [1, 2]  # staining type ssDNA, DAPI
-  ssDNA_weights_path: clarity_eval_mobilev3small05064_DAPI_20230608_pytorch.onnx  # checkpoint file for ssDNA staining image
-  DAPI_weights_path: clarity_eval_mobilev3small05064_DAPI_20230608_pytorch.onnx  # checkpoint file for DAPI staining image
+  GPU: 0  # 推理使用的GPU编号
+  num_threads: 0  # 推理使用的线程数
+#  DEFAULT_STAIN_TYPE: 1  # ssDNA染色
+#  SUPPORTED_STAIN_TYPE: [1, 2]  # ssDAN染色, DAPI染色
+  ssDNA_weights_path: clarity_eval_mobilev3small05064_DAPI_20230608_pytorch.onnx  # ssDNA染色图对应的权重文件名
+  DAPI_weights_path: clarity_eval_mobilev3small05064_DAPI_20230608_pytorch.onnx  # DAPI染色图对应的权重文件名
   #  thr: 0.85
   #  cluster_area_thr: 0.05
   #  cluster_width_thr: 0.2
@@ -95,15 +83,13 @@ Registration:
   HE_channel: 1
   rot90: true
   flip: true
-  flag_pre_registration: false
-  flag_chip_registration: false
 
 cellCorrect:
-  expand_r: 10 # Expansion radius for cell correction (pixels)
-  process: 30 # Number of parallel processes for cell correction
+  expand_r: 10
+  process: 30
 
 calibration:
-  offset_thr: 20 # Maximum allowable offset threshold for calibration (pixels)
+  offset_thr: 20
 
 defaultImage:
   clarity: false

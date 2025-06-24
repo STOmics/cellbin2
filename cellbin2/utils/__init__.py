@@ -1,4 +1,4 @@
-# Support Function
+# 支撑功能
 import numpy as np
 import h5py
 import os
@@ -23,7 +23,7 @@ def dict2h5(dct, h5):
             sub = h5.create_group(k)
             dict2h5(v, sub)
         elif type(v) is np.ndarray:
-            h5.create_dataset(k, data=v, compression="lzf")  # TODO: cannot view h5 view after compression, open when no debug required 
+            h5.create_dataset(k, data=v, compression="lzf")  # TODO: 压缩后h5 view看不到，等不需要debug了再开
         else:
             h5.attrs[k] = v
 
@@ -73,8 +73,7 @@ class HDF5(object):
 
     def write(self, file_path: str, extra: dict):
         dir_path = os.path.dirname(file_path)
-        if dir_path not in ['', '.']:
-            os.makedirs(dir_path, exist_ok=True)
+        os.makedirs(dir_path, exist_ok=True)
 
         for k, v in extra.items():
             if not hasattr(self, k):
@@ -106,7 +105,7 @@ class Dict2Obj(object):
 
 
 class DictEncoder(json.JSONEncoder):
-    """ adapt to various json data types """
+    """ 适配json各种数据类型 """
 
     def default(self, o: Any) -> Any:
         if isinstance(o, np.ndarray):
