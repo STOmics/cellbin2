@@ -428,6 +428,8 @@ class Scheduler(object):
 
         :return: None
         """
+
+        #TODO:待改json读molecular_classify内容
         for idx, m in self.molecular_classify_files.items():
             clog.info('======>  Extract[{}], {}'.format(idx, m))
             picked_mask = m.cell_mask
@@ -442,6 +444,7 @@ class Scheduler(object):
                 )
                 to_fast = final_nuclear_path
             else:  # Two masks, assuming the first is the nuclear mask and the second is the membrane mask
+                #TODO:multimodal_merge(nuclei_mask_path, cell_mask_path, interior_mask_path, overlap_threshold, save_path)
                 im_naming1 = naming.DumpImageFileNaming(
                     sn=self.param_chip.chip_name,
                     stain_type=self._files[picked_mask[0]].get_group_name(sn=self.param_chip.chip_name),
