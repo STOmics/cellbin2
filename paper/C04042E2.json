@@ -1,7 +1,7 @@
 {
   "image_process": {
     "0": {
-      "file_path": "/media/Data1/user/dengzhonghan/data/cellbin2paper/C04042E2/C04042E2.tif",
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/02.Stereo_seq_transcriptomics_V1.3_Kit/C04042E2/raw_images/stitch/C04042E2.tif",
       "tech_type": "ssDNA",
       "chip_detect": false,
       "quality_control": false,
@@ -16,7 +16,7 @@
       }
     },
     "1": {
-      "file_path": "/media/Data1/user/dengzhonghan/data/cellbin2paper/C04042E2/C04042E2.raw.gef",
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/02.Stereo_seq_transcriptomics_V1.3_Kit/C04042E2/gem/C04042E2.raw.gef",
       "tech_type": "Transcriptomics",
       "chip_detect": false,
       "quality_control": false,
