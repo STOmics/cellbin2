@@ -56,7 +56,7 @@
     }
   },
   "run": {
-    "qc": false,
+    "qc": true,
     "alignment": true,
     "matrix_extract": true,
     "report": false,

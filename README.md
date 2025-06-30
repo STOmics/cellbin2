@@ -63,76 +63,36 @@ After completion, validate the output integrity by comparing your results with t
 
 ## Tutorials
 ### Core Workflow
-The `cellbin_pipeline.py` script serves as the main entry point for CellBin2 analysis. It supports two configuration approaches:
-1. **Configuration files** : Use JSON files for full customization
-2. **Command-line arguments**: Quick setup using key parameters with kit-based defaults
+The `cellbin_pipeline.py` script serves as the main entry point for CellBin2 analysis. It supports using JSON file for customized configuration
 
 📘 **Configuration Guide**:<br>
 See [JSON Configuration Documentation](docs/v2/JsonConfigurationDocumention.md) for full parameter specifications.
 
-### Basic Usage
+### Command Template
+
 ```shell
-# Minimal configuration (requires complete parameters in JSON)
+# configuration (requires complete parameters in JSON)
 CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py -c <SN> -p <config.json> -o <output_dir> 
-
-# Kit-based configuration (auto-loads predefined settings)
-CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py -c <SN> -i <image.tif> -s <stain_type> -m <expression.gef> -o <output_dir> -k "Kit Name"
-
-# View all available parameters
-python cellbin2/cellbin_pipeline.py -h
 ```
 
-### Key Parameters
+### Parameters
 
-| Parameter | Required* | Description                                                                                                   | Examples                                                  |
-| :-------- | :-------- |:--------------------------------------------------------------------------------------------------------------|:----------------------------------------------------------|
-| `-c`      | ✓         | Serial number of chip                                                                                         | `SN`                                                      |
-| `-o`      | ✓         | Output directory                                                                                              | `results/SAMPLE123`                                       |
-| `-i`      | ✓△        | Primary image path (required for kit-based mode)                                                              | `SN.tif`                                                  |
-| `-s`      | ✓△        | Stain type (required for kit-based mode)                                                                      | `DAPI`, `ssDNA`, `HE`                                     |
-| `-p`      | △         | Path to custom configuration file<br/> [JSON Configuration Documentation](docs/v2/JsonConfigurationDocumention.md) | [`config/custom.json`](cellbin2/config/demos/sample.json) |
-| `-m`      | △         | Gene expression matrix                                                                                        | `SN.raw.gef`                                              |
-| `-mi`     | △         | Multi-channel images                                                                                          | `IF=SN_IF.tif`                                            |
-| `-pr`     | △         | Protein expression matrix                                                                                     | `SN_IF.protein.gef`                                       |
-| `-k`      | ✓△        | Kit type (required for kit-based mode,See kit list below)                                                     | `"Stereo-CITE T FF V1.1 R"`                               |
+| Parameter    | Description                                                                                                   | Examples                                                  |
+| :----------- |:--------------------------------------------------------------------------------------------------------------|:----------------------------------------------------------|
+| `-c`         | Serial number of chip                                                                                         | `A12345C6`                                                |
+| `-p`         | Path to custom configuration file<br/> [JSON Configuration Documentation](docs/v2/JsonConfigurationDocumention.md) | [`config/custom.json`](cellbin2/config/demos/sample.json) |
+| `-o`         | Output directory                                                                                              | `results/A12345C6`                                        |
 
-> *✓ = Always required, ✓△ = Required for kit-based mode, △ = Optional
-
-### Supported Kit Types
-```python
-KIT_VERSIONS = (
-    # Standard product versions
-    'Stereo-seq T FF V1.2',       
-    'Stereo-seq T FF V1.3',
-    'Stereo-CITE T FF V1.0',   
-    'Stereo-CITE T FF V1.1',
-    'Stereo-seq N FFPE V1.0', 
-    
-    # Research versions
-    'Stereo-seq T FF V1.2 R',
-    'Stereo-seq T FF V1.3 R',
-    'Stereo-CITE T FF V1.0 R',
-    'Stereo-CITE T FF V1.1 R',
-    'Stereo-seq N FFPE V1.0 R',     
-)
-```
-
-> The kit controls the module switches and parameters in the JSON configuration to customize the analysis workflow. <br>
-> Detailed configurations per kit: [config.md](docs/v2/config.md). <br>
-> More introduction about kits type, you can view [STOmics official website](https://en.stomics.tech/products/stereo-seq-transcriptomics-solution/list.html).
 
 ### Common Use Cases
 
-#### Case 1:Stereo-seq T FF <br>
+#### Case 1: Stereo-seq T FF <br>
 ssDNA
 ```shell
 CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
 -c SN \
--i SN.tif \
--s ssDNA \
--m SN.raw.gef \
--o test/SN \
--k "Stereo-seq T FF V1.2"
+-p tif_gef.json\
+-o output/SN \
 ```
 
 #### Case 2:Stereo-CITE <br>
