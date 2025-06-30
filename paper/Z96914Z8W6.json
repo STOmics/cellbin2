@@ -1,7 +1,7 @@
 {
     "image_process": {
         "0": {
-            "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/05.Stereo_cell/A03085A1D3/gem/A03085A1D3.gem.gz",
+            "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/05.Stereo_cell/Z96914Z8W6/gem/Z96914Z8W6.gem.gz",
             "tech_type": "Transcriptomics",
             "chip_detect": false,
             "quality_control": false,

@@ -1,7 +1,7 @@
 {
   "image_process": {
     "0": {
-      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/01.Stereo_seq_transcriptomics_V1.2_Kit/A02497C1/raw_images/stitch/A02497C1_fov_stitched.tif",
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/01.Stereo_seq_transcriptomics_V1.2_Kit/Z97502X8/raw_images/stitch/Z97502X8_fov_stitched.tif",
       "tech_type": "HE",
       "chip_detect": true,
       "quality_control": false,
@@ -16,7 +16,7 @@
       }
     },
     "1": {
-      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/01.Stereo_seq_transcriptomics_V1.2_Kit/A02497C1/gem/A02497C1.gef",
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/01.Stereo_seq_transcriptomics_V1.2_Kit/Z97502X8/gem/Z97502X8.gef",
       "tech_type": "Transcriptomics",
       "chip_detect": false,
       "quality_control": false,

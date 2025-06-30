@@ -1,32 +1,32 @@
 {
   "image_process": {
     "0": {
-      "file_path": "/media/Data1/user/dengzhonghan/data/cellbin2paper/Xenium_V1_humanLung_Cancer_FFPE/cellbinv2_input/morphology_focus_DAPI.tif",
-      "tech_type": "DAPI",
-      "chip_detect": false,
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/01.Stereo_seq_transcriptomics_V1.2_Kit/X97466X8/raw_images/stitch/X97466X8_fov_stitched.tif",
+      "tech_type": "HE",
+      "chip_detect": true,
       "quality_control": false,
-      "tissue_segmentation": false,
+      "tissue_segmentation": true,
       "cell_segmentation": true,
       "correct_r": 10,
       "channel_align": -1,
       "registration": {
-        "fixed_image": -1,
-        "trackline": false,
+        "fixed_image": 1,
+        "trackline": true,
         "reuse": -1
       }
     },
     "1": {
-      "file_path": "/media/Data1/user/dengzhonghan/data/cellbin2paper/Xenium_V1_humanLung_Cancer_FFPE/cellbinv2_input/B03205D314.gem.gz",
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/01.Stereo_seq_transcriptomics_V1.2_Kit/X97466X8/gem/X97466X8.gef",
       "tech_type": "Transcriptomics",
       "chip_detect": false,
       "quality_control": false,
-      "tissue_segmentation": false,
+      "tissue_segmentation": true,
       "cell_segmentation": false,
-      "correct_r": -1,
+      "correct_r": 0,
       "channel_align": -1,
       "registration": {
         "fixed_image": -1,
-        "trackline": false,
+        "trackline": true,
         "reuse": -1
       }
     }
@@ -41,7 +41,7 @@
     }
   },
   "run": {
-    "qc": false,
+    "qc": true,
     "alignment": true,
     "matrix_extract": true,
     "report": false,
