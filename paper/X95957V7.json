@@ -1,8 +1,8 @@
 {
   "image_process": {
     "0": {
-      "file_path": "/media/Data1/user/dengzhonghan/data/cellbin2paper/B03120F1/B03120F1_fov_stitched.tif",
-      "tech_type": "DAPI",
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/02.Stereo_seq_transcriptomics_V1.3_Kit/X95957V7/raw_images/stitch/X95957V7.tif",
+      "tech_type": "ssDNA",
       "chip_detect": false,
       "quality_control": false,
       "tissue_segmentation": true,
@@ -16,23 +16,8 @@
       }
     },
     "1": {
-      "file_path": "/media/Data1/user/dengzhonghan/data/cellbin2paper/B03120F1/B03120F1.raw.gef",
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/02.Stereo_seq_transcriptomics_V1.3_Kit/X95957V7/gem/X95957V7.raw.gef",
       "tech_type": "Transcriptomics",
-      "chip_detect": false,
-      "quality_control": false,
-      "tissue_segmentation": false,
-      "cell_segmentation": false,
-      "correct_r": -1,
-      "channel_align": -1,
-      "registration": {
-        "fixed_image": -1,
-        "trackline": false,
-        "reuse": -1
-      }
-    },
-    "2": {
-      "file_path": "/media/Data1/user/dengzhonghan/data/cellbin2paper/B03120F1/B03120F1.protein.raw.gef",
-      "tech_type": "Protein",
       "chip_detect": false,
       "quality_control": false,
       "tissue_segmentation": false,
@@ -49,13 +34,6 @@
   "molecular_classify": {
     "0": {
       "exp_matrix": 1,
-      "cell_mask": [
-        0
-      ],
-      "extra_method": ""
-    },
-    "1": {
-      "exp_matrix": 2,
       "cell_mask": [
         0
       ],

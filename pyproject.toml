@@ -31,8 +31,8 @@ dependencies = [
     "matplotlib==3.7.1",
     "requests",
     "pandas==1.5.3",
-    "pyvips-binary",  # if pip install pyvips error, use conda install instead. (conda install --channel conda-forge pyvips)
-    "pyvips"
+    # "pyvips-binary",  # if pip install pyvips error, use conda install instead. (conda install --channel conda-forge pyvips)
+    # "pyvips"
 ]
 requires-python = ">=3.8"
 

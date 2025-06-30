@@ -1,0 +1,72 @@
+{
+  "image_process": {
+    "0": {
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/Y96879U8/raw_images/stitch/Y96879U8_fov_stitched.tif",
+      "tech_type": "DAPI",
+      "chip_detect": false,
+      "quality_control": false,
+      "tissue_segmentation": true,
+      "cell_segmentation": true,
+      "correct_r": 10,
+      "channel_align": -1,
+      "registration": {
+        "fixed_image": 1,
+        "trackline": true,
+        "reuse": -1
+      }
+    },
+    "1": {
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/Y96879U8/gem/Y96879U8.raw.gef",
+      "tech_type": "Transcriptomics",
+      "chip_detect": false,
+      "quality_control": false,
+      "tissue_segmentation": false,
+      "cell_segmentation": false,
+      "correct_r": -1,
+      "channel_align": -1,
+      "registration": {
+        "fixed_image": -1,
+        "trackline": false,
+        "reuse": -1
+      }
+    },
+    "2": {
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/B03120F1/gem/B03120F1.protein.raw.gef",
+      "tech_type": "Protein",
+      "chip_detect": false,
+      "quality_control": false,
+      "tissue_segmentation": false,
+      "cell_segmentation": false,
+      "correct_r": -1,
+      "channel_align": -1,
+      "registration": {
+        "fixed_image": -1,
+        "trackline": false,
+        "reuse": -1
+      }
+    }
+  },
+  "molecular_classify": {
+    "0": {
+      "exp_matrix": 1,
+      "cell_mask": [
+        0
+      ],
+      "extra_method": ""
+    },
+    "1": {
+      "exp_matrix": 2,
+      "cell_mask": [
+        0
+      ],
+      "extra_method": ""
+    }
+  },
+  "run": {
+    "qc": true,
+    "alignment": true,
+    "matrix_extract": true,
+    "report": false,
+    "annotation": false
+  }
+}

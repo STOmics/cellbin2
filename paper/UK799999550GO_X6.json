@@ -1,7 +1,7 @@
 {
   "image_process": {
     "0": {
-      "file_path": "/media/Data1/user/dengzhonghan/data/cellbin2paper/FP200000449TL_C3/FP200000449TL_C3_DAPI.tif",
+      "file_path": "/storeData/USER/data/01.CellBin/00.user/zhangying7/data/cellbinv2_data/UK799999550GO_X6.tif",
       "tech_type": "DAPI",
       "chip_detect": false,
       "quality_control": false,
@@ -16,7 +16,7 @@
       }
     },
      "1": {
-      "file_path": "/media/Data1/user/dengzhonghan/data/cellbin2paper/FP200000449TL_C3/FP200000449TL_C3.gem.gz",
+      "file_path": "/storeData/USER/data/01.CellBin/00.user/zhangying7/data/cellbinv2_data/UK799999550GO_X6.gem.gz",
       "tech_type": "Transcriptomics",
       "chip_detect": false,
       "quality_control": false,
@@ -31,7 +31,7 @@
       }
     },
     "2": {
-      "file_path": "/media/Data1/user/dengzhonghan/data/cellbin2paper/FP200000449TL_C3/FP200000449TL_C3_FB.tif",
+      "file_path": "/storeData/USER/data/01.CellBin/00.user/zhangying7/data/cellbinv2_data/UK799999550GO_X6.tif",
       "tech_type": "IF",
       "chip_detect": false,
       "quality_control": false,
@@ -56,7 +56,7 @@
     }
   },
   "run": {
-    "qc": true,
+    "qc": false,
     "alignment": true,
     "matrix_extract": true,
     "report": false,

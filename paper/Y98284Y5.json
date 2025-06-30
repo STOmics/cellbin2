@@ -1,7 +1,7 @@
 {
   "image_process": {
     "1": {
-      "file_path": "/media/Data1/user/dengzhonghan/data/cellbin2paper/B01715B4/B01715B4.gem.gz",
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/05.Stereo_cell/Y98284Y5/gem/Y98284Y5.gem.gz",
       "tech_type": "Transcriptomics",
       "chip_detect": false,
       "quality_control": false,
