@@ -1,0 +1,50 @@
+{
+  "image_process": {
+    "0": {
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/03.Stereo_seq_transcriptomics_V2_Kit/C04495G4/raw_images/stitch/C04495G4.tif",
+      "tech_type": "HE",
+      "chip_detect": true,
+      "quality_control": false,
+      "tissue_segmentation": true,
+      "cell_segmentation": true,
+      "correct_r": 10,
+      "channel_align": -1,
+      "registration": {
+        "fixed_image": 1,
+        "trackline": true,
+        "reuse": -1
+      }
+    },
+    "1": {
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/01.Stereo_seq_transcriptomics_V1.2_Kit/A02497C1/gem/A02497C1.gef",
+      "tech_type": "Transcriptomics",
+      "chip_detect": false,
+      "quality_control": false,
+      "tissue_segmentation": true,
+      "cell_segmentation": false,
+      "correct_r": 0,
+      "channel_align": -1,
+      "registration": {
+        "fixed_image": -1,
+        "trackline": true,
+        "reuse": -1
+      }
+    }
+  },
+  "molecular_classify": {
+    "0": {
+      "exp_matrix": 1,
+      "cell_mask": [
+        0
+      ],
+      "extra_method": ""
+    }
+  },
+  "run": {
+    "qc": true,
+    "alignment": true,
+    "matrix_extract": true,
+    "report": false,
+    "annotation": false
+  }
+}
