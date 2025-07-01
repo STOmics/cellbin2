@@ -33,7 +33,7 @@ def run_cell_seg(
     """
 
     cellpose_model = config.cell_segmentation.IF_weights_path
-    weights_root = config.weights_root
+    weights_root = "../cellbin2/weights"  # Adjust this path as needed
     model_path = os.path.join(weights_root, cellpose_model)
 
     if image_file.tech == TechType.IF:
