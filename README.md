@@ -54,12 +54,8 @@ pip install .[cp,rs]
 python demo.py
 ```
 
-**GPU Troubleshooting:**  
-If the demo runs on CPU instead of GPU, see our [troubleshooting guide]() to verify your GPU setup.
-
 **Output Verification:**  
 After completion, validate the output integrity by comparing your results with the [Outputs](#outputs). 
-
 
 ## Tutorials
 ### Core Workflow
@@ -73,16 +69,16 @@ Customized configuration for different chips and experimental requirements can b
 
 ```shell
 # configuration information is in the .json file
-CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py -c SerialNumber -p path/to/your/SerialNumber.json -o "path/to/your/output_dir"
+CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py -c SerialNumber -p paper/SerialNumber.json -o path/to/your/output_directory/SerialNumber
 ```
 
 ### Parameters
 
 | Parameter    | Description                                                                                                   | Examples                                                  |
 | :----------- |:--------------------------------------------------------------------------------------------------------------|:----------------------------------------------------------|
-| `-c`         | Serial number of chip                                                                                         | `A12345C6`                                                |
-| `-p`         | Path to custom configuration file<br/> [JSON Configuration Documentation](docs/v2/JsonConfigurationDocumention.md) | [`config/custom.json`](cellbin2/config/demos/sample.json) |
-| `-o`         | Output directory                                                                                              | `results/A12345C6`                                        |
+| `-c`         | Serial number of the chip                                                                                         | `Z97502X8`                                                |
+| `-p`         | Path to your customized configuration file<br/>  | [`config/custom.json`](cellbin2/config/demos/sample.json) |
+| `-o`         | Path to your output directory                                                                                              | `results/Z97502X8`                                        |
 
 ## ErrorCode
 refer to [error.md](docs/v2/error.md)
