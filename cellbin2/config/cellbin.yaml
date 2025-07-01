@@ -85,7 +85,7 @@ cellSegmentation:
   ssDNA_weights_path: cellseg_bcdu_SHDI_221008_tf.onnx
   DAPI_weights_path: cellseg_bcdu_D_250225_tf_R.onnx
   HE_weights_path: cellseg_bcdu_H_250303_tf_R.onnx
-  IF_weights_path: cyto2torch_0
+  IF_weights_path: cpsam
   Transcriptomics_weights_path: cellseg_unet_RNA_20230606.onnx
   Protein_weights_path: cellseg_unet_RNA_20230606.onnx
   GPU: 0
