@@ -50,6 +50,8 @@ pip install .[cp,rs]
 # pip install -e .[cp,rs]      # Editable install with basic extras
 # pip install -e .[cp,rs,rp]   # Editable install including report module
 
+conda install conda-forge/label/main::pyvips==2.2.3
+
 # Execute the demo (takes ~30-40 minutes on GPU hardware)
 python demo.py
 ```
