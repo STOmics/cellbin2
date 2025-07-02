@@ -35,10 +35,10 @@ def run_cell_seg(
     cellpose_model_path = config.cell_segmentation.IF_weights_path
     cellpose_model = os.path.basename(cellpose_model_path)
     print("Using %s as the IF segmentation model"%(cellpose_model))
-    print("model path: %s"(cellpose_model_path))
+    print("model path: %s"%(cellpose_model_path))
 
     if image_file.tech == TechType.IF:
-        if cellpose_model == 'cyto2torch_0' or 'cyto2':
+        if cellpose_model in ['cyto2torch_0', 'cyto2']:
             print("Using cellpose_segmentor_2 for cell segmentation")
             from cellbin2.contrib import cellpose_segmentor_2
             cell_mask = cellpose_segmentor_2.segment4cell(
