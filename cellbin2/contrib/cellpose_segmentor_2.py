@@ -44,7 +44,7 @@ class CellSegmentation:
 
         wid = patches.shape[0]
         high = patches.shape[1]
-        model = models.Cellpose(gpu=True, model_type='cyto2')
+        model = models.CellposeModel(gpu=True, model_type='cyto2')
         a_patches = np.full((wid, high, (self.photo_step), (self.photo_step)), 255)
 
         for i in range(wid):
