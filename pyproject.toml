@@ -31,8 +31,8 @@ dependencies = [
     "matplotlib==3.7.1",
     "requests",
     "pandas==1.5.3",
-    # "pyvips-binary",  # if pip install pyvips error, use conda install instead. (conda install --channel conda-forge pyvips)
-    # "pyvips"
+    # "pyvips-binary",  # if pip install pyvips error, comment it and use conda install instead. (conda install conda-forge/label/main::pyvips==2.2.3)
+    # "pyvips" # if pip install pyvips error, comment it and use conda install instead. (conda install conda-forge/label/main::pyvips==2.2.3)
 ]
 requires-python = ">=3.8"
 
@@ -46,7 +46,7 @@ version = { attr = "cellbin2.__version__"}
 where = ["."]
 
 [project.optional-dependencies]
-cp = ['cellpose==3.0.11', 'patchify==0.2.3']
+cp = ['cellpose==4.0.5', 'patchify==0.2.3']
 rs = [
     'gefpy==1.2.3',  # generate cellbin matrix
 ]
