@@ -90,6 +90,7 @@ cellSegmentation:
   Protein_weights_path: cellseg_unet_RNA_20230606.onnx
   GPU: 0
   num_threads: 0
+  enhance_times: 1
 
 Registration:
   HE_channel: 1
