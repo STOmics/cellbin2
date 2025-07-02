@@ -41,12 +41,12 @@ def predict_cpsam(model_path, image, batch_size=8, use_gpu=False):
     """
     use cellpose_sam to generate single mask
     Args:
-        model_path (str): 模型权重路径
-        image (np.ndarray): 输入图片（已读取为numpy数组）
+        model_path (str): model weights path
+        image (np.ndarray): input image to numpy array
         batch_size (int): batch size
-        use_gpu (bool): 是否用GPU
+        use_gpu (bool): use gpu or not
     Returns:
-        masks (np.ndarray): 分割mask
+        masks (np.ndarray): segmentation masks
     """
     model = models.CellposeModel(
         gpu=use_gpu,
