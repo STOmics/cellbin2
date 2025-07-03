@@ -44,13 +44,9 @@ conda activate cellbin2
 
 # Install package dependencies
 cd cellbin2
-pip install -e . # Using editable install to avoid unexpected weight path
-
-# For development mode (optional):
-# pip install -e .[cp,rs,rp]   # Editable install including report module
-# this project requires pytorch version >= 2.7.1, so please ensure you have cuda version >= 11.8
-
+pip install -e .[cp,rs,rp] # Using editable install to avoid unexpected weight path
 conda install conda-forge/label/main::pyvips==2.2.3
+# this project requires pytorch version >= 2.7.1, so please ensure you have cuda version >= 11.8
 
 # Execute the demo (takes ~30-40 minutes on GPU hardware)
 python demo.py
