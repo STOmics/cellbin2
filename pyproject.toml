@@ -11,6 +11,10 @@ authors = [
     { name = "cell bin research group", email = "bgi@genomics.cn" }
 ]
 dependencies = [
+    "torch @ https://download.pytorch.org/whl/cu118/torch-2.7.1%2Bcu118-cp38-cp38-linux_x86_64.whl",
+    "torchvision @ https://download.pytorch.org/whl/cu118/torchvision-0.18.1%2Bcu118-cp38-cp38-linux_x86_64.whl",
+    "torchaudio @ https://download.pytorch.org/whl/cu118/torchaudio-2.7.1%2Bcu118-cp38-cp38-linux_x86_64.whl",
+    
     "numpy==1.23.5",
     "h5py==3.8.0",
     "objtyping",
@@ -31,10 +35,14 @@ dependencies = [
     "matplotlib==3.7.1",
     "requests",
     "pandas==1.5.3",
-    # "pyvips-binary",  # if pip install pyvips error, comment it and use conda install instead. (conda install conda-forge/label/main::pyvips==2.2.3)
-    # "pyvips" # if pip install pyvips error, comment it and use conda install instead. (conda install conda-forge/label/main::pyvips==2.2.3)
 ]
 requires-python = ">=3.8"
+
+[project.system-requires]
+linux = [
+    "cuda >=11.8",
+    "cudnn >=8"
+]
 
 [tool.setuptools]
 include-package-data = true
@@ -45,15 +53,20 @@ version = { attr = "cellbin2.__version__"}
 [tool.setuptools.packages.find]
 where = ["."]
 
+[tool.setuptools.dependency-links]
+extra-index-url = [
+    "https://download.pytorch.org/whl/cu118"
+]
+
 [project.optional-dependencies]
 cp = ['cellpose==4.0.5', 'patchify==0.2.3']
 rs = [
-    'gefpy==1.2.3',  # generate cellbin matrix
+    'gefpy==1.2.3',
 ]
 rp = [
     'mapbox_earcut',
     'fastcluster==1.2.6',
-    'stereopy==1.6.0', # research report
+    'stereopy==1.6.0',
     'beautifulsoup4',
     'csscompressor',
     'jsmin'

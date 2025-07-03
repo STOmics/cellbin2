@@ -44,11 +44,11 @@ conda activate cellbin2
 
 # Install package dependencies
 cd cellbin2
-pip install .[cp,rs]
+pip install -e . # Using editable install to avoid unexpected weight path
 
 # For development mode (optional):
-# pip install -e .[cp,rs]      # Editable install with basic extras
 # pip install -e .[cp,rs,rp]   # Editable install including report module
+# this project requires pytorch version >= 2.7.1, so please ensure you have cuda version >= 11.8
 
 conda install conda-forge/label/main::pyvips==2.2.3
 
