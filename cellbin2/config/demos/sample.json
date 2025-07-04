@@ -1,37 +1,21 @@
 {
   "image_process": {
     "0": {
-      "file_path": "/Path/to/SN.tif",
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/Q00148CA/raw_images/stitch/Q00148CA.tif",
       "tech_type": "DAPI",
       "chip_detect": true,
-      "quality_control": true,
-      "registration": {
-        "fixed_image": -1,
-        "trackline": true,
-        "reuse": -1
-      },
-      "tissue_segmentation": true,
-      "cell_segmentation": true,
-      "correct_r": 10,
-      "channel_align": -1
-    },
-    "1": {
-      "file_path": "/Path/to/SN.raw.gef",
-      "tech_type": "Transcriptomics",
-      "chip_detect": false,
       "quality_control": false,
       "registration": {
         "fixed_image": -1,
         "trackline": true,
         "reuse": -1
       },
-      "tissue_segmentation": true,
-      "cell_segmentation": false,
-      "correct_r": 0,
+      "tissue_segmentation": false,
+      "cell_segmentation": true,
       "channel_align": -1
     },
     "2": {
-      "file_path": "/Path/to/SN_ATP_IF.tif",
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/Q00148CA/raw_images/stitch/Q00148CA_CY5_IF.tif",
       "tech_type": "IF",
       "chip_detect": false,
       "quality_control": false,
@@ -40,14 +24,13 @@
         "trackline": false,
         "reuse": -1
       },
-      "tissue_segmentation": true,
+      "tissue_segmentation": false,
       "cell_segmentation": true,
-      "correct_r": 0,
       "channel_align": 0
     },
     "3": {
-      "file_path": "/Path/to/SN.protein.raw.gef",
-      "tech_type": "Protein",
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/Q00148CA/raw_images/stitch/Q00148CA_TRITC_IF.tif",
+      "tech_type": "IF",
       "chip_detect": false,
       "quality_control": false,
       "registration": {
@@ -55,33 +38,38 @@
         "trackline": true,
         "reuse": -1
       },
-      "tissue_segmentation": true,
-      "cell_segmentation": false,
+      "tissue_segmentation": false,
+      "cell_segmentation": true,
       "correct_r": 0,
       "channel_align": -1
     }
   },
   "molecular_classify": {
-      "0": {
-        "exp_matrix": 1,
-        "cell_mask": [
-          1
-        ],
-        "extra_method": ""
+    "0": {
+      "exp_matrix": 0,
+      "cell_mask": {
+        "core":[0],
+        "interior": [],
+        "cell":[]
       },
-      "1": {
-        "exp_matrix": 3,
-        "cell_mask": [
-          0,
-          2
-        ],
-        "extra_method": ""
-      }
+      "extra_method": "",
+      "correct_r":10
     },
+    "1": {
+      "exp_matrix": 0,
+      "cell_mask": {
+        "core":[0],
+        "interior": [],
+        "cell":[]
+      },
+      "extra_method": "",
+      "correct_r":10
+    }
+  },
   "run": {
       "qc": false,
       "alignment": true,
-      "matrix_extract": true,
+      "matrix_extract": false,
       "report": false,
       "annotation": false
   }
