@@ -3,7 +3,7 @@
     "DAPI": {
       "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000045_M5/SS200000045_M5_fov_stitched.tif",
       "tech_type": "DAPI",
-      "chip_detect": true,
+      "chip_detect": false,
       "quality_control": false,
       "registration": {
         "fixed_image": -1,
@@ -12,7 +12,6 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": true,
-      "correct_r": 10,
       "channel_align": -1
     },
     "Transcriptomics": {
@@ -27,7 +26,6 @@
       },
       "tissue_segmentation": false,
       "cell_segmentation": false,
-      "correct_r": 0,
       "channel_align": -1
     },
     "IF": {
@@ -42,13 +40,12 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": false,
-      "correct_r": 0,
       "channel_align": 0
     },
     "HE": {
       "file_path": "/media/Data/dzh/data/cellbin2/demo_data/C04042E3/C04042E3_fov_stitched.tif",
       "tech_type": "HE",
-      "chip_detect": true,
+      "chip_detect": false,
       "quality_control": false,
       "registration": {
         "fixed_image": -1,
@@ -57,13 +54,12 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": true,
-      "correct_r": 10,
       "channel_align": -1
     },
     "ssDNA": {
       "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000135TL_D1/SS200000135TL_D1_fov_stitched_ssDNA.tif",
       "tech_type": "ssDNA",
-      "chip_detect": true,
+      "chip_detect": false,
       "quality_control": false,
       "registration": {
         "fixed_image": -1,
@@ -72,7 +68,6 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": true,
-      "correct_r": 10,
       "channel_align": -1
     }
   },
@@ -82,6 +77,7 @@
       "cell_mask": [
         0
       ],
+      "correct_r": 10,
       "extra_method": ""
     }
   },

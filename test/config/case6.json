@@ -1,7 +1,7 @@
 {
   "image_process": {
     "0": {
-      "file_path": "Path/SN_ssDNA.tif",
+      "file_path": "/storeData/USER/data/01.CellBin/01.data/04.dataset/05.other_database/03.external_data/09.StitchImage/FP200000449TL_C3/FP200000449TL_C3_DAPI.tif",
       "tech_type": "ssDNA",
       "chip_detect": false,
       "quality_control": false,
@@ -15,7 +15,7 @@
       }
     },
      "1": {
-      "file_path": "Path/SN.gem.gz",
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/01.Stereo_seq_transcriptomics_V1.2_Kit/FP200000449TL_C3/gem/FP200000449TL_C3.gem.gz",
       "tech_type": "Transcriptomics",
       "chip_detect": false,
       "quality_control": false,
@@ -29,7 +29,7 @@
       }
     },
     "2": {
-      "file_path": "Path/SN_FB.tif",
+      "file_path": "/storeData/USER/data/01.CellBin/01.data/04.dataset/05.other_database/03.external_data/09.StitchImage/FP200000449TL_C3/FP200000449TL_C3_FB.tif",
       "tech_type": "IF",
       "chip_detect": false,
       "quality_control": false,
@@ -57,7 +57,7 @@
     "qc": true,
     "alignment": true,
     "matrix_extract": true,
-    "report": false,
+    "report": true,
     "annotation": false
   }
 }

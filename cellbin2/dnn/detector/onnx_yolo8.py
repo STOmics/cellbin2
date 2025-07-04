@@ -21,13 +21,12 @@ from cellbin2.utils import clog
 class Yolo8Detector(object):
     """YOLOv8 object detection model class for handling inference and visualization."""
 
-    def __init__(self, onnx_model, input_image, confidence_thres=0.5, iou_thres=0.5, gpu="-1", num_threads=0):
+    def __init__(self, onnx_model, confidence_thres=0.5, iou_thres=0.5, gpu="-1", num_threads=0):
         """
         Initializes an instance of the YOLOv8 class.
 
         Args:
             onnx_model: Path to the ONNX model.
-            input_image: Path to the input image.
             confidence_thres: Confidence threshold for filtering detections.
             iou_thres: IoU (Intersection over Union) threshold for non-maximum suppression.
         """
@@ -46,13 +45,54 @@ class Yolo8Detector(object):
         self.preprocess_func = None
         self.postprocess_func = None
 
-        self.parse_image(input_image)
+        self.session = None
+
         self.f_init()
+        self._init_session()
 
     def f_init(self):
         if self.gpu > -1:
             self.providers = ["CUDAExecutionProvider"]
             self.predictor_id = [{'device_id': str(self.gpu)}]
+
+    def _init_session(self):
+        """
+        Performs inference using an ONNX model and returns the output image with drawn detections.
+
+        """
+        # Create an inference session using the ONNX model and specify execution providers
+
+        clog.info(f'loading weight from {self.onnx_model}')
+        sessionOptions = ort.SessionOptions()
+        try:
+            if (self.gpu < 0) and (self.num_threads > 0):
+                sessionOptions.intra_op_num_threads = self.num_threads
+            self.session = ort.InferenceSession(self.onnx_model,
+                                           providers=self.providers,
+                                           provider_options=self.predictor_id,
+                                           sess_options = sessionOptions)
+            active_provider = self.session.get_providers()[0]
+            expected_provider = self.providers[0]
+            if active_provider == expected_provider:
+                if self.gpu < 0:
+                    clog.info(f'onnx work on cpu,threads {self.num_threads}')
+                else:
+                    clog.info(f'onnx work on gpu {self.gpu}')
+            else:
+                # ['TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider']
+                clog.warning(f'Warning!!! expected: {expected_provider}, active: {active_provider}')
+                if active_provider == 'CPUExecutionProvider':
+                    clog.info(f'Warning!!! GPU call failed, onnx work on cpu,threads {self.num_threads}')
+                if active_provider == 'CUDAExecutionProvider':
+                    clog.info(f'onnx work on gpu')
+        except:
+            if self.num_threads > 0:
+                sessionOptions.intra_op_num_threads = self.num_threads
+            session = ort.InferenceSession(self.onnx_model,
+                                           providers=['CPUExecutionProvider'],
+                                           provider_options=[{'device_id': '-1'}],
+                                           sess_options=sessionOptions)
+            clog.info(f'Warning!!! GPU call failed, onnx work on cpu,threads {self.num_threads}')
 
     def parse_image(self, img):
         # Read the input image using CBI
@@ -175,49 +215,10 @@ class Yolo8Detector(object):
 
         return points
 
-    def run(self,):
-        """
-        Performs inference using an ONNX model and returns the output image with drawn detections.
+    def run(self, input_image):
 
-        Returns:
-            output_img: The output image with drawn detections.
-        """
-        # Create an inference session using the ONNX model and specify execution providers
-
-        clog.info(f'loading weight from {self.onnx_model}')
-        sessionOptions = ort.SessionOptions()
-        try:
-            if (self.gpu < 0) and (self.num_threads > 0):
-                sessionOptions.intra_op_num_threads = self.num_threads
-            session = ort.InferenceSession(self.onnx_model,
-                                           providers=self.providers,
-                                           provider_options=self.predictor_id,
-                                           sess_options = sessionOptions)
-            active_provider = session.get_providers()[0]
-            expected_provider = self.providers[0]
-            if active_provider == expected_provider:
-                if self.gpu < 0:
-                    clog.info(f'onnx work on cpu,threads {self.num_threads}')
-                else:
-                    clog.info(f'onnx work on gpu {self.gpu}')
-            else:
-                # ['TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider']
-                clog.warning(f'Warning!!! expected: {expected_provider}, active: {active_provider}')
-                if active_provider == 'CPUExecutionProvider':
-                    clog.info(f'Warning!!! GPU call failed, onnx work on cpu,threads {self.num_threads}')
-                if active_provider == 'CUDAExecutionProvider':
-                    clog.info(f'onnx work on gpu')
-        except:
-            if self.num_threads > 0:
-                sessionOptions.intra_op_num_threads = self.num_threads
-            session = ort.InferenceSession(self.onnx_model,
-                                           providers=['CPUExecutionProvider'],
-                                           provider_options=[{'device_id': '-1'}],
-                                           sess_options=sessionOptions)
-            clog.info(f'Warning!!! GPU call failed, onnx work on cpu,threads {self.num_threads}')
-
-        # Get the model inputs
-        model_inputs = session.get_inputs()
+        self.parse_image(input_image)
+        model_inputs = self.session.get_inputs()
 
         # Store the shape of the input for later use
         input_shape = model_inputs[0].shape
@@ -228,7 +229,7 @@ class Yolo8Detector(object):
         img_data, x_factor, y_factor = self.preprocess(self.source_image, (input_height, input_width))
 
         # Run inference using the preprocessed image data
-        outputs = session.run(None, {model_inputs[0].name: img_data})
+        outputs = self.session.run(None, {model_inputs[0].name: img_data})
 
         # Perform post-processing on the outputs to obtain output image.
         points = self.postprocess(outputs, x_factor, y_factor)
@@ -246,7 +247,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Create an instance of the YOLOv8 class with the specified arguments
-    detection = Yolo8Detector(args.model, args.img, args.conf_thres, args.iou_thres)
+    detection = Yolo8Detector(args.model, args.conf_thres, args.iou_thres)
 
     # Perform object detection and obtain the output image
-    output_image = detection.run()
+    output_image = detection.run(args.img)

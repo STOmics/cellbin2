@@ -250,7 +250,7 @@ def template_00pt_check(
 
     if not rot90_flag:
         return {
-            'offset': offset_info[0]["offset"],
+            'offset': (offset_info[0]["offset"] - np.array(fixed_offset)).tolist(),
             'flip': flip_flag,
             'register_score': -1,
             'counter_rot90': 0,
