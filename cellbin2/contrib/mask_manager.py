@@ -259,8 +259,8 @@ def merge_cell_mask(
         nuclear_mask_sem = instance2semantics(nuclear_mask_ins)
         del nuclear_mask_ins
 
-    _ = membrane_mask_sem * 2 + nuclear_mask_sem * 1
-
+    _ = membrane_mask_sem * 2 + nuclear_mask_sem * 1 #0背景，1核，2膜
+    return _
     return CBImage(_)
 
 

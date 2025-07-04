@@ -60,7 +60,6 @@ class ProcFile(BaseModel):
     quality_control: bool
     tissue_segmentation: bool
     cell_segmentation: bool
-    correct_r: int
     channel_align: int
     registration: ProcRegistration
     _supported_matrix = ['.gef', '.gz', '.gem']
@@ -172,8 +171,9 @@ class ProcMolecularFile(BaseModel):
         extra_method (str): An additional molecular classification method, currently not used.
     """
     exp_matrix: int
-    cell_mask: List[int]
+    cell_mask: Dict[str,List[int]] 
     extra_method: str = ''  # additional molecular classification methods, currently not available
+    correct_r: int
 
 
 class Run(BaseModel):

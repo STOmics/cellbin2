@@ -428,58 +428,92 @@ class Scheduler(object):
 
         :return: None
         """
-
-        #TODO:待改json读molecular_classify内容
         for idx, m in self.molecular_classify_files.items():
+            core_mask = [] #list for core masks
+            interior_mask = [] #list for interior masks
+            cell_mask = [] #list for cell masks
             clog.info('======>  Extract[{}], {}'.format(idx, m))
-            picked_mask = m.cell_mask
-            final_nuclear_path = self.p_naming.final_nuclear_mask
+            distance =  m.correct_r
+            final_nuclear_path = self.p_naming.final_nuclear_mask 
             final_t_mask_path = self.p_naming.final_tissue_mask
-            final_cell_mask_path = self.p_naming.final_cell_mask
-            if len(picked_mask) == 1:  # Just one mask
-                im_naming = naming.DumpImageFileNaming(
+            final_cell_mask_path = self.p_naming.final_cell_mask 
+            print(final_cell_mask_path)
+            core_mask = m.cell_mask["core"]
+            interior_mask = m.cell_mask["interior"]
+            cell_mask = m.cell_mask["cell"]
+
+
+            #膜、质、核分别整合
+
+            if len(cell_mask) != 0: #cell mask exist
+                if len(cell_mask) == 1:
+                    im_naming = naming.DumpImageFileNaming(
                     sn=self.param_chip.chip_name,
-                    stain_type=self._files[picked_mask[0]].get_group_name(sn=self.param_chip.chip_name),
+                    stain_type=self._files[cell_mask[0]].get_group_name(sn=self.param_chip.chip_name),
                     save_dir=self._output_path
                 )
-                to_fast = final_nuclear_path
-            else:  # Two masks, assuming the first is the nuclear mask and the second is the membrane mask
-                #TODO:multimodal_merge(nuclei_mask_path, cell_mask_path, interior_mask_path, overlap_threshold, save_path)
-                im_naming1 = naming.DumpImageFileNaming(
-                    sn=self.param_chip.chip_name,
-                    stain_type=self._files[picked_mask[0]].get_group_name(sn=self.param_chip.chip_name),
-                    save_dir=self._output_path
-                )
-                im_naming2 = naming.DumpImageFileNaming(
-                    sn=self.param_chip.chip_name,
-                    stain_type=self._files[picked_mask[1]].get_group_name(sn=self.param_chip.chip_name),
-                    save_dir=self._output_path
-                )
-                if im_naming1.stain_type == TechType.IF.name:
-                    im_naming = im_naming2
+                    merged_cell_mask = cbimread(im_naming.cell_mask, only_np=True)
                 else:
-                    im_naming = im_naming1
-                merged_cell_mask_path = im_naming.cell_mask_merged
-                if not os.path.exists(merged_cell_mask_path):
-                    from cellbin2.contrib.mask_manager import merge_cell_mask
-                    # TODO: Temporarily assume im_naming1 is the nuclear segmentation result,
-                    #       im_naming2 is the membrane segmentation result
-                    if not im_naming1.cell_mask.exists() or not im_naming2.cell_mask.exists():
-                        continue
-                    mask1 = cbimread(im_naming1.cell_mask, only_np=True)
-                    mask2 = cbimread(im_naming2.cell_mask, only_np=True)
-                    merged_mask = merge_cell_mask(mask1, mask2)
-                    cbimwrite(merged_cell_mask_path, merged_mask)
+                    print("multiple cell masks exist")
+                    #TODO: merge multiple cell masks, return final_cell_mask = merged cell masks
+            else: #no cell mask
+                merged_cell_mask = []
+            
+            if len(interior_mask) != 0: #interior mask exist
+                if len(interior_mask) == 1:
+                    im_naming = naming.DumpImageFileNaming(
+                    sn=self.param_chip.chip_name,
+                    stain_type=self._files[interior_mask[0]].get_group_name(sn=self.param_chip.chip_name),
+                    save_dir=self._output_path
+                )
+                    merged_interior_mask = cbimread(im_naming.cell_mask, only_np=True)
+                else:
+                    print("multiple interior masks exist")
+                    #TODO: merge multiple cell masks, return final_cell_mask = merged cell masks
+            else: #no interior mask
+                merged_interior_mask = []
+            
+            if len(core_mask) != 0: #core mask exist
+                if len(core_mask) == 1:
+                    im_naming = naming.DumpImageFileNaming(
+                    sn=self.param_chip.chip_name,
+                    stain_type=self._files[core_mask[0]].get_group_name(sn=self.param_chip.chip_name),
+                    save_dir=self._output_path
+                )
+                    final_nuclear_path = im_naming.cell_mask
+                    merged_core_mask = cbimread(im_naming.cell_mask, only_np=True)
+                else:
+                    print("multiple core masks exist")
+                    #TODO: merge multiple cell masks, return final_cell_mask = merged cell masks
+            else: #no core mask
+                merged_core_mask = []
+
+
+            #判断核质膜、核膜、膜外扩
+            if len(interior_mask) == 0 and len(cell_mask) == 0:  # have only core_mask
+                #merged_cell_mask_path = self._output_path + "core_extend_mask.tif"
+                to_fast = final_nuclear_path
+                print(to_fast)
+            # multiple masks, assuming the first is the nuclear mask and the second is the membrane mask
+            elif len(interior_mask) == 0 and len(cell_mask) != 0:
+                from cellbin2.contrib.mask_manager import merge_cell_mask
+                merged_mask = merge_cell_mask(merged_cell_mask, merged_core_mask)
+                merged_cell_mask_path = self._output_path + "/core_cell_merged_mask.tif"
+                cbimwrite(merged_cell_mask_path, merged_mask)
                 to_fast = merged_cell_mask_path
-            if im_naming.cell_mask.exists():
-                shutil.copy2(im_naming.cell_mask, final_nuclear_path)
-            if im_naming.tissue_mask.exists():
-                shutil.copy2(im_naming.tissue_mask, final_t_mask_path)
+            elif len(interior_mask) != 0 and len(cell_mask) != 0:
+                from cellbin2.contrib.multimodal_cell_merge import multimodal_merge
+                save_path = os.path.join(self._output_path, "multimodal_mid_file")
+                os.makedirs(save_path, exist_ok=True)
+                merged_mask = multimodal_merge(merged_core_mask, merged_cell_mask, merged_interior_mask, overlap_threshold=0.5, save_path = save_path)
+                merged_cell_mask_path = self._output_path + "/core_interior_cell_merged_mask.tif"
+                cbimwrite(merged_cell_mask_path, merged_mask)
+                to_fast = merged_cell_mask_path
             # Here, we have the final cell mask and final tissue mask
-            if not os.path.exists(final_cell_mask_path) and to_fast.exists():
+            if not os.path.exists(final_cell_mask_path) and os.path.exists(to_fast):
                 fast_mask = run_fast_correct(
                     mask_path=to_fast,
-                    distance=self.config.cell_correct.expand_r,
+                    distance = distance,
                     n_jobs=self.config.cell_correct.process
                 )
                 cbimwrite(final_cell_mask_path, fast_mask)
@@ -541,8 +575,8 @@ class Scheduler(object):
         if flag2 != 0:
             sys.exit(1)
 
-        self.run_single_image()  # Process a single image (transform -> tissue seg -> cellseg)
-        self.run_mul_image()  # Register images
+        #self.run_single_image()  # Process a single image (transform -> tissue seg -> cellseg)
+        #self.run_mul_image()  # Register images
 
         if flag1 == 0 and self._channel_images is not None and self._ipr is not None:
             self._dump_ipr(self.p_naming.ipr)
