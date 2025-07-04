@@ -58,7 +58,8 @@ def f_pre_he_241018(img: npt.NDArray, input_size: tuple, stain_type: TechType) -
 def f_pre_transcriptomics_protein_220909(img: npt.NDArray, input_size: tuple, stain_type: TechType) -> npt.NDArray:
     clog.info("preprocessing data type: Transcriptomics/Protein")
     clog.info("version: 220909")
-    img[img > 0] = 255
+    # binx 情况下不再使用
+    # img[img > 0] = 255
     img = np.array(img).astype(np.uint8)
     img = f_resize(img, input_size, "BILINEAR")
     img = f_ij_auto_contrast(img)

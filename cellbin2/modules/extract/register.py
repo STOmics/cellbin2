@@ -153,14 +153,25 @@ def run_register(
                 detect_feature=True,
                 config=config
             )
-            fixed_image = ChipFeature(
-                tech_type=fixed.tech,
-                template=cm.template,
-                chip_box=cm.chip_box,
-            )
+            ##! 补充bin_size
+            bin_size = 100
+            if bin_size != 1:
+                fixed_image = ChipFeature(
+                    tech_type=fixed.tech,
+                    template=cm.template,
+                )
+            else:
+                fixed_image = ChipFeature(
+                    tech_type=fixed.tech,
+                    template=cm.template,
+                    chip_box=cm.chip_box,
+                )
             fixed_image.set_mat(cm.heatmap)
             param1.Register.MatrixTemplate = cm.template.template_points
-            param1.Register.GeneChipBBox.update(fixed_image.chip_box)
+            ##! 补充bin_size
+            bin_size = 100
+            if bin_size == 1:
+                param1.Register.GeneChipBBox.update(fixed_image.chip_box)
         else:
             raise Exception("Not supported yet")
 
@@ -168,14 +179,28 @@ def run_register(
         if param1.Register.Method == AlignMode.Template00Pt.name:  # Pre-registration has been done previously
             # Get registration parameters from ipr
             pre_info = param1.Register.Register00.get().to_dict()
-            _info = template_00pt_check(
-                moving_image=moving_image,
-                fixed_image=fixed_image,
-                offset_info=pre_info,
-                fixed_offset=(cm.x_start, cm.y_start),
-                flip_flag=config.registration.flip,
-                rot90_flag=config.registration.rot90
-            )
+
+            ##! 补充bin_size
+            bin_size = 100
+            if bin_size != 1:
+                from cellbin2.contrib.alignment.template_centroid import centroid
+                _info = centroid(
+                    moving_image=moving_image,
+                    fixed_image=fixed_image,
+                    ref=param_chip.fov_template,
+                    from_stitched=False,
+                    flip_flag=config.registration.flip,
+                    rot90_flag=config.registration.rot90
+                )
+            else:    
+                _info = template_00pt_check(
+                    moving_image=moving_image,
+                    fixed_image=fixed_image,
+                    offset_info=pre_info,
+                    fixed_offset=(cm.x_start, cm.y_start),
+                    flip_flag=config.registration.flip,
+                    rot90_flag=config.registration.rot90
+                )
             info = RegistrationOutput(**_info)
 
         else:

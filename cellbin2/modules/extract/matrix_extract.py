@@ -11,6 +11,8 @@ from cellbin2.utils.config import Config
 from cellbin2.utils import clog
 from cellbin2.utils.stereo import generate_stereo_file
 from cellbin2.utils.common import TechType
+from cellbin2.image.augmentation import f_resize
+from cellbin2.utils.stereo_chip import StereoChip
 
 
 def extract4stitched(
@@ -34,6 +36,36 @@ def extract4stitched(
     cm = cMatrix()
     cm.read(file_path=Path(image_file.file_path))
     cm.check_standards(config.genetic_standards)
+
+    ##! 补充bin_size
+    bin_size = 100
+    if bin_size != 1:
+        ##理论track线检测方法##
+        detect_feature = False
+        sc = StereoChip()
+        sc.parse_info(chip_no = m_naming.sn)
+        track_points = sc.template_points
+        # track_points = np.loadtxt('/media/Data1/user/hedongdong/wqs/00.code/03.CellBin2/bin_X/data/SS200000135TL_D1_Transcriptomics_matrix_template.txt')
+        print(track_points.shape)
+        np.savetxt('/media/Data1/user/hedongdong/wqs/00.code/03.CellBin2/bin_X/data/track_points.txt', track_points)
+        from cellbin2.contrib.alignment.basic import TemplateInfo
+        cm._template = TemplateInfo(template_recall=1.,
+                      template_valid_area=1.,
+                      trackcross_qc_pass_flag=1,
+                      trackline_channel=0,
+                      rotation=0.,
+                      scale_x=1., scale_y=1.,
+                      template_points=track_points)
+
+        # 对_gene_mat插值放大
+        cbimwrite(m_naming.heatmap, cm.heatmap)
+        gene_mat = cm._gene_mat
+        if gene_mat is not None and gene_mat.size > 0:
+            new_shape = (gene_mat.shape[0] * bin_size, gene_mat.shape[1] * bin_size)
+            gene_mat_resized = f_resize(gene_mat, shape=new_shape, mode="BILINEAR")
+            cm._gene_mat = gene_mat_resized
+
+
     if detect_feature:
         cm.detect_feature(ref=param_chip.fov_template,
                           chip_size=min(param_chip.chip_specif))
@@ -62,12 +94,24 @@ def extract4matrix(
     tissue_mask_path = p_naming.final_tissue_mask
     cell_correct_mask_path = p_naming.final_cell_mask
     c_inp = None
+    BIN100_flag = 1
+
+    bin100_flag = BIN100_flag
+
     if Path(tissue_mask_path).exists():
-        save_tissue_bin_data(
-            image_file.file_path,
-            str(m_naming.tissue_bin_matrix),
-            tissue_mask_path,
-        )
+        if bin100_flag == 0:
+            save_tissue_bin_data(
+                image_file.file_path,
+                str(m_naming.tissue_bin_matrix),
+                tissue_mask_path,
+            )
+        else:
+            save_tissue_bin_data(
+                image_file.file_path,
+                str(m_naming.tissue_bin_matrix),
+                tissue_mask_path,
+                bin_siz=100
+            )
         c_inp = m_naming.tissue_bin_matrix
         if image_file.tech == TechType.Transcriptomics:
             generate_stereo_file(
