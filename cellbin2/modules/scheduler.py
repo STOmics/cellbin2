@@ -575,8 +575,8 @@ class Scheduler(object):
         if flag2 != 0:
             sys.exit(1)
 
-        #self.run_single_image()  # Process a single image (transform -> tissue seg -> cellseg)
-        #self.run_mul_image()  # Register images
+        self.run_single_image()  # Process a single image (transform -> tissue seg -> cellseg)
+        self.run_mul_image()  # Register images
 
         if flag1 == 0 and self._channel_images is not None and self._ipr is not None:
             self._dump_ipr(self.p_naming.ipr)
