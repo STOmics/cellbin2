@@ -327,13 +327,13 @@ class CellBinPipeline(object):
             if trans_exp_idx != -1:
                 trans_m_tp = pp.molecular_classify[TechType.Transcriptomics.name]
                 trans_m_tp.exp_matrix = trans_exp_idx
-                trans_m_tp.cell_mask = [nuclear_cell_idx]
+                trans_m_tp.cell_mask["core"] = [nuclear_cell_idx]
                 new_pp.molecular_classify['0'] = trans_m_tp
 
             if protein_exp_idx != -1:
                 protein_m_tp = pp.molecular_classify[TechType.Protein.name]
                 protein_m_tp.exp_matrix = protein_exp_idx
-                protein_m_tp.cell_mask = [nuclear_cell_idx]
+                protein_m_tp.cell_mask["core"] = [nuclear_cell_idx]
                 new_pp.molecular_classify['1'] = protein_m_tp
             if new_pp.run.report is False and self._if_report is True:
                 new_pp.run.report = True
