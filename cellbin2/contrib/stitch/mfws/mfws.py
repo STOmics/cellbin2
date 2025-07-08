@@ -156,6 +156,21 @@ def stitching(
 
     Examples:
         >>>
+        stitching(
+            image_path = r"",
+            rows = 23,
+            cols = 19,
+            stitching_type = 51,
+            name_pattern = '*s{xx}*',
+            start_row = 2,
+            start_col = 2,
+            end_row = 4,
+            end_col = 4,
+            down_sample = 2,
+            stereo_data = 'cellbin',
+            scope_flag = 0,
+            fusion_flag = 1
+        )
 
     """
     #  ------------------- Dedicated interface
@@ -249,6 +264,17 @@ def stitching(
 
 
 def main(args, para):
+    """
+    Entry function
+
+    Args:
+        args:
+        para:
+
+    Returns:
+
+    """
+
     stitching(
         image_path = args.input,
         rows = args.rows,
@@ -272,6 +298,32 @@ def main(args, para):
 
 
 def arg_parser():
+    """
+    Examples:
+        >>>
+            python mfws.py
+            -i "./"
+            -r 23
+            -c 19
+            -sr 2
+            -sc 2
+            -er 4
+            -ec 4
+            -np *s{xx}*
+            -overlap 0.1
+            -s
+            -f
+            -d 2
+            -proc 5
+            -save_name my_data
+            -o "./"
+            -fft_channel 0
+            -stereo_data cellbin
+            -file_pattern "*.tif"
+
+    Returns:
+
+    """
 
     parser = argparse.ArgumentParser()
 
@@ -348,21 +400,3 @@ def arg_parser():
 
 if __name__ == '__main__':
     arg_parser()
-
-    # stitching(
-    #     image_path = r"D:\02.data\temp\zzz",
-    #     rows = 23,
-    #     cols = 19,
-    #     # stitching_type = 51,
-    #     # name_pattern = '*s{xx}*',
-    #     # start_row = 2,
-    #     # start_col = 2,
-    #     # end_row = 4,
-    #     # end_col = 4,
-    #     # down_sample = 2,
-    #     stereo_data = 'cellbin',
-    #     scope_flag = 0,
-    #     fusion_flag = 1
-    #
-    # )
-
