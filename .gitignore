@@ -1,3 +1,5 @@
 
 *.pyc
 weights/
+/demo_data/
+*.tif

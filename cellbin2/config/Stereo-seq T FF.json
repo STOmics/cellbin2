@@ -79,9 +79,12 @@
   "molecular_classify": {
     "Transcriptomics": {
       "exp_matrix": 1,
-      "cell_mask": [
-        0
-      ],
+      "cell_mask": {
+        "core":[0],
+        "interior": [],
+        "cell":[]
+      },
+      "correct_r": 10,
       "extra_method": ""
     }
   },
