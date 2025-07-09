@@ -217,7 +217,7 @@ CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
 -p sample_multimodal.json \ # Personalized Json File
 -o test/SN \ # output dir
 ```
-please modify [sample_multimodal.json](cellbin2\config\demos\sample_multimodal.json)<br>
+please modify [sample_multimodal.json](cellbin2/config/demos/sample_multimodal.json)<br>
 complete infomation for numtimodal cell segmentation, visit [multimodal.md](docs/v2/multimodal.md)
 
 > more examples, please visit [example.md](docs/v2/example.md)
