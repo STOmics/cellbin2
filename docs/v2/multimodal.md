@@ -42,7 +42,7 @@ When processing input data containing only nuclei images, the JSON configuration
 In which, "interior" and "cell" list are set as empty lists and the "correct_r" specifies the number of pixels to be extended for each cell. In this case, the pipeline will automatically execute the core extension method and output the mask file:
 | File Name | Description |
 | ---- | ---- |
-| SN_cell_mask.tif | Mask with extended core |
+| SN_cell_mask.tif | Extended core mask |
 
 #### 2. Nuclei Cell Integration Method
 Full demo JSON file visit: [Nuclei Cell JSON](../../cellbin2/config/demos/sample_cell_core.json) 
@@ -61,7 +61,7 @@ This method processes individual cells by first resolving overlaps between nucle
 | File Name | Description |
 | ---- | ---- |
 | core_cell_merged_mask.tif | Nuclei cell integration mask |
-| SN_cell_mask.tif | Mask with extended cell |
+| SN_cell_mask.tif | Extended cell mask |
 
 #### 3. Nuclei Interior Cell Integration Method
 Full demo JSON file visit: [Nuclei Interior Cell JSON](../../cellbin2/config/demos/sample_multimodal.json)
@@ -85,9 +85,9 @@ After cell and interior mask are merged, nuclei mask are added. Similar to nucle
 | File Name | Description |
 | ---- | ---- |
 | core_interior_cell_merged_mask.tif | Nuclei interior cell integration mask |
-| SN_cell_mask.tif | Mask with extended cell |
-| multimodal_mid_file | Middle mask output of this multimodal method |
+| SN_cell_mask.tif | Extended cell mask |
+| multimodal_mid_file | Intermediate mask files generated during processing |
 | multimodal_mid_file/cell_mask_add_interior_add_nuclei.tif | Nuclei interior cell integration mask |
 | multimodal_mid_file/cell_mask_add_interior.tif | Mask of merged cell and interior |
-| multimodal_mid_file/interior_mask_final.tif | Inteiror mask after processing by cell mask |
-| multimodal_mid_file/output_nuclei_mask.tif | Final mask for remaining nuclei |
+| multimodal_mid_file/interior_mask_final.tif | Final inteiror mask (remaining nuclei regions) |
+| multimodal_mid_file/output_nuclei_mask.tif | Final nuclei mask (remaining nuclei regions) |
