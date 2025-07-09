@@ -13,7 +13,9 @@
       "tissue_segmentation": true,
       "cell_segmentation": true,
       "correct_r": 10,
-      "channel_align": -1
+      "channel_align": -1,
+      "magnification": 10,
+      "chip_matching": -1
     },
     "Transcriptomics": {
       "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000045_M5/SS200000045_M5.raw.gef",
@@ -28,7 +30,9 @@
       "tissue_segmentation": false,
       "cell_segmentation": false,
       "correct_r": 0,
-      "channel_align": -1
+      "channel_align": -1,
+      "magnification": 10,
+      "chip_matching": -1
     },
     "IF": {
       "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000045_M5/SS200000045_M5_ATP_IF_fov_stitched.tif",
@@ -43,7 +47,9 @@
       "tissue_segmentation": true,
       "cell_segmentation": false,
       "correct_r": 0,
-      "channel_align": 0
+      "channel_align": 0,
+      "magnification": 10,
+      "chip_matching": -1
     },
     "HE": {
       "file_path": "/media/Data/dzh/data/cellbin2/demo_data/C04042E3/C04042E3_fov_stitched.tif",
@@ -58,7 +64,9 @@
       "tissue_segmentation": true,
       "cell_segmentation": true,
       "correct_r": 10,
-      "channel_align": -1
+      "channel_align": -1,
+      "magnification": 20,
+      "chip_matching": 0
     },
     "ssDNA": {
       "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000135TL_D1/SS200000135TL_D1_fov_stitched_ssDNA.tif",
@@ -73,7 +81,9 @@
       "tissue_segmentation": true,
       "cell_segmentation": true,
       "correct_r": 10,
-      "channel_align": -1
+      "channel_align": -1,
+      "magnification": 10,
+      "chip_matching": -1
     }
   },
   "molecular_classify": {

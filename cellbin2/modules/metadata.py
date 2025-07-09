@@ -63,6 +63,8 @@ class ProcFile(BaseModel):
     correct_r: int
     channel_align: int
     registration: ProcRegistration
+    magnification: int
+    chip_matching: int
     _supported_matrix = ['.gef', '.gz', '.gem']
     _supported_image = ['.tif', '.tiff', '.TIF', '.TIFF']
 
