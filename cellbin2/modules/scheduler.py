@@ -493,7 +493,6 @@ class Scheduler(object):
             if len(interior_mask) == 0 and len(cell_mask) == 0:  # have only core_mask
                 #merged_cell_mask_path = self._output_path + "core_extend_mask.tif"
                 to_fast = final_nuclear_path
-                print(to_fast)
             # multiple masks, assuming the first is the nuclear mask and the second is the membrane mask
             elif len(interior_mask) == 0 and len(cell_mask) != 0:
                 from cellbin2.contrib.mask_manager import merge_cell_mask

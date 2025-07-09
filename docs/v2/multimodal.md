@@ -1,8 +1,8 @@
 ## Multimodal Cell Segmentaion Documentation  
-For post-processing of segmentation results, including multimodal cell segmentation or core mask extension, the CellBin pipeline requires JSON configuration editing
+The CellBin pipeline requires JSON configuration to perform segmentation post-processing operations including multimodal cell segmentation and core mask extension, which are implemented through specific parameter settings in the configuration file.
 
 ## Tutorial
-### **Configuration files:** JSON File Structure Customization
+### **Configuration File:** JSON File Structure Customization
 
 The molecular classification module utilizes a 'cell_mask' dictionary within each slot to map the masks to their corresponding processed images. The dictionary's keys, 'core', 'interior' and 'cell', identify region classifications, while the values specify image indices from the 'image_process' module. Additionally, the "correct_r" parameter defines the pixel extension radius for each cell.
 
@@ -17,7 +17,7 @@ The molecular classification module utilizes a 'cell_mask' dictionary within eac
 
 In the given example above, "core":[0] specifies that the slot 0 in "image_process" module corresponds to a core stain image. Each list may contain multiple masks, which will be merged with descending priority. After merging all masks into a single mask, each cell is expanded by 10 pixels, as defined by "correct_r".
 
-Besides the JSON configuration described above, further parameter details can be found in the [JSON Configuration Documentation](docs/v2/JsonConfigurationDocumention.md). 
+Besides the JSON configuration described above, further parameter details can be found in the [JSON Configuration Documentation](../../docs/v2/JsonConfigurationDocumention.md). 
 
 ### Usage
 
@@ -27,7 +27,7 @@ CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py -c <SN> -p <config.js
 ```
 ### Use Cases
 #### 1. Nuclei Extending Method
-Full demo JSON file visit: [Nuclei Extend JSON](cellbin2\config\demos\sample_core.json)  
+Full demo JSON file visit: [Nuclei Extend JSON](../../\cellbin2\config\demos\sample_core.json)  
 When processing input data containing only nuclei images, the JSON configuration should be structured as follows:
 
 ```shell
@@ -45,7 +45,7 @@ In which, "interior" and "cell" list are set as empty lists and the "correct_r" 
 | SN_cell_mask.tif | Mask with extended core |
 
 #### 2. Nuclei Cell Integration Method
-Full demo JSON file visit: [Nuclei Cell JSON](cellbin2\config\demos\sample_cell_core.json) 
+Full demo JSON file visit: [Nuclei Cell JSON](../../cellbin2\config\demos\sample_cell_core.json) 
 When the input data contains both nuclei and cell image, the JSON configuration should be structured as follows:
 
 ```shell
@@ -64,7 +64,7 @@ This method processes individual cells by first resolving overlaps between nucle
 | SN_cell_mask.tif | Mask with extended cell |
 
 #### 3. Nuclei Interior Cell Integration Method
-Full demo JSON file visit: [Nuclei Interior Cell JSON](cellbin2\config\demos\sample_multimodal.json)
+Full demo JSON file visit: [Nuclei Interior Cell JSON](../../cellbin2\config\demos\sample_multimodal.json)
 When the input data contains all three type of images, the JSON file should be set as:
 
 ```shell

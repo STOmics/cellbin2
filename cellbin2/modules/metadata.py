@@ -167,7 +167,7 @@ class ProcMolecularFile(BaseModel):
 
     Attributes:
         exp_matrix (int): The experimental matrix.
-        cell_mask (List[int]): The cell mask.
+        cell_mask (Dict[str,List[int]]): The masks.
         extra_method (str): An additional molecular classification method, currently not used.
     """
     exp_matrix: int
