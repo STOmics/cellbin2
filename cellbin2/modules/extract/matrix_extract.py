@@ -20,7 +20,6 @@ def extract4stitched(
         param_chip: StereoChip,
         m_naming: naming.DumpMatrixFileNaming,
         config: Config,
-        detect_feature: bool = True,
 ):
     """
     Extracts matrix data for a stitched image.
@@ -30,32 +29,32 @@ def extract4stitched(
         param_chip (StereoChip): Parameters for the stereo chip.
         m_naming (naming.DumpMatrixFileNaming): Naming convention for matrix files.
         config (Config): Configuration settings.
-        detect_feature (bool): Whether to detect features. Default is True.
 
     """
     cm = cMatrix()
-    cm.read(file_path=Path(image_file.file_path))
+    bin_size = 100
+    cm.read(file_path=Path(image_file.file_path), bin_size=bin_size)
+    # TODO
+    # bin_size = cm.bin_size
+
     cm.check_standards(config.genetic_standards)
 
-    ##! 补充bin_size
-    bin_size = 100
     if bin_size != 1:
         ##理论track线检测方法##
-        detect_feature = False
         sc = StereoChip()
-        sc.parse_info(chip_no = m_naming.sn)
+        sc.parse_info(chip_no=m_naming.sn)
         track_points = sc.template_points
         # track_points = np.loadtxt('/media/Data1/user/hedongdong/wqs/00.code/03.CellBin2/bin_X/data/SS200000135TL_D1_Transcriptomics_matrix_template.txt')
         print(track_points.shape)
         np.savetxt('/media/Data1/user/hedongdong/wqs/00.code/03.CellBin2/bin_X/data/track_points.txt', track_points)
         from cellbin2.contrib.alignment.basic import TemplateInfo
         cm._template = TemplateInfo(template_recall=1.,
-                      template_valid_area=1.,
-                      trackcross_qc_pass_flag=1,
-                      trackline_channel=0,
-                      rotation=0.,
-                      scale_x=1., scale_y=1.,
-                      template_points=track_points)
+                                    template_valid_area=1.,
+                                    trackcross_qc_pass_flag=1,
+                                    trackline_channel=0,
+                                    rotation=0.,
+                                    scale_x=1., scale_y=1.,
+                                    template_points=track_points)
 
         # 对_gene_mat插值放大
         cbimwrite(m_naming.heatmap, cm.heatmap)
@@ -65,8 +64,7 @@ def extract4stitched(
             gene_mat_resized = f_resize(gene_mat, shape=new_shape, mode="BILINEAR")
             cm._gene_mat = gene_mat_resized
 
-
-    if detect_feature:
+    else:
         cm.detect_feature(ref=param_chip.fov_template,
                           chip_size=min(param_chip.chip_specif))
         gene_tps = cm.template.template_points[:, :2]  # StereoMap is only compatible with n×2

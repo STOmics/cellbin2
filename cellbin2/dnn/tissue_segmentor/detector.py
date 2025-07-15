@@ -71,7 +71,7 @@ class TissueSegmentationBcdu(object):
     def f_predict(self, img) -> TissueSegOutputInfo:
         pred_out = TissueSegOutputInfo()
         if self.stain_type == TechType.IF:
-            img = self.preprocess(img=img, stain_type=self.stain_type, input_size=None)
+            img = self.preprocess(img=img, stain_type=self.stain_type, input_size=None, binx=1 )
             threshold_list, pred = self.postprocess(img=img, stain_type=self.stain_type, src_shape=None, threshold_list=self.threshold_list)
             pred_out.tissue_mask = pred
 

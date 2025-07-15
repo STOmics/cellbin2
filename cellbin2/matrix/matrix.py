@@ -16,23 +16,23 @@ from cellbin2.image import cbimread, cbimwrite
 from cellbin2.modules import naming
 from pydantic import BaseModel, Field
 
-@njit(parallel=True)
-def _uint8_parse_gef_line(data, img):
-    for i in prange(len(data)):
-        y, x, c = data[i]["y"], data[i]["x"], data[i]["count"]
-        img[y, x] = min(255, c + img[y, x])
-
-@njit(parallel=True)
-def _uint16_parse_gef_line(data, img):
-    for i in prange(len(data)):
-        y, x, c = data[i]["y"], data[i]["x"], data[i]["count"]
-        img[y, x] = min(65535, c + img[y, x])
-
-@njit(parallel=True)
-def _uint32_parse_gef_line(data, img):
-    for i in prange(len(data)):
-        y, x, c = data[i]["y"], data[i]["x"], data[i]["count"]
-        img[y, x] = min(4294967295, c + img[y, x])
+# @njit(parallel=True)
+# def _uint8_parse_gef_line(data, img):
+#     for i in prange(len(data)):
+#         y, x, c = data[i]["y"], data[i]["x"], data[i]["count"]
+#         img[y, x] = min(255, c + img[y, x])
+#
+# @njit(parallel=True)
+# def _uint16_parse_gef_line(data, img):
+#     for i in prange(len(data)):
+#         y, x, c = data[i]["y"], data[i]["x"], data[i]["count"]
+#         img[y, x] = min(65535, c + img[y, x])
+#
+# @njit(parallel=True)
+# def _uint32_parse_gef_line(data, img):
+#     for i in prange(len(data)):
+#         y, x, c = data[i]["y"], data[i]["x"], data[i]["count"]
+#         img[y, x] = min(4294967295, c + img[y, x])
 
 
 
@@ -40,12 +40,24 @@ def parse_gef_line(data, img, _dtype):
     """
     Speedup parse lines with numba
     """
-    if _dtype == np.uint8:
-        _uint8_parse_gef_line(data, img)
-    elif _dtype == np.uint16:
-        _uint16_parse_gef_line(data, img)
-    elif _dtype == np.uint32:
-        _uint32_parse_gef_line(data, img)
+    dtype_dict = {
+        np.uint8: 255,
+        np.uint16: 65535,
+        np.uint32: 4294967295,
+    }
+
+    max_val = dtype_dict[_dtype]
+
+    for i in prange(len(data)):
+        y, x, c = data[i]["y"], data[i]["x"], data[i]["count"]
+        img[y, x] = min(max_val, c + img[y, x])
+
+    # if _dtype == np.uint8:
+    #     _uint8_parse_gef_line(data, img)
+    # elif _dtype == np.uint16:
+    #     _uint16_parse_gef_line(data, img)
+    # elif _dtype == np.uint32:
+    #     _uint32_parse_gef_line(data, img)
 
 
 class GeneticStandards(BaseModel):
@@ -68,7 +80,7 @@ class cMatrix(object):
         self._chip_box: ChipBoxInfo = None
         self.file_path: str = ''
 
-    def read(self, file_path: Path, chunk_size=1024 * 1024 * 10):
+    def read(self, file_path: Path, bin_size=1, chunk_size=1024 * 1024 * 10):
         """
         this function copy from,
             https://dcscode.genomics.cn/stomics/saw/register/-/blob/main/register/utils/matrixloader.py?ref_type=heads
@@ -76,7 +88,7 @@ class cMatrix(object):
         :param chunk_size:
         :return:
         """
-        ##! 需要补充bin_size参数
+        ## reset bin_size
         bin_size = 100
         suffix = file_path.suffix
         assert suffix in ['.gz', '.gef', '.gem']
@@ -236,7 +248,7 @@ class cMatrix(object):
     #         img,
     #     )
     @staticmethod
-    def _load_gef(file,bin_size=1):
+    def _load_gef(file, bin_size=1):
         """
         Process GEF files with any bin_size
         Automatically selects the smallest possible unsigned integer type based on max value:

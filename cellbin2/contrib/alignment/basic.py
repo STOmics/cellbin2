@@ -58,6 +58,7 @@ class ChipFeature(BaseModel):
     point00: Tuple[int, int] = (0, 0)
     mat: Union[str, CBImage] = ''
     anchor_point: Tuple[int, int] = (0, 0)
+    binX : int = 1
 
     class Config:
         arbitrary_types_allowed = True

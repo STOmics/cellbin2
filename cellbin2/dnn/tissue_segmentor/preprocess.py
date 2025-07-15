@@ -59,7 +59,6 @@ def f_pre_transcriptomics_protein_220909(img: npt.NDArray, input_size: tuple, st
     clog.info("preprocessing data type: Transcriptomics/Protein")
     clog.info("version: 220909")
     # binx 情况下不再使用
-    # img[img > 0] = 255
     img = np.array(img).astype(np.uint8)
     img = f_resize(img, input_size, "BILINEAR")
     img = f_ij_auto_contrast(img)
@@ -97,7 +96,7 @@ class TissueSegPreprocess:
         self.model_name = model_name
         self.m_preprocess: dict= self.model_preprocess[self.model_name]
 
-    def __call__(self, img: Union[str, npt.NDArray], stain_type: TechType, input_size: tuple):
+    def __call__(self, img: Union[str, npt.NDArray], stain_type: TechType, input_size: tuple, binx: int = 1):
 
         # support image reading 
         if isinstance(img, str):
@@ -119,6 +118,11 @@ class TissueSegPreprocess:
         if stain_type == TechType.IF:
             img = pre_func(img)
             return img
+
+        if stain_type in [TechType.Transcriptomics, TechType.Protein]:
+            if binx == 1:
+                img[img > 0] = 255
+
         img = pre_func(img, input_size, stain_type)
         # basic operation
         img = f_histogram_normalization(img)

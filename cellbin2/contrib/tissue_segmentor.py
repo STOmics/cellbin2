@@ -133,6 +133,7 @@ class TissueSegmentation:
                                                  threshold_list=self.threshold_list,
                                                  preprocess=self.pre_process,
                                                  postprocess=self.post_process,
+
                                                  )
 
         # Load the model weights if the stain type is not IF

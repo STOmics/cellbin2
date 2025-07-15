@@ -28,7 +28,8 @@ class RegistrationParam(BaseModel):
 def transform_to_register(
         cur_f_name: naming.DumpImageFileNaming,
         info: Optional[RegistrationOutput] = None,
-        cur_c_image: Optional[Union[IFChannel, ImageChannel]] = None
+        cur_c_image: Optional[Union[IFChannel, ImageChannel]] = None,
+        binX: int = 1
 ):
     """
     Transforms and registers images based on provided parameters.
@@ -60,7 +61,7 @@ def transform_to_register(
             # if os.path.exists(dst_path):
             #     continue
             if os.path.exists(src_path):
-                if os.path.splitext(src_path)[1] == ".txt":  # Or other judgment
+                if os.path.splitext(src_path)[1] == ".txt" and binX == 1:  # Or other judgment
                     points, _ = transform_points(
                         src_shape=cur_c_image.Stitch.TransformShape,
                         points=np.loadtxt(src_path),
@@ -68,6 +69,7 @@ def transform_to_register(
                         flip=0 if info.flip else -1,
                         offset=info.offset
                     )
+
                     np.savetxt(dst_path, points)
                     if dst == cur_f_name.register_template:
                         cur_c_image.Register.RegisterTemplate = points
@@ -78,6 +80,11 @@ def transform_to_register(
                         flip_lr=info.flip, rot90=info.counter_rot90, offset=info.offset,
                         dst_size=info.dst_shape)
                     cbimwrite(dst_path, dst_image)
+
+                    if dst_path.count('_regist.') > 0:
+                        _dst_image = dst_image.trans_image(scale=1 / binX)
+                        cbimwrite(dst_path.replace("regist", f"regist_bin{binX}"), _dst_image)
+
         if os.path.exists(cur_f_name.tissue_mask):
             tissue_mask = cbimread(cur_f_name.tissue_mask, only_np=True)
             cur_c_image.TissueSeg.TissueSegShape = list(tissue_mask.shape)
@@ -100,7 +107,8 @@ def run_register(
         output_path: str,
         param_chip: StereoChip,
         config: Config,
-        debug: bool
+        debug: bool,
+        binX: int = 1
 ):
     """
     This module integrates the overall logic for image registration and
@@ -150,27 +158,19 @@ def run_register(
                     m_type=fixed.tech.name,
                     save_dir=output_path
                 ),
-                detect_feature=True,
                 config=config
             )
-            ##! 补充bin_size
-            bin_size = 100
-            if bin_size != 1:
-                fixed_image = ChipFeature(
-                    tech_type=fixed.tech,
-                    template=cm.template,
-                )
-            else:
-                fixed_image = ChipFeature(
-                    tech_type=fixed.tech,
-                    template=cm.template,
-                    chip_box=cm.chip_box,
-                )
+
+            fixed_image = ChipFeature(
+                tech_type=fixed.tech,
+                template=cm.template,
+                chip_box=cm.chip_box,
+                binX=binX
+            )
             fixed_image.set_mat(cm.heatmap)
             param1.Register.MatrixTemplate = cm.template.template_points
-            ##! 补充bin_size
-            bin_size = 100
-            if bin_size == 1:
+
+            if binX == 1:
                 param1.Register.GeneChipBBox.update(fixed_image.chip_box)
         else:
             raise Exception("Not supported yet")
@@ -180,27 +180,25 @@ def run_register(
             # Get registration parameters from ipr
             pre_info = param1.Register.Register00.get().to_dict()
 
-            ##! 补充bin_size
-            bin_size = 100
-            if bin_size != 1:
-                from cellbin2.contrib.alignment.template_centroid import centroid
-                _info = centroid(
-                    moving_image=moving_image,
-                    fixed_image=fixed_image,
-                    ref=param_chip.fov_template,
-                    from_stitched=False,
-                    flip_flag=config.registration.flip,
-                    rot90_flag=config.registration.rot90
-                )
-            else:    
-                _info = template_00pt_check(
-                    moving_image=moving_image,
-                    fixed_image=fixed_image,
-                    offset_info=pre_info,
-                    fixed_offset=(cm.x_start, cm.y_start),
-                    flip_flag=config.registration.flip,
-                    rot90_flag=config.registration.rot90
-                )
+            # if bin_size != 1:
+                # from cellbin2.contrib.alignment.template_centroid import centroid
+                # _info = centroid(
+                #     moving_image=moving_image,
+                #     fixed_image=fixed_image,
+                #     ref=param_chip.fov_template,
+                #     from_stitched=False,
+                #     flip_flag=config.registration.flip,
+                #     rot90_flag=config.registration.rot90
+                # )
+            # else:
+            _info = template_00pt_check(
+                moving_image=moving_image,
+                fixed_image=fixed_image,
+                offset_info=pre_info,
+                fixed_offset=(cm.x_start, cm.y_start),
+                flip_flag=config.registration.flip,
+                rot90_flag=config.registration.rot90
+            )
             info = RegistrationOutput(**_info)
 
         else:
@@ -215,6 +213,7 @@ def run_register(
             This change is being made to prepare for the mutual correction of 
             the two registration algorithms in the future.
             """
+
             chip_re = 1 if config.registration.flag_chip_registration and param1.QCInfo.ChipDetectQCPassFlag else 0
 
             info, temp_info = registration(
@@ -247,5 +246,6 @@ def run_register(
     transform_to_register(
         info=info,
         cur_f_name=cur_f_name,
-        cur_c_image=param1
+        cur_c_image=param1,
+        binX=binX
     )

@@ -349,7 +349,7 @@ class Scheduler(object):
                         m_type=f.tech.name,
                         save_dir=self._output_path,
                     )
-                    ###! 这里似乎没用到
+
                     cm = extract4stitched(
                         image_file=f,
                         param_chip=self.param_chip,
