@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
 import time
 import glog
 
@@ -86,36 +85,30 @@ class Stitching(object):
 
     def set_location(self, loc: np.ndarray):
         """
-
         Args:
             loc:
 
         Returns:
-
         """
         self._fov_location = loc
 
     def set_jitter(self, x_jitter: np.ndarray, y_jitter: np.ndarray):
         """
-
         Args:
             x_jitter:
             y_jitter:
 
         Returns:
-
         """
         self._fov_x_jitter = x_jitter
         self._fov_y_jitter = y_jitter
 
     def _init_param(self, image_dict: dict):
         """
-
         Args:
             image_dict:
 
         Returns:
-
         """
         _image_path = list(image_dict.values())[0]
 
@@ -131,20 +124,18 @@ class Stitching(object):
 
     def _get_loc_by_mfws(self, image_dict: dict):
         """
-
         Returns:
-
         """
         if self._fov_x_jitter is None and self._fov_y_jitter is None:
             glog.info('No jitter information, calculate using algorithms.')
             self._get_jitter(
                 image_dict,
-                fft_channel = int(self.channel),
-                multi = self.proc_count
+                fft_channel=int(self.channel),
+                multi=self.proc_count
             )
 
         start_time = time.time()
-        glog.info('Start location mode.')
+        glog.info('Start location mode')
 
         lm = GlobalLocation()
         lm.set_size(self._slice_rows, self._slice_cols)
@@ -156,25 +147,23 @@ class Stitching(object):
 
         self._fov_location = lm.fov_loc_array
 
-        glog.info("location calculation time -- {}s".format(time.time() - start_time))
+        glog.info("location calculation time, {}s".format(round(time.time() - start_time, 2)))
 
-    def _get_jitter(self, image_dict: dict,  fft_channel: int = 0, multi = 5):
+    def _get_jitter(self, image_dict: dict,  fft_channel: int = 0, multi=5):
         """
-
         Args:
             image_dict:
             fft_channel:
             multi:
 
         Returns:
-
         """
         jm = FOVAligner(
             image_dict,
             self._slice_rows, self._slice_cols,
-            multi = True if multi > 1 else False, channel = fft_channel,
-            overlap = self.overlap,
-            i_shape = [self._fov_height, self._fov_width]
+            multi=True if multi > 1 else False, channel=fft_channel,
+            overlap=self.overlap,
+            i_shape=[self._fov_height, self._fov_width]
         )
         # TODO
         jm.set_process(multi)
@@ -193,16 +182,14 @@ class Stitching(object):
             self._fov_y_jitter[1:, :, 0] = 0
             self._fov_y_jitter[1:, :, 1] = - int(self._fov_height * self.overlap[1])
 
-        glog.info("Jitter calculation time -- {}s".format(time.time() - start_time))
+        glog.info("Jitter calculation time, {}s".format(round(time.time() - start_time), 2))
 
     def _slice_images(self, image_dict: dict):
         """
-
         Args:
             image_dict:
 
         Returns:
-
         """
         if self.end_ind[0] == -1:
             self.end_ind[0] = self._rows
@@ -227,7 +214,7 @@ class Stitching(object):
         return new_image_dict
 
     def stitch_by_rule(self, image_dict: dict):
-        """ 根据硬件信息拼接 """
+        """ stitching based on hardware information """
         self._init_param(image_dict)
         image_dict = self._slice_images(image_dict)
 
@@ -244,7 +231,7 @@ class Stitching(object):
         return img
 
     def stitch_by_mfws(self, image_dict: dict):
-        """ 根据算法拼接 """
+        """ stitching by algorithm """
         self._init_param(image_dict)
         image_dict = self._slice_images(image_dict)
 
@@ -254,7 +241,7 @@ class Stitching(object):
         return img
 
     def stitch_by_location(self, image_dict: dict, loc: np.ndarray):
-        """ 根据坐标拼接，多通道场景下通道复用 """
+        """ stitching based on coordinates, channel multiplexing in multi-channel scenarios """
         self._init_param(image_dict)
 
         wsi = StitchingWSI()
@@ -262,22 +249,22 @@ class Stitching(object):
         wsi.mosaic(
             image_dict,
             loc,
-            multi = False,
-            fuse_flag = True if self.fusion else False,
-            down_sample = self.down_sample
+            multi=False,
+            fuse_flag=True if self.fusion else False,
+            down_sample=self.down_sample
         )
 
         return wsi.buffer
 
     def export_mosaic(self, output: str):
-        """ 保存拼接图/缩略图（自适应倍率） """
+        """ Save mosaic/thumbnail (adaptive magnification) """
         pass
 
     @staticmethod
     def create_loc(rows, cols, shape, overlap):
         height, width = shape
         overlap_x, overlap_y = overlap
-        fov_loc = np.zeros((rows, cols, 2), dtype = int)
+        fov_loc = np.zeros((rows, cols, 2), dtype=int)
         for i in range(rows):
             for j in range(cols):
                 fov_loc[i, j, 0] = j * (width - int(width * overlap_x))
@@ -287,20 +274,20 @@ class Stitching(object):
 
     @property
     def fov_location(self,):
-        """ 全局拼接坐标 """
+        """ Global stitching coordinates """
         return self._fov_location
 
     @property
     def x_jitter(self,):
-        """ 水平扫描方向上的抖动结果 """
+        """ Jitter results in the horizontal scanning direction """
         return self._fov_x_jitter
 
     @property
     def y_jitter(self,):
-        """ 竖直扫描方向上的抖动结果 """
+        """ Jitter results in the vertical scanning direction """
         return self._fov_y_jitter
 
     @property
     def mosaic_size(self,):
-        """ 原分辨率拼接图尺寸 """
+        """ Original resolution mosaic size """
         return self._mosaic_height, self._mosaic_width

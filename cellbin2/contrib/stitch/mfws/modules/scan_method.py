@@ -17,8 +17,37 @@ from typing import Union
 
 
 class Scanning(enum.Enum):
-    """
+    """ stitching_type:
+        # row and col & col and row
+        RaC = 0
+        CaR = 1
 
+        # coordinate
+        Coordinate = 2
+
+        # row by row
+        RbR_RD = 31
+        RbR_LD = 32
+        RbR_RU = 33
+        RbR_LU = 34
+
+        # col by col
+        CbC_DR = 41
+        CbC_DL = 42
+        CbC_UR = 43
+        CbC_UL = 44
+
+        # snake by row
+        SbR_RD = 51
+        SbR_LD = 52
+        SbR_RU = 53
+        SbR_LU = 54
+
+        # snake by col
+        SbC_DR = 61
+        SbC_DL = 62
+        SbC_UR = 63
+        SbC_UL = 64
     """
     # row and col & col and row
     RaC = 0
@@ -59,32 +88,29 @@ def search_files(file_path, exts):
             continue
         for f in files:
             fn, ext = os.path.splitext(f)
-            if ext in exts: files_.append(os.path.join(root, f))
+            if ext in exts:
+                files_.append(os.path.join(root, f))
 
     return files_
 
 
 def trans_path2class(images_dict, **kwargs):
     """
-
     Args:
         images_dict:
         **kwargs:
             sdt: stereo data type -- 'dolphin' | ''
-
     Returns:
-
     """
+    flip = kwargs.get('flip')
     new_images_dict = dict()
     for k, v in images_dict.items():
-        r, c = map(int, k.split('_'))
-        sdt = kwargs.get('sdt', 'other')
-
-        if sdt == 'dolphin':
-            if c % 2 == 0:
-                new_images_dict[k] = ImageBase(v, flip_ud = True)
-        else:
+        if flip == 1:
             new_images_dict[k] = ImageBase(v)
+        elif flip == 2:
+            new_images_dict[k] = ImageBase(v, flip_ud=True)
+        elif flip == 3:
+            new_images_dict[k] = ImageBase(v, flip_lr=True)
 
     return new_images_dict
 
@@ -105,9 +131,7 @@ class ScanMethod:
             **kwargs
     ) -> dict:
         """
-
         Returns: return RaC method
-
         """
         images_dict = self.get_images_index(images_path, name_pattern)
 
@@ -183,8 +207,10 @@ class ScanMethod:
 
         ind = 0
         for i in name_pattern:
-            if i == '{': ind_flag = True
-            if i == 'x' and ind_flag: ind += 1
+            if i == '{':
+                ind_flag = True
+            if i == 'x' and ind_flag:
+                ind += 1
             if i == '}':
                 ind_flag = False
                 ind_list.append(ind)
@@ -207,6 +233,8 @@ class ScanMethod:
         re_name, ind_list = self._get_pattern(name_pattern)
 
         for ip in images_path:
+            if os.path.isdir(ip):
+                continue
             pat = re.compile(re_name)
             res = pat.search(os.path.basename(ip))
             if res is None:
@@ -222,7 +250,8 @@ class ScanMethod:
 
             if len(image_ind) > 1:
                 name = '_'.join(image_ind)
-            else: name = image_ind[0]
+            else:
+                name = image_ind[0]
 
             images_dict[name] = ip
 
@@ -268,7 +297,7 @@ class ImageBase:
 
 if __name__ == '__main__':
     data_path = r"D:\02.data\chengjinghao\anno\B03204C211\ssDNA\B03204C211"
-    imgs = search_files(data_path, exts = ['.tif'])
+    imgs = search_files(data_path, exts=['.tif'])
 
     sm = ScanMethod(Scanning.SbR_RD)
     # imd = sm.to_default(

@@ -34,7 +34,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'mfws=mfws.mfws:arg_parser',
+            'mfws=mfws.mfws:main',
         ]
     },
   )

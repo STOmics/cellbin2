@@ -3,7 +3,6 @@ Matcher provide the way to get overlap/offset from neighbor FOV.
 """
 import glog
 import copy
-import time
 import tifffile
 import itertools
 
@@ -11,7 +10,7 @@ import cv2 as cv
 import numpy as np
 from tqdm import tqdm
 
-from multiprocessing import Process, Manager, Pool, cpu_count
+from multiprocessing import Manager, Pool
 try:
     from .jitter_correct import JitterCorrect
 except ImportError:
@@ -79,7 +78,8 @@ class FOVAligner(object):
             add_flag = False
             for k_index, k in enumerate(arr):
 
-                if k == n: continue
+                if k == n:
+                    continue
                 elif np.abs(k - n) <= cn:
 
                     if len(cluster_list) == 0:
@@ -114,7 +114,8 @@ class FOVAligner(object):
                 if min(overlap_dis[0]) < i < max(overlap_dis[0]): flag = True
                 index = list(x_set).index(i)
                 count += x_count[index]
-            if flag: x_dict[k] = (xc, count)
+            if flag:
+                x_dict[k] = (xc, count)
         x_list = max(x_dict.items(), key=lambda x: x[1][1])[1][0]
 
         y_dict = dict()
@@ -159,8 +160,8 @@ class FOVAligner(object):
                 glog.info(f"Stitch using {self.num} process")
                 pool = Pool(processes=self.num)
 
-                pb = tqdm(total=len(tesk_list))
-                pb.set_description('Calculate jitter: ')
+                pb = tqdm(total=len(tesk_list), colour='green', unit='row', ncols=100)
+                pb.set_description('Calculate jitter')
 
                 for tesk in tesk_list:
                     if list(tesk.keys())[0] == 'row':
@@ -168,7 +169,7 @@ class FOVAligner(object):
                         pool.apply_async(
                             func=self._multi_jitter,
                             args=(h_j, confi_h, row_index, None, 0),
-                            callback = lambda *args: pb.update(1)
+                            callback=lambda *args: pb.update(1)
                         )
 
                     elif list(tesk.keys())[0] == 'col':
@@ -176,7 +177,7 @@ class FOVAligner(object):
                         pool.apply_async(
                             func=self._multi_jitter,
                             args=(v_j, confi_v, None, col_index, 1),
-                            callback = lambda *args: pb.update(1)
+                            callback=lambda *args: pb.update(1)
                         )
 
                     else:
@@ -196,7 +197,7 @@ class FOVAligner(object):
                     confi_mask[row, col, 1] = confi_v[key]
         else:
             glog.info("Scan Row by Row.")
-            for i in tqdm(range(self.rows), desc='RowByRow'):
+            for i in tqdm(range(self.rows), desc='RowByRow', colour='green', unit='row', ncols=100):
                 train = self._get_image(i, 0)
                 for j in range(1, self.cols):
                     query = self._get_image(i, j)
@@ -209,7 +210,7 @@ class FOVAligner(object):
                     train = query
 
             glog.info("Scan Col by Col.")
-            for j in tqdm(range(self.cols), desc='ColByCol'):
+            for j in tqdm(range(self.cols), desc='ColByCol', colour='green', unit='col', ncols=100):
                 train = self._get_image(0, j)
                 for i in range(1, self.rows):
                     query = self._get_image(i, j)
@@ -242,7 +243,7 @@ class FOVAligner(object):
         jc = JitterCorrect([self.horizontal_jitter, self.vertical_jitter], image_size = self.i_shape)
         self.horizontal_jitter, self.vertical_jitter = jc.correct()
 
-        glog.info("Scan image done!")
+        # glog.info("Scan image done")
 
     def offset_eval(self, height, width, overlap=[0.1, 0.1]):
         """

@@ -7,7 +7,6 @@
 🌟 Key Words  :
 """
 import os
-import time
 import glog
 import argparse
 
@@ -21,6 +20,7 @@ from prettytable import PrettyTable
 
 from modules.scan_method import ScanMethod, Scanning
 from modules.stitching import Stitching
+version = '0.1'
 
 
 def _stitch_info_print(**kwargs):
@@ -41,7 +41,7 @@ def _stitch_info_print(**kwargs):
 
     pt.add_row(list(kwargs.values()))
 
-    glog.info(f"\n{pt}")
+    glog.info(f"Basic mfws config info as, \n{pt}")
 
 
 def stitching(
@@ -54,16 +54,16 @@ def stitching(
         end_col: int = -1,
         name_pattern: str = '*_{xxx}_{xxx}_*',
         overlap: str = '0.1',
-        save_name: str = '',
         fusion_flag: int = 0,
         scope_flag: int = 0,
         down_sample: int = 1,
+        flip: int = 1,
         proc_count: int = 5,
         output_path: str = '',
         stereo_data: str = '',
         fft_channel: int = 0,
         file_pattern: str = '',
-        stitching_type = 0,
+        stitching_type=0,
         **kwargs
 ) -> Union[None, np.ndarray]:
     """
@@ -128,8 +128,6 @@ def stitching(
             SbC_UR = 63
             SbC_UL = 64
 
-        save_name: image save name, default "fov_stitch.tif"
-
         overlap: scope overlap '{overlap_x}_{overlap_y}', like '0.1_0.1'
 
         fusion_flag: whether or not fuse image, 0 is false
@@ -138,12 +136,13 @@ def stitching(
 
         down_sample: down-simpling size
 
+        flip:
+
         proc_count: multi-process core count
 
         output_path:
 
         stereo_data:
-            - V3:
             - dolphin:
             - T1:
             - cellbin:
@@ -178,14 +177,14 @@ def stitching(
         stereo_data = stereo_data.lower()
 
         if stereo_data == 'cellbin':
-            stitching_type = 0
+            stitching_type = 0  # RC
             name_pattern = '*_{xxxx}_{xxxx}_*'
         else:
             name_pattern = '*C{xxx}R{xxx}*'
 
             if stereo_data == 't1':
                 stitching_type = 1
-            elif stereo_data in ['dolphin', 'v3']:
+            elif stereo_data == 'dolphin':
                 stitching_type = 0
             else:
                 raise ValueError('Stereo data error.')
@@ -199,20 +198,20 @@ def stitching(
 
     #  -------------------
     _stitch_info_print(
-        stereo_data = stereo_data if len(stereo_data) > 0 else None,
-        rows = rows,
-        cols = cols,
-        start_row = start_row,
-        start_col = start_col,
-        end_row = rows if end_row == -1 else end_row,
-        end_col = cols if end_col == -1 else end_col,
-        overlap = overlap,
-        name_pattern = name_pattern,
-        scope_flag = True if scope_flag else False,
-        fusion_flag = True if fusion_flag else False,
-        down_sample = down_sample,
-        proc_count = proc_count,
-        stitching_type = Scanning(stitching_type)
+        stereo_data=stereo_data if len(stereo_data) > 0 else None,
+        rows=rows,
+        cols=cols,
+        start_row=start_row,
+        start_col=start_col,
+        end_row=rows if end_row == -1 else end_row,
+        end_col=cols if end_col == -1 else end_col,
+        overlap=overlap,
+        name_pattern=name_pattern,
+        scope_flag=True if scope_flag else False,
+        fusion_flag=True if fusion_flag else False,
+        down_sample=down_sample,
+        proc_count=proc_count,
+        stitching_type=Scanning(stitching_type)
     )
 
     if len(file_pattern) > 0:
@@ -226,11 +225,12 @@ def stitching(
 
     sm = ScanMethod(stitching_type)
     imd = sm.to_default(
-        images_path = images_path,
-        rows = rows,
-        cols = cols,
-        name_pattern = name_pattern,
-        sdt = stereo_data
+        images_path=images_path,
+        rows=rows,
+        cols=cols,
+        name_pattern=name_pattern,
+        sdt=stereo_data,
+        flip=flip
     )
 
     if '_' in overlap:
@@ -239,65 +239,33 @@ def stitching(
         overlap_x = overlap_y = float(overlap)
 
     sti = Stitching(
-        rows = rows,
-        cols = cols,
-        start_row = start_row,
-        start_col = start_col,
-        end_row = end_row,
-        end_col = end_col,
-        overlap_x = overlap_x,
-        overlap_y = overlap_y,
-        channel = fft_channel,
-        fusion = fusion_flag,
-        down_sample = down_sample,
-        proc_count = proc_count,
-        stitch_method = stitch_method
+        rows=rows,
+        cols=cols,
+        start_row=start_row,
+        start_col=start_col,
+        end_row=end_row,
+        end_col=end_col,
+        overlap_x=overlap_x,
+        overlap_y=overlap_y,
+        channel=fft_channel,
+        fusion=fusion_flag,
+        down_sample=down_sample,
+        proc_count=proc_count,
+        stitch_method=stitch_method
     )
 
-    if scope_flag: img = sti.stitch_by_rule(imd)
-    else: img = sti.stitch_by_mfws(imd)
+    if scope_flag:
+        img = sti.stitch_by_rule(imd)
+    else:
+        img = sti.stitch_by_mfws(imd)
 
-    # TODO : io interface
     if os.path.isdir(output_path):
-        _name = save_name if len(save_name) > 0 else "fov_stitch"
-        tif.imwrite(os.path.join(output_path, f'{_name}.tif'), img)
+        tif.imwrite(os.path.join(output_path, 'mfws.tif'), img)
+    else:  # file
+        tif.imwrite(os.path.join(output_path), img)
 
 
-def main(args, para):
-    """
-    Entry function
-
-    Args:
-        args:
-        para:
-
-    Returns:
-
-    """
-
-    stitching(
-        image_path = args.input,
-        rows = args.rows,
-        cols = args.cols,
-        start_row = args.start_row,
-        start_col = args.start_col,
-        end_row = args.end_row,
-        end_col = args.end_col,
-        name_pattern = args.name_pattern,
-        overlap = args.overlap,
-        save_name = args.save_name,
-        fusion_flag = args.fuse,
-        scope_flag = args.scope,
-        down_sample = args.down,
-        proc_count = args.proc,
-        output_path = args.output,
-        stereo_data = args.stereo_data,
-        file_pattern = args.file_pattern,
-        fft_channel = args.fft_channel
-    )
-
-
-def arg_parser():
+def main():
     """
     Examples:
         >>>
@@ -326,77 +294,74 @@ def arg_parser():
     """
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("-v", "--version", action="version", version='mfws == {}'.format(version))
 
     parser.add_argument("-i", "--input", action="store", dest="input", type=str, required=True,
-                        help = "Input image dir.")
-
+                        help="Input image dir.")
+    parser.add_argument("-o", "--output", action="store", dest="output", type=str, required=True,
+                        help="Result output dir.")
     parser.add_argument("-r", "--rows", action="store", dest="rows", type=int, required=True,
-                        help = "Image rows.")
-
+                        help="Image rows.")
     parser.add_argument("-c", "--cols", action="store", dest="cols", type=int, required=True,
-                        help = "Image cols.")
+                        help="Image cols.")
 
-    # image stitch start and end
     parser.add_argument("-sr", "--start_row", action="store", dest="start_row", type=int, required=False,
-                        default = 1, help = "Image start row.")
-
+                        default=1, help="Image start row.")
     parser.add_argument("-sc", "--start_col", action="store", dest="start_col", type=int, required=False,
-                        default = 1, help = "Image start col.")
-
+                        default=1, help="Image start col.")
     parser.add_argument("-er", "--end_row", action="store", dest="end_row", type=int, required=False,
-                        default = -1, help = "Image end row.")
-
+                        default=-1, help="Image end row.")
     parser.add_argument("-ec", "--end_col", action="store", dest="end_col", type=int, required=False,
-                        default = -1, help = "Image end col.")
-
-    # image name pattern
-    parser.add_argument("-np", "--name_pattern", action="store", dest="name_pattern", type=str,
-                        required=False, help = "Name pattern.")
-
-    # scope overlap
-    parser.add_argument("-overlap", "--overlap", action="store", dest="overlap", type=str, required=False,
+                        default=-1, help="Image end col.")
+    parser.add_argument("-proc", "--proc", action="store", dest="proc", type=int, required=False, default=5,
+                        help="multi-process count.")
+    parser.add_argument("-overlapx", "--overlapx", action="store", dest="overlapx", type=str, required=False,
                         default='0.1', help="Overlap - 0.1 or 0.1_0.1 .")
-
-    # scope stitch or algorithm stitch
-    parser.add_argument("-s", "--scope", action = "store_true", dest = "scope", required = False,
-                        help = "Scope stitch.")
-
-    # fuse
-    parser.add_argument("-f", "--fuse", action = "store_true", dest = "fuse", required = False,
-                        help = "Fuse.")
-
-    # down-sampling
-    parser.add_argument("-d", "--down", action = "store", dest = "down", type = float, required = False,
-                        default = 1, help = "Down-sampling.")
-
-    # multi-process count
-    parser.add_argument("-proc", "--proc", action="store", dest="proc", type=int, required=False, default = 5,
-                        help = "multi-process count.")
-
-    # image save name
-    parser.add_argument("-save_name", "--save_name", action="store", dest="save_name", type=str, required=False,
-                        default = '', help="Name.")
-
-    # output dir
-    parser.add_argument("-o", "--output", action="store", dest="output", type=str, required=False,
-                        default = '', help="Result output dir.")
-
-    # fft channel
+    parser.add_argument("-overlapy", "--overlapy", action="store", dest="overlapy", type=str, required=False,
+                        default='0.1', help="Overlap - 0.1 or 0.1_0.1 .")
+    parser.add_argument("-f", "--fusion", action="store_true", dest="fusion", required=False,
+                        help="Fuse.")
+    parser.add_argument("-scan_type", "--scan_type", action="store", dest="scan_type", type=int,
+                        required=False, default=0, help="scan type")
+    parser.add_argument("-np", "--name_pattern", action="store", dest="name_pattern", type=str,
+                        required=False, help="Name pattern, r{rrr}_c{ccc}.tif")
+    parser.add_argument("-mt", "--method", action="store_true", dest="method", required=False,
+                        help="stitch method.")
+    parser.add_argument("-thumbnail", "--thumbnail", action="store", dest="thumbnail", type=float, required=False,
+                        default=1, help="down sampling.")
+    parser.add_argument("-channel", "--channel", action="store", dest="channel", type=str,
+                        required=False, default='', help="File name -- such as '*.A.*.tif'")
     parser.add_argument("-fft_channel", "--fft_channel", action="store", dest="fft_channel", type=int, required=False,
-                        default = 0, help = "FFT channel.")
+                        default=0, help="FFT channel.")
 
-    # cellbin | dolphin | t1 | v3
-    parser.add_argument("-stereo_data", "--stereo_data", action = "store", dest = "stereo_data", type = str,
-                        required = False, default = 'cellbin', help = "Stereo data id.")
+    # cellbin | dolphin | t1
+    parser.add_argument("-device", "--device", action="store", dest="device", type=str,
+                        required=False, default='cellbin', help="Stereo data id.")
+    args = parser.parse_args()
 
-    # re - file pattern
-    parser.add_argument("-file_pattern", "--file_pattern", action = "store", dest = "file_pattern", type = str,
-                        required = False, default = '', help = "File name -- such as '*.A.*.tif'.")
+    overlap = '{}_{}'.format(args.overlapx, args.overlapy)
 
-    parser.set_defaults(func=main)
-    (para, args) = parser.parse_known_args()
-    para.func(para, args)
+    stitching(
+        image_path=args.input,
+        rows=args.rows,
+        cols=args.cols,
+        start_row=args.start_row,
+        start_col=args.start_col,
+        end_row=args.end_row,
+        end_col=args.end_col,
+        name_pattern=args.name_pattern,
+        overlap=overlap,
+        fusion_flag=args.fusion,
+        scope_flag=args.method,
+        down_sample=args.thumbnail,
+        proc_count=args.proc,
+        output_path=args.output,
+        stereo_data=args.device,
+        file_pattern=args.channel,
+        fft_channel=args.fft_channel,
+        stitching_type=args.scan_type
+    )
 
 
 if __name__ == '__main__':
-    arg_parser()
+    main()
