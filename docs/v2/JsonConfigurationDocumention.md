@@ -15,7 +15,6 @@ Configures parallel processing tasks for different stained image or gene. Keys `
 |                  | `quality_control`     | `true`/`false`             | Enable image clarity control (execute in qc)                                                                             |
 |                  | `tissue_segmentation` | `true`/`false`             | Perform tissue segmentation (execute in alignment)                                                                       |
 |                  | `cell_segmentation`   | `true`/`false`             | Perform cell segmentation (execute in alignment)                                                                         |
-|                  | `correct_r`           | `10`/`0`                   | Cell mask correction radius (pixels). `0` = disable correction (execute in alignment)                                    |
 |                  | `channel_align`       | `-1`/slot ID               | Channel calibration reference (`-1`=disable, `0`=use "0" channel;execute in qc)                                          |
 | **Registration** |                       |                            | Configuration for image alignment and transformation                                                                     |
 |                  | `fixed_image`         | `-1`                       | `-1`= fixed image; Slot number (e.g., 0)=registration with slot "0";execute in alignment)                                |
@@ -27,12 +26,13 @@ Configures parallel processing tasks for different stained image or gene. Keys `
 #### **2. Molecular Classification Module (`molecular_classify`)**  
 Integrates multimodal data to generate molecular expression matrices.
 
-| Slot | Field           | Example                      | Description                                                              |
-|-----|-----------------|------------------------------|--------------------------------------------------------------------------|
+| Slot | Field           | Example                     | Description                                                              |
+|-----|-----------------|-----------------------------|--------------------------------------------------------------------------|
 | 0-N |                 | gene matrix task : (e.g., 0) | the Numberical order of task                                             |
-|     | `exp_matrix`    | `1`                          | Use Slot 1 (Transcriptomics or Protein) data as expression matrix source |
-|     | `cell_mask`     | `[0]`                        | Use cell mask from Slot 0                                                |
-|     | `extra_method`  | `""`                         | Reserved for custom analysis methods (empty by default,other method is To Be Extended) |
+|     | `exp_matrix`    | `1`                         | Use Slot 1 (Transcriptomics or Protein) data as expression matrix source |
+|     | `cell_mask`     | `[0]`                       | Use cell mask from Slot 0                                                |
+|     | `correct_r`     | `10`                         | Cell mask correction radius (pixels). `0` = disable correction (execute in alignment)   |
+|     | `extra_method`  | `""`                        | Reserved for custom analysis methods (empty by default,other method is To Be Extended) |
 
 
 ---

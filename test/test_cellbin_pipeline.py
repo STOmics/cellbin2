@@ -76,8 +76,10 @@ class TestPipelineMain:
         im_path = os.path.join(DEMO_DATA_DIR, im_path)
         if if_path != "":
             pps = if_path.split(",")
-            pps_ = [os.path.join(DEMO_DATA_DIR, i) for i in pps]
-            if_path = ",".join(pps_)
+            pps_name = [os.path.basename(i).strip(sn+"_").split("IF")[0]+"IF" for i in pps]
+            pps_dir = [os.path.join(DEMO_DATA_DIR, i) for i in pps]
+            if_path = dict(zip(pps_name, pps_dir))
+            print(if_path)
         else:
             if_path = None
         trans_gef = os.path.join(DEMO_DATA_DIR, trans_gef)
@@ -89,7 +91,7 @@ class TestPipelineMain:
         pipeline(
             chip_no=sn,
             input_image=im_path,
-            if_image=if_path,
+            more_images=if_path,
             stain_type=s_type,
             param_file=None,
             output_path=cur_out,

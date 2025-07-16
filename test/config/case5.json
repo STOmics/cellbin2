@@ -1,7 +1,7 @@
 {
     "image_process": {
         "0": {
-            "file_path": "Path/SN.gem.gz",
+            "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/05.Stereo_cell/B01715B4/gem/B01715B4.gem.gz",
             "tech_type": "Transcriptomics",
             "chip_detect": false,
             "quality_control": false,
@@ -12,22 +12,22 @@
             },
             "tissue_segmentation": true,
             "cell_segmentation": true,
-            "channel_align": -1
+            "channel_align": -1  
         }
     },
     "molecular_classify": {
         "0": {
             "exp_matrix": 0,
             "cell_mask": [0],
-            "correct_r": 0,
-            "extra_method": ""
+            "correct_r": 0, 
+            "extra_method": ""                        
         }
     },
-   "run": {
-    "qc": false,
-    "alignment": true,
-    "matrix_extract": true,
-    "report": false,
-    "annotation": false
-  }
+    "run": {
+        "qc": false,
+        "alignment": true,
+        "matrix_extract": true,
+        "report": true,
+        "annotation": false
+    }
 }

@@ -277,16 +277,16 @@ class ChipDetector(object):
         if min_l / max_l < 0.9:
             new_size = max_l
             square_image = cv2.resize(self.source_image, (new_size, new_size), interpolation=cv2.INTER_LINEAR)
-            obb8_detector = OBB8Detector(self.onnx_model_global, square_image, gpu=self.cfg.GPU, num_threads=self.cfg.num_threads)
-            square_corner_points = obb8_detector.run()
+            obb8_detector = OBB8Detector(self.onnx_model_global, gpu=self.cfg.GPU, num_threads=self.cfg.num_threads)
+            square_corner_points = obb8_detector.run(square_image)
             scale_w = w / new_size
             scale_h = h / new_size
             square_corner_points[:, 0] *= scale_w  # adjust x-coordinates
             square_corner_points[:, 1] *= scale_h  # adjust y-coordinates
             self.rough_corner_points = square_corner_points
         else:
-            obb8_detector = OBB8Detector(self.onnx_model_global, self.source_image, gpu=self.cfg.GPU, num_threads=self.cfg.num_threads)
-            self.rough_corner_points = obb8_detector.run()
+            obb8_detector = OBB8Detector(self.onnx_model_global, gpu=self.cfg.GPU, num_threads=self.cfg.num_threads)
+            self.rough_corner_points = obb8_detector.run(self.source_image)
 
     def stage_finetune(self):
         """
@@ -335,6 +335,8 @@ class ChipDetector(object):
         new_points = list()
 
         # Loop through each corner point to refine it using YOLO detection
+        yolo8_detector = Yolo8Detector(self.onnx_model_local, gpu=self.cfg.GPU, num_threads=self.cfg.num_threads)
+        yolo8_detector.set_preprocess_func(self._finetune_preprocess)
         for i, _p in enumerate(new_corner_points):
             x, y = map(lambda k: self.PADDING_SIZE if k < self.PADDING_SIZE else int(k), _p)
 
@@ -347,10 +349,9 @@ class ChipDetector(object):
                    x - self.PADDING_SIZE: x + self.PADDING_SIZE]
 
             # Initialize and run the YOLO detector on the image patch
-            yolo8_detector = Yolo8Detector(self.onnx_model_local, _img, gpu=self.cfg.GPU, num_threads=self.cfg.num_threads)
-            yolo8_detector.set_preprocess_func(self._finetune_preprocess)
 
-            points = yolo8_detector.run()
+
+            points = yolo8_detector.run(_img)
             points = self.check_border(points)
             new_points.append(points[i] - self.PADDING_SIZE)
             new_corner_points[i, :] = [x, y]

@@ -208,10 +208,10 @@ cyto2
 """
 
 
-def segment4cell(input_path: str, cfg: CellSegParam) -> npt.NDArray[np.uint8]:
+def segment4cell(input_path: str, cfg: CellSegParam, gpu: int) -> npt.NDArray[np.uint8]:
     mask = main(
         file_path=input_path,
-        gpu=cfg.GPU,
+        gpu=gpu,
         model_dir=os.path.dirname(cfg.IF_weights_path)
     )
 
