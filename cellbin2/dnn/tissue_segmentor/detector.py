@@ -90,7 +90,7 @@ class TissueSegmentationBcdu(object):
     def f_predict_big_chip(self, img, chip_size) -> TissueSegOutputInfo:
         pred_out = TissueSegOutputInfo()
         if self.stain_type == TechType.IF:
-            img = self.preprocess(img=img, stain_type=self.stain_type, input_size=None)
+            img = self.preprocess(img=img, stain_type=self.stain_type, input_size=None, binx=100)
             threshold_list, pred = self.postprocess(img=img, stain_type=self.stain_type, threshold_list=self.threshold_list)
             pred_out.tissue_mask = pred
 
