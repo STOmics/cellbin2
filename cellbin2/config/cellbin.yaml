@@ -95,7 +95,7 @@ Registration:
   HE_channel: 1
   rot90: true
   flip: true
-  flag_pre_registration: true
+  flag_pre_registration: false
   flag_chip_registration: false
 
 cellCorrect:

@@ -254,7 +254,7 @@ def template_00pt_check(
             'offset': (offset_info[0]["offset"] - np.array(fixed_offset)).tolist(),
             'flip': flip_flag,
             'register_score': -1,
-            'counter_rot90': 0,
+            'counter_rot90': 2,
             'method': AlignMode.Template00Pt,
             'dst_shape': (fixed_image.mat.shape[0], fixed_image.mat.shape[1])
         }

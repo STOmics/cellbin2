@@ -350,7 +350,7 @@ class Scheduler(object):
                         save_dir=self._output_path,
                     )
 
-                    cm = extract4stitched(
+                    cm, binx = extract4stitched(
                         image_file=f,
                         param_chip=self.param_chip,
                         m_naming=cur_m_naming,
@@ -364,6 +364,7 @@ class Scheduler(object):
                             save_path=cur_m_naming.tissue_mask,
                             chip_info=self.param_chip,
                             config=self.config,
+                            binx=binx
                         )
                     if f.cell_segmentation:
                         run_cell_seg(

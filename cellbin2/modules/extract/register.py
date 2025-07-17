@@ -29,7 +29,7 @@ def transform_to_register(
         cur_f_name: naming.DumpImageFileNaming,
         info: Optional[RegistrationOutput] = None,
         cur_c_image: Optional[Union[IFChannel, ImageChannel]] = None,
-        binX: int = 1
+        binx: int = 1
 ):
     """
     Transforms and registers images based on provided parameters.
@@ -61,7 +61,7 @@ def transform_to_register(
             # if os.path.exists(dst_path):
             #     continue
             if os.path.exists(src_path):
-                if os.path.splitext(src_path)[1] == ".txt" and binX == 1:  # Or other judgment
+                if os.path.splitext(src_path)[1] == ".txt":  # and binx == 1:  # Or other judgment
                     points, _ = transform_points(
                         src_shape=cur_c_image.Stitch.TransformShape,
                         points=np.loadtxt(src_path),
@@ -81,9 +81,10 @@ def transform_to_register(
                         dst_size=info.dst_shape)
                     cbimwrite(dst_path, dst_image)
 
-                    if dst_path.count('_regist.') > 0:
-                        _dst_image = dst_image.trans_image(scale=1 / binX)
-                        cbimwrite(dst_path.replace("regist", f"regist_bin{binX}"), _dst_image)
+                    if os.path.basename(dst_path).count('_regist.') > 0:
+                        _dst_image = dst_image.trans_image(scale=1 / binx)
+                        cbimwrite(str(dst_path).replace("regist", f"regist_bin{binx}"), _dst_image)
+
 
         if os.path.exists(cur_f_name.tissue_mask):
             tissue_mask = cbimread(cur_f_name.tissue_mask, only_np=True)
@@ -108,7 +109,6 @@ def run_register(
         param_chip: StereoChip,
         config: Config,
         debug: bool,
-        binX: int = 1
 ):
     """
     This module integrates the overall logic for image registration and
@@ -150,7 +150,7 @@ def run_register(
         fixed = files[image_file.registration.fixed_image]
         if fixed.is_matrix:
             # Scenario 1: The fixed image is a matrix
-            cm = extract4stitched(
+            cm, binx = extract4stitched(
                 image_file=fixed,
                 param_chip=param_chip,
                 m_naming=naming.DumpMatrixFileNaming(
@@ -165,12 +165,12 @@ def run_register(
                 tech_type=fixed.tech,
                 template=cm.template,
                 chip_box=cm.chip_box,
-                binX=binX
+                binx=binx
             )
             fixed_image.set_mat(cm.heatmap)
             param1.Register.MatrixTemplate = cm.template.template_points
 
-            if binX == 1:
+            if binx == 1:
                 param1.Register.GeneChipBBox.update(fixed_image.chip_box)
         else:
             raise Exception("Not supported yet")
@@ -247,5 +247,5 @@ def run_register(
         info=info,
         cur_f_name=cur_f_name,
         cur_c_image=param1,
-        binX=binX
+        binx=binx
     )

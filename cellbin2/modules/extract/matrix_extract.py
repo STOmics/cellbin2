@@ -13,6 +13,7 @@ from cellbin2.utils.stereo import generate_stereo_file
 from cellbin2.utils.common import TechType
 from cellbin2.image.augmentation import f_resize
 from cellbin2.utils.stereo_chip import StereoChip
+from cellbin2.image.augmentation import f_ij_16_to_8
 
 
 def extract4stitched(
@@ -20,6 +21,7 @@ def extract4stitched(
         param_chip: StereoChip,
         m_naming: naming.DumpMatrixFileNaming,
         config: Config,
+        detect_feature: bool = True,
 ):
     """
     Extracts matrix data for a stitched image.
@@ -32,21 +34,21 @@ def extract4stitched(
 
     """
     cm = cMatrix()
-    bin_size = 100
-    cm.read(file_path=Path(image_file.file_path), bin_size=bin_size)
+    binx = 100
+    cm.read(file_path=Path(image_file.file_path), binx=binx)
     # TODO
     # bin_size = cm.bin_size
 
     cm.check_standards(config.genetic_standards)
 
-    if bin_size != 1:
+    if binx != 1:
         ##理论track线检测方法##
         sc = StereoChip()
         sc.parse_info(chip_no=m_naming.sn)
         track_points = sc.template_points
         # track_points = np.loadtxt('/media/Data1/user/hedongdong/wqs/00.code/03.CellBin2/bin_X/data/SS200000135TL_D1_Transcriptomics_matrix_template.txt')
-        print(track_points.shape)
-        np.savetxt('/media/Data1/user/hedongdong/wqs/00.code/03.CellBin2/bin_X/data/track_points.txt', track_points)
+        # print(track_points.shape)
+        # np.savetxt('/media/Data1/user/hedongdong/wqs/00.code/03.CellBin2/bin_X/data/track_points.txt', track_points)
         from cellbin2.contrib.alignment.basic import TemplateInfo
         cm._template = TemplateInfo(template_recall=1.,
                                     template_valid_area=1.,
@@ -57,20 +59,21 @@ def extract4stitched(
                                     template_points=track_points)
 
         # 对_gene_mat插值放大
-        cbimwrite(m_naming.heatmap, cm.heatmap)
+        cbimwrite(str(m_naming.heatmap).replace('.tif', f'_bin{binx}.tif'), cm.heatmap)
         gene_mat = cm._gene_mat
+        gene_mat = f_ij_16_to_8(gene_mat)
         if gene_mat is not None and gene_mat.size > 0:
-            new_shape = (gene_mat.shape[0] * bin_size, gene_mat.shape[1] * bin_size)
-            gene_mat_resized = f_resize(gene_mat, shape=new_shape, mode="BILINEAR")
+            new_shape = (gene_mat.shape[0] * binx, gene_mat.shape[1] * binx)
+            gene_mat_resized = f_resize(gene_mat, shape=new_shape, mode="BICUBIC")
             cm._gene_mat = gene_mat_resized
 
-    else:
+    elif detect_feature:
         cm.detect_feature(ref=param_chip.fov_template,
                           chip_size=min(param_chip.chip_specif))
         gene_tps = cm.template.template_points[:, :2]  # StereoMap is only compatible with n×2
         np.savetxt(m_naming.matrix_template, gene_tps)
     cbimwrite(m_naming.heatmap, cm.heatmap)
-    return cm
+    return cm, binx
 
 
 def extract4matrix(

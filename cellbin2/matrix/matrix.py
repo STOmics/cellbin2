@@ -77,10 +77,10 @@ class cMatrix(object):
         self.h_y_start = 0
 
         self._template: TemplateInfo = None
-        self._chip_box: ChipBoxInfo = None
+        self._chip_box: ChipBoxInfo = ChipBoxInfo()
         self.file_path: str = ''
 
-    def read(self, file_path: Path, bin_size=1, chunk_size=1024 * 1024 * 10):
+    def read(self, file_path: Path, binx=1, chunk_size=1024 * 1024 * 10):
         """
         this function copy from,
             https://dcscode.genomics.cn/stomics/saw/register/-/blob/main/register/utils/matrixloader.py?ref_type=heads
@@ -88,12 +88,12 @@ class cMatrix(object):
         :param chunk_size:
         :return:
         """
-        ## reset bin_size
-        bin_size = 100
+        ## reset binx
+        binx = 100
         suffix = file_path.suffix
         assert suffix in ['.gz', '.gef', '.gem']
         if suffix == ".gef":
-            self.x_start, self.y_start, self._gene_mat = self._load_gef(file_path, bin_size=bin_size)
+            self.x_start, self.y_start, self._gene_mat = self._load_gef(file_path, binx=binx)
             return
 
         img = np.zeros((1, 1), np.uint8)
@@ -248,7 +248,7 @@ class cMatrix(object):
     #         img,
     #     )
     @staticmethod
-    def _load_gef(file, bin_size=1):
+    def _load_gef(file, binx=1):
         """
         Process GEF files with any bin_size
         Automatically selects the smallest possible unsigned integer type based on max value:
@@ -258,7 +258,7 @@ class cMatrix(object):
         """
         chunk_size = 512 * 1024
         with h5py.File(file, "r") as fh:
-            dataset = fh[f"/geneExp/bin{bin_size}/expression"]
+            dataset = fh[f"/geneExp/bin{binx}/expression"]
 
             if not dataset[...].size:
                 clog.error("The sequencing data is empty, please confirm the {} file.".format(file))
@@ -267,10 +267,10 @@ class cMatrix(object):
             min_x, max_x = dataset.attrs["minX"][0], dataset.attrs["maxX"][0]
             min_y, max_y = dataset.attrs["minY"][0], dataset.attrs["maxY"][0]
             
-            # For bin_size > 1, need to consider actual width and height
-            if bin_size > 1:
-                width = (max_x - min_x) // bin_size + 1
-                height = (max_y - min_y) // bin_size + 1
+            # For binx > 1, need to consider actual width and height
+            if binx > 1:
+                width = (max_x - min_x) // binx + 1
+                height = (max_y - min_y) // binx + 1
                 
                 # Convert to DataFrame for processing
                 all_data = []
@@ -285,8 +285,8 @@ class cMatrix(object):
                 df = pd.DataFrame(np.concatenate(all_data), columns=['x', 'y', 'count'])
                 
                 # Calculate binned coordinates
-                df['x'] = (df['x'] - min_x) // bin_size
-                df['y'] = (df['y'] - min_y) // bin_size
+                df['x'] = (df['x'] - min_x) // binx
+                df['y'] = (df['y'] - min_y) // binx
                 
                 # Aggregate counts within the same bin
                 new_df = df.groupby(['x', 'y']).agg(count_sum=('count', 'sum')).reset_index()
@@ -335,7 +335,6 @@ class cMatrix(object):
             return min_x, min_y, img
 
     @staticmethod
-    ##!后续需要补充bin_size参数
     def gef_gef_shape(file, bin_size=1):
         with h5py.File(file, "r") as fh:
             dataset = fh[f"/geneExp/bin{bin_size}/expression"]
@@ -346,8 +345,8 @@ class cMatrix(object):
 
             min_x, max_x = dataset.attrs["minX"][0], dataset.attrs["maxX"][0]
             min_y, max_y = dataset.attrs["minY"][0], dataset.attrs["maxY"][0]
-            width = max_x - min_x + 1
-            height = max_y - min_y + 1
+            width = max_x - min_x + bin_size
+            height = max_y - min_y + bin_size
             return width, height
 
     def detect_feature(self, ref: list, chip_size: float):
