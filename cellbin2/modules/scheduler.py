@@ -26,6 +26,7 @@ from cellbin2.modules.extract.tissue_seg import run_tissue_seg
 from cellbin2.modules.extract.cell_seg import run_cell_seg
 from cellbin2.contrib.mask_manager import BestTissueCellMask, MaskManagerInfo
 from cellbin2.modules.extract.matrix_extract import extract4stitched
+from cellbin2.contrib.chip_transform import chip_transform
 
 
 class Scheduler(object):
@@ -181,7 +182,8 @@ class Scheduler(object):
             clog.warning('No data was found that needed to be analyzed')
             return 3
         else:
-            wh = []
+            wh = {}
+            re = {}
             for idx, f in self._files.items():
                 if not f.is_image:
                     continue
@@ -189,18 +191,31 @@ class Scheduler(object):
                     clog.warning('Missing file, {}'.format(f.file_path))
                     sys.exit(ErrorCode.missFile.value)  # missing file, abnormal exit
                 image = cbimread(f.file_path)
-                wh.append([image.width, image.height])
+                # wh.append([image.width, image.height])
+                wh[idx] = [image.width, image.height]
+                re[idx] = {'channel_align': f.channel_align, 'chip_matching': f.chip_matching}
+                clog.info('Images ({}) info as (size, channel, depth) == ({}, {}, {})'.format(
+                    f.tag, image.shape, image.channel, image.depth))
 
-            s = np.unique(wh, axis=0)
-            if s.shape[0] > 1:
-                clog.warning('The sizes of the images are inconsistent')
-                return 1
-            elif s.shape[0] == 1:
-                clog.info(
-                    'Images info as (size, channel, depth) == ({}, {}, {})'.format(s[0], image.channel, image.depth))
-            else:
-                clog.info('No image data need deal')
-                return 2
+            for idx, k in re.items():
+                if k['chip_matching'] == -1 and k['channel_align'] == -1:
+                    continue
+                else:
+                    if k['channel_align'] != -1:
+                        if wh[idx] != wh[k['channel_align']]:
+                            clog.error(f'The sizes of the images are inconsistent: {wh}')
+                            sys.exit(ErrorCode.sizeInconsistent.value)
+
+            # s = np.unique(wh, axis=0)
+            # if s.shape[0] > 1:
+            #     clog.warning('The sizes of the images are inconsistent')
+            #     return 1
+            # elif s.shape[0] == 1:
+            #     clog.info(
+            #         'Images info as (size, channel, depth) == ({}, {}, {})'.format(s[0], image.channel, image.depth))
+            # else:
+            #     clog.info('No image data need deal')
+            #     return 2
         return 0
 
     def run_segmentation(
@@ -387,37 +402,51 @@ class Scheduler(object):
         # since this is registration, single-image processing is considered complete by default
         for idx, f in self._files.items():
             if f.is_image:
-                clog.info('======>  File[{}] CellBin, {}'.format(idx, f.file_path))
-                g_name = f.get_group_name(sn=self.param_chip.chip_name)
-                cur_f_name = naming.DumpImageFileNaming(
-                    sn=self.param_chip.chip_name,
-                    stain_type=g_name,
-                    save_dir=self._output_path
-                )
-                if self._channel_images is not None and self._ipr is not None:
-                    if f.registration.fixed_image == -1 and f.registration.reuse == -1:
-                        continue
-                    if f.registration.fixed_image == -1 and self._files[
-                        f.registration.reuse].registration.fixed_image == -1:
-                        continue
-                    run_register(
-                        image_file=f,
-                        cur_f_name=cur_f_name,
-                        files=self._files,
-                        channel_images=self._channel_images,
-                        output_path=self._output_path,
-                        param_chip=self.param_chip,
-                        config=self.config,
-                        debug=self.debug
+                if f.chip_matching == -1 and f.channel_align == -1:
+                    clog.info('======>  File[{}] CellBin, {}'.format(idx, f.file_path))
+                    g_name = f.get_group_name(sn=self.param_chip.chip_name)
+                    cur_f_name = naming.DumpImageFileNaming(
+                        sn=self.param_chip.chip_name,
+                        stain_type=g_name,
+                        save_dir=self._output_path
                     )
-                    if f.registration.fixed_image != -1:
-                        fixed = self._files[f.registration.fixed_image]
-                        if fixed.is_matrix:
-                            self.matrix_file = self._files[f.registration.fixed_image]
+                    if self._channel_images is not None and self._ipr is not None:
+                        if f.registration.fixed_image == -1 and f.registration.reuse == -1:
+                            continue
+                        if f.registration.fixed_image == -1 and self._files[
+                            f.registration.reuse].registration.fixed_image == -1:
+                            continue
+                        run_register(
+                            image_file=f,
+                            cur_f_name=cur_f_name,
+                            files=self._files,
+                            channel_images=self._channel_images,
+                            output_path=self._output_path,
+                            param_chip=self.param_chip,
+                            config=self.config,
+                            debug=self.debug
+                        )
+                        if f.registration.fixed_image != -1:
+                            fixed = self._files[f.registration.fixed_image]
+                            if fixed.is_matrix:
+                                self.matrix_file = self._files[f.registration.fixed_image]
+                    else:
+                        transform_to_register(
+                            cur_f_name=cur_f_name
+                        )
                 else:
-                    transform_to_register(
-                        cur_f_name=cur_f_name
-                    )
+                    if f.chip_matching != -1:
+                        fixed_path = cur_f_name.registration_image
+                        clog.info('Transform [moving, fixed] == ({}, {})'.format(
+                            os.path.basename(f.file_path), os.path.basename(fixed_path)))
+                        scale = [1, float(f.magnification) / 10]
+
+                        chip_transform(
+                            fixed_image = fixed_path,
+                            moving_image = f.file_path,
+                            scale = scale,
+                            output_path = os.path.join(self._output_path, 'chip_matching.tif')
+                        )
 
     def run_merge_masks(self):
         """
@@ -538,7 +567,7 @@ class Scheduler(object):
         if flag2 != 0:
             sys.exit(1)
 
-        self.run_single_image()  # Process a single image (transform -> tissue seg -> cellseg)
+        # self.run_single_image()  # Process a single image (transform -> tissue seg -> cellseg)
         self.run_mul_image()  # Register images
 
         if flag1 == 0 and self._channel_images is not None and self._ipr is not None:

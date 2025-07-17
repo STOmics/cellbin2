@@ -204,7 +204,7 @@ class Calibrate:
 
         _di = _di.trans_image(offset=offset, dst_size = self.src_image.shape)
 
-        return _di.image
+        return _di.image, offset
 
     def calibration(self):
         """
@@ -222,7 +222,7 @@ class Calibrate:
                 (int(self.dst_image.shape[1] * norm_scale), int(self.dst_image.shape[0] * norm_scale))
             )
 
-            self.dst_image = self.mass_align()
+            self.dst_image, norm_offset = self.mass_align()
         else:
             self.src_image, self.dst_image = self._consistent_image(
                 self.src_image, self.dst_image, 'same'
@@ -264,6 +264,9 @@ class Calibrate:
 
         if self.same_image is not None:
             new_dst = cbimread(self.same_image)
+            if self.method:
+                new_dst = new_dst.resize_image(norm_scale)
+                new_dst = new_dst.trans_image(offset=norm_offset, dst_size = self.src_image.shape)
         else:
             new_dst = cbimread(self.dst_image)
         new_dst = new_dst.trans_image(
