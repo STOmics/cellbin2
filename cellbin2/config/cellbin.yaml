@@ -99,7 +99,6 @@ Registration:
   flag_chip_registration: false
 
 cellCorrect:
-  expand_r: 10 # Expansion radius for cell correction (pixels)
   process: 30 # Number of parallel processes for cell correction
 
 calibration:

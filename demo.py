@@ -87,7 +87,7 @@ def run_demo(i, v):
             )
         else:
             cmd.extend(
-                ['-imf', d_p]
+                ['-mi', 'IF='+d_p]
             )
     cmd = MAIN_CMD + cmd
     print(cmd)

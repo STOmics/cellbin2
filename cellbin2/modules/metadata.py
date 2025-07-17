@@ -60,7 +60,6 @@ class ProcFile(BaseModel):
     quality_control: bool
     tissue_segmentation: bool
     cell_segmentation: bool
-    correct_r: int
     channel_align: int
     registration: ProcRegistration
     magnification: int
@@ -176,6 +175,7 @@ class ProcMolecularFile(BaseModel):
     exp_matrix: int
     cell_mask: List[int]
     extra_method: str = ''  # additional molecular classification methods, currently not available
+    correct_r: int
 
 
 class Run(BaseModel):

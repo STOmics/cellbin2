@@ -35,6 +35,7 @@ def run_cell_seg(
         cell_mask = cellpose_segmentor.segment4cell(
             input_path=str(image_path),
             cfg=config.cell_segmentation,
+            gpu=0
         )
     else:
         cell_mask, fast_mask = cell_segmentor.segment4cell(

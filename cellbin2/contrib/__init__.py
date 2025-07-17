@@ -21,5 +21,4 @@ from .calibration import CalibrationParam
 
 
 class CellCorrect(BaseModel):
-    expand_r: int = Field(10, description="cell corrected radius")
     process: int = Field(5, description="number of processes")
