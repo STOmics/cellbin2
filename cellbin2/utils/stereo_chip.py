@@ -84,7 +84,7 @@ class StereoChip(object):
         return p_list
 
     def create_track_points(self):
-        """ 至S13大小芯片上的点的分布
+        """Distribution of points to S13 chip size
 
         Returns:
 

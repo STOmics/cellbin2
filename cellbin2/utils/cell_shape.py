@@ -1,6 +1,6 @@
 """
-细胞轮廓点写入cgef文件
-版本：V1.0.1
+Cell contour point writes to cgef file
+Version: V1.0.1
 """
 
 import gzip

@@ -714,7 +714,7 @@ class FFTMatcher(Matcher):
                 if (ymin <= yval) and (yval <= ymax) and (xmin <= xval) and (xval <= xmax):
                     subI1 = self.extract_overlap_subregion(image1, yval, xval)
                     subI2 = self.extract_overlap_subregion(image2, -yval, -xval)
-                    if subI1.size / (sizeX * sizeY) > 0.05 and min(subI1.shape) > 40:  # 在overlap区域, 最少10%的重叠区域
+                    if subI1.size / (sizeX * sizeY) > 0.05 and min(subI1.shape) > 40:  # In the overlap area, at least 10% overlap area
                         ncc_val = self.ncc(subI1, subI2)
                         if ncc_val > _ncc:
                             _ncc = float(ncc_val)

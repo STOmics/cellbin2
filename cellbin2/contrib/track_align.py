@@ -124,7 +124,7 @@ class AlignByTrack:
     @staticmethod
     def adjust_cross(stitch_template, scale_x, scale_y, fov_stitched_shape,
                      new_shape, chip_template, rotation, flip=True):
-        scale_shape = np.array([fov_stitched_shape[0] * scale_y, fov_stitched_shape[1] * scale_x])  # 之前写反了!!!
+        scale_shape = np.array([fov_stitched_shape[0] * scale_y, fov_stitched_shape[1] * scale_x])  # I wrote it incorrectly before!!!
 
         stitch_template[:, 0] = stitch_template[:, 0] * scale_x
         stitch_template[:, 1] = stitch_template[:, 1] * scale_y
@@ -279,7 +279,7 @@ class AlignByTrack:
         offset_last = []
 
         # Iterate through the matching scores of 9 surrounding FOVs 
-        # 依次遍历上下左右9个FOV的匹配程度
+        # traverse the matching degree of 9 FOVs up, down, left and right in turn
         for row in self.search_range_x:
             for col in self.search_range_y:
                 offset_temp = [offset_ori[0] + col * self.fov_size, offset_ori[1] + row * self.fov_size]

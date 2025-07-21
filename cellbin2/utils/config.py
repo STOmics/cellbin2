@@ -12,7 +12,7 @@ from cellbin2.utils.ipr import sPlaceHolder
 
 
 class DefaultIMage(BaseModel):
-    clarity: bool = Field(False, description="对 默认-命令行录入图 是否执行清晰度鉴别操作")
+    clarity: bool = Field(False, description="For Default - Command line entry diagram Whether to perform clarity authentication operation")
 
 
 class Config:

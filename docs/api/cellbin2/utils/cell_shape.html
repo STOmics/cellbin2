@@ -178,8 +178,8 @@
                     <h1 class="modulename">
 <a href="./../../cellbin2.html">cellbin2</a><wbr>.<a href="./../utils.html">utils</a><wbr>.cell_shape    </h1>
 
-                        <div class="docstring"><p>细胞轮廓点写入cgef文件
-版本：V1.0.1</p>
+                        <div class="docstring"><p>Writing cell contour points into cgef file
+Version: V1.0.1</p>
 </div>
 
                         <input id="mod-cell_shape-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
@@ -187,8 +187,8 @@
                         <label class="view-source-button" for="mod-cell_shape-view-source"><span>View Source</span></label>
 
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="sd">细胞轮廓点写入cgef文件</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="sd">版本：V1.0.1</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="sd">Writing cell contour points into cgef file</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="sd"> Version: V1.0.1</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a>
 </span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">import</span> <span class="nn">gzip</span>
@@ -207,23 +207,23 @@
 </span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="kn">import</span> <span class="nn">mapbox_earcut</span> <span class="k">as</span> <span class="nn">earcut</span>
 </span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 </span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>
-</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="c1"># 50w 个细胞</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="c1"># 50w cells</span>
 </span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="c1"># file = &#39;D:/gef/FP200000616TL_A3C4.cellbin.gef&#39;</span>
 </span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="c1"># output_folder = &#39;D:/ng_local_data/cell_border/2D_data/FP200000616TL_A3C4&#39;</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="c1"># 5w 个细胞</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="c1"># 5w cells</span>
 </span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="c1"># file = &#39;D:/gef/SS200000135TL_D1.cellbin.gef&#39;</span>
 </span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="c1"># output_folder = &#39;D:/ng_local_data/cell_border/2D_data/SS200000135TL_D1&#39;</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="c1"># 100w 个细胞</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="c1"># 100w cells</span>
 </span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="c1"># file = &#39;D:/gef/SS200000144TR_C1E4.cellbin.gef&#39;</span>
 </span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a><span class="c1"># output_folder = &#39;D:/ng_local_data/cell_border/2D_data/SS200000144TR_C1E4&#39;</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="c1"># 100w 个细胞</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="c1"># 100w cells</span>
 </span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="c1"># file = &#39;D:/gef/SS200000144TR_C1E4.cellbin-new.gef&#39;</span>
 </span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a><span class="c1"># output_folder = &#39;D:/ng_local_data/cell_border/2D_data/SS200000144TR_C1E4&#39;</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a><span class="c1"># TODO 需要另外输入info中设置properties，properties中内容需要可配置</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="c1"># 细胞轮廓点数量，固定值</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a><span class="c1"># TODO You need to enter the info to set properties, and the contents in the properties need to be configurable</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="c1"># Number of cell contour points, fixed value</span>
 </span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a><span class="n">final_border_length</span> <span class="o">=</span> <span class="mi">16</span>
 </span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a>
-</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="c1"># TODO 需要改成读取gef文件中的属性名称对应的数据下标</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="c1"># TODO needs to be changed to read the data subscript corresponding to the attribute name in the gef file</span>
 </span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a><span class="n">attr_x_index</span> <span class="o">=</span> <span class="mi">1</span>
 </span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a><span class="n">attr_y_index</span> <span class="o">=</span> <span class="mi">2</span>
 </span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a><span class="n">attr_gene_count_index</span> <span class="o">=</span> <span class="mi">4</span>
@@ -233,16 +233,16 @@
 </span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a><span class="n">attr_cell_type_id_index</span> <span class="o">=</span> <span class="mi">8</span>
 </span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a><span class="n">attr_cluster_id_index</span> <span class="o">=</span> <span class="mi">9</span>
 </span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>
-</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a><span class="c1"># h5文件指针</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a><span class="c1"># h5 file pointer</span>
 </span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a><span class="n">H5_FILE_POINT</span><span class="p">:</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span>
 </span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>
 </span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>
 </span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="k">def</span> <span class="nf">create_group</span><span class="p">(</span><span class="n">group_name</span><span class="p">):</span>
 </span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a><span class="sd">    h5文件创建group</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a><span class="sd"> h5 file creation group</span>
 </span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>
-</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="sd">    :param group_name: group 名称</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="sd">    :return: group 对象</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="sd"> :param group_name: group name</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="sd"> :return: group object</span>
 </span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>    <span class="k">global</span> <span class="n">H5_FILE_POINT</span>
 </span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>    <span class="k">if</span> <span class="n">H5_FILE_POINT</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">group_name</span><span class="p">):</span>
@@ -252,11 +252,11 @@
 </span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>
 </span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="k">def</span> <span class="nf">set_attrs</span><span class="p">(</span><span class="n">group</span><span class="p">:</span> <span class="n">h5py</span><span class="o">.</span><span class="n">Group</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
 </span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="sd">    h5 group 设置属性</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="sd"> h5 group settings properties</span>
 </span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>
-</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a><span class="sd">    :param group: group 名称</span>
-</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="sd">    :param key: 属性名</span>
-</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a><span class="sd">    :param values: 属性值</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a><span class="sd"> :param group: group name</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="sd"> :param key: Attribute name</span>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a><span class="sd"> :param values: attribute values</span>
 </span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a><span class="sd">    :return:</span>
 </span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>    <span class="n">group</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span>
@@ -264,11 +264,11 @@
 </span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>
 </span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a><span class="k">def</span> <span class="nf">create_dataset</span><span class="p">(</span><span class="n">group</span><span class="p">:</span> <span class="n">h5py</span><span class="o">.</span><span class="n">Group</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a><span class="sd">    h5 group 创建数据集</span>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="sd">    :param group: group名称</span>
-</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="sd">    :param name: 数据集名称</span>
-</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="sd">    :param data: 数据</span>
-</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="sd">    :param dtype: 数据类型 **暂未用到</span>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a><span class="sd"> h5 group Create dataset</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="sd"> :param group: group name</span>
+</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="sd"> :param name: Dataset name</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="sd"> :param data: data</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="sd"> :param dtype: Data type ** Not used yet</span>
 </span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="sd">    :return:</span>
 </span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>    <span class="n">group</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
@@ -286,7 +286,7 @@
 </span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>    <span class="k">return</span> <span class="n">wrapper</span>
 </span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>
 </span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>
-</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a><span class="c1"># 创建info json文件</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a><span class="c1"># Create an info json file</span>
 </span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a><span class="nd">@print_running_time</span>
 </span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a><span class="k">def</span> <span class="nf">create_info_json_2d</span><span class="p">(</span><span class="n">resolution</span><span class="p">,</span> <span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">,</span> <span class="n">grid_shape</span><span class="p">,</span> <span class="n">empty_chunk</span><span class="p">,</span> <span class="n">output_folder</span><span class="p">,</span>
 </span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>                        <span class="n">group</span><span class="p">):</span>
@@ -316,7 +316,7 @@
 </span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>            <span class="p">],</span>
 </span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>            <span class="s1">&#39;emptyChunk&#39;</span><span class="p">:</span> <span class="n">empty_chunk</span>
 </span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>            <span class="p">}</span>
-</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>    <span class="c1"># if not os.path.exists(output_folder):  # 判断当前路径是否存在，没有则创建文件夹</span>
+</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a> <span class="c1"># if not os.path.exists(output_folder): # To determine whether the current path exists, create a folder if there is no</span>
 </span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>    <span class="c1">#     os.makedirs(output_folder)</span>
 </span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>    <span class="c1"># with open(output_folder + &#39;/info&#39;, &#39;w&#39;) as write_f:</span>
 </span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>    <span class="c1">#     write_f.write(json.dumps(info, indent=4, ensure_ascii=False))</span>
@@ -335,7 +335,7 @@
 </span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>        <span class="n">min_size</span> <span class="o">=</span> <span class="n">bounding_size_y</span>
 </span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>        <span class="n">max_size</span> <span class="o">=</span> <span class="n">bounding_size_x</span>
 </span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>        <span class="n">min_dim</span> <span class="o">=</span> <span class="mi">1</span>
-</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>    <span class="c1"># 1.415为根号2的近似值</span>
+</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a> <span class="c1"># 1.415 is an approximate value of root number 2</span>
 </span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>    <span class="n">target_size</span> <span class="o">=</span> <span class="mf">1.415</span> <span class="o">*</span> <span class="n">min_size</span>
 </span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>    <span class="n">pre_div_times</span> <span class="o">=</span> <span class="mi">0</span>
 </span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a>
@@ -376,7 +376,7 @@
 </span><span id="L-188"><a href="#L-188"><span class="linenos">188</span></a>        <span class="n">bounding_size_y</span> <span class="o">=</span> <span class="n">upper_bound</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">lower_bound</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 </span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a>
 </span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a>        <span class="n">grid_shape</span> <span class="o">=</span> <span class="n">divChunk</span><span class="p">(</span><span class="n">cell_count</span><span class="p">,</span> <span class="n">bounding_size_x</span><span class="p">,</span> <span class="n">bounding_size_y</span><span class="p">)</span>
-</span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a>        <span class="c1"># 根据分块网格比例以及边界值，计算分块大小</span>
+</span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a> <span class="c1"># Calculate the chunking size based on the chunking grid ratio and boundary value</span>
 </span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a>        <span class="n">chunk_size</span> <span class="o">=</span> <span class="p">[</span><span class="n">bounding_size_x</span> <span class="o">/</span> <span class="n">grid_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bounding_size_y</span> <span class="o">/</span> <span class="n">grid_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
 </span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a>        <span class="n">cell_basic_info_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">cell_data</span><span class="p">[:]))</span>
 </span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a>
@@ -399,14 +399,14 @@
 </span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a>        <span class="n">border_data</span> <span class="o">=</span> <span class="n">gef_file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cellBin/cellBorder&#39;</span><span class="p">)</span>
 </span><span id="L-212"><a href="#L-212"><span class="linenos">212</span></a>        <span class="n">cell_border_list</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a>
-</span><span id="L-214"><a href="#L-214"><span class="linenos">214</span></a>        <span class="c1"># 用于测试导出指定个数的细胞</span>
+</span><span id="L-214"><a href="#L-214"><span class="linenos">214</span></a> <span class="c1"># Used to test and export the specified number of cells</span>
 </span><span id="L-215"><a href="#L-215"><span class="linenos">215</span></a>        <span class="n">targe_cell_count</span> <span class="o">=</span> <span class="n">cell_count</span>
 </span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a>        <span class="c1"># targe_cell_count = 10</span>
 </span><span id="L-217"><a href="#L-217"><span class="linenos">217</span></a>
 </span><span id="L-218"><a href="#L-218"><span class="linenos">218</span></a>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">targe_cell_count</span><span class="p">):</span>
 </span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a>            <span class="n">cell_border_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">list</span><span class="p">(</span><span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">border_data</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
 </span><span id="L-220"><a href="#L-220"><span class="linenos">220</span></a>
-</span><span id="L-221"><a href="#L-221"><span class="linenos">221</span></a>        <span class="c1"># 获取所有的细胞列表</span>
+</span><span id="L-221"><a href="#L-221"><span class="linenos">221</span></a> <span class="c1"># Get all the cell list</span>
 </span><span id="L-222"><a href="#L-222"><span class="linenos">222</span></a>        <span class="n">all_cell_list</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="L-223"><a href="#L-223"><span class="linenos">223</span></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cell_border_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">31</span><span class="p">:</span>
 </span><span id="L-224"><a href="#L-224"><span class="linenos">224</span></a>            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">targe_cell_count</span><span class="p">):</span>
@@ -414,7 +414,7 @@
 </span><span id="L-226"><a href="#L-226"><span class="linenos">226</span></a>                <span class="n">is_split_cell</span> <span class="o">=</span> <span class="n">two_cell_border_info</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 </span><span id="L-227"><a href="#L-227"><span class="linenos">227</span></a>                <span class="n">cell1</span> <span class="o">=</span> <span class="n">create_cell_dict</span><span class="p">(</span><span class="n">cell_basic_info_list</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">cell_basic_info_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
 </span><span id="L-228"><a href="#L-228"><span class="linenos">228</span></a>                                         <span class="n">CellBorder</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">two_cell_border_info</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">is_split_cell</span><span class="p">))</span>
-</span><span id="L-229"><a href="#L-229"><span class="linenos">229</span></a>                <span class="c1"># 随机插入细胞，前台渲染部分渲染时才能避免出现若隐若现的分块形状</span>
+</span><span id="L-229"><a href="#L-229"><span class="linenos">229</span></a> <span class="c1"># Randomly insert cells, and only when the front-end renders part of the rendering can you avoid looming chunking shapes</span>
 </span><span id="L-230"><a href="#L-230"><span class="linenos">230</span></a>                <span class="n">all_cell_list</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_cell_list</span><span class="p">)),</span> <span class="n">cell1</span><span class="p">)</span>
 </span><span id="L-231"><a href="#L-231"><span class="linenos">231</span></a>
 </span><span id="L-232"><a href="#L-232"><span class="linenos">232</span></a>                <span class="k">if</span> <span class="n">is_split_cell</span><span class="p">:</span>
@@ -428,7 +428,7 @@
 </span><span id="L-240"><a href="#L-240"><span class="linenos">240</span></a>                <span class="n">cell</span> <span class="o">=</span> <span class="n">create_cell_dict</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">cell_basic_info_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">CellBorder</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">border_data</span><span class="p">[:</span><span class="n">valid_len</span><span class="p">]))</span>
 </span><span id="L-241"><a href="#L-241"><span class="linenos">241</span></a>                <span class="n">all_cell_list</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_cell_list</span><span class="p">)),</span> <span class="n">cell</span><span class="p">)</span>
 </span><span id="L-242"><a href="#L-242"><span class="linenos">242</span></a>
-</span><span id="L-243"><a href="#L-243"><span class="linenos">243</span></a>        <span class="c1"># 将所有细胞根据位置放入分块中</span>
+</span><span id="L-243"><a href="#L-243"><span class="linenos">243</span></a> <span class="c1"># Put all cells into pieces according to their location</span>
 </span><span id="L-244"><a href="#L-244"><span class="linenos">244</span></a>        <span class="n">chunk_cells_dict</span> <span class="o">=</span> <span class="n">create_chunk_grids_dict</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">,</span> <span class="n">output_folder</span><span class="p">)</span>
 </span><span id="L-245"><a href="#L-245"><span class="linenos">245</span></a>
 </span><span id="L-246"><a href="#L-246"><span class="linenos">246</span></a>        <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">all_cell_list</span><span class="p">:</span>
@@ -450,17 +450,17 @@
 </span><span id="L-262"><a href="#L-262"><span class="linenos">262</span></a>                            <span class="n">H5_FILE_POINT</span><span class="p">[</span><span class="s1">&#39;codedCellBlock&#39;</span><span class="p">])</span>
 </span><span id="L-263"><a href="#L-263"><span class="linenos">263</span></a>
 </span><span id="L-264"><a href="#L-264"><span class="linenos">264</span></a>
-</span><span id="L-265"><a href="#L-265"><span class="linenos">265</span></a><span class="c1"># 将32个顶点的细胞轮廓点，拆分成两个16个顶点的细胞轮廓点</span>
-</span><span id="L-266"><a href="#L-266"><span class="linenos">266</span></a><span class="c1"># 需要考虑葫芦形，S形等怪异形状细胞的拆分。</span>
+</span><span id="L-265"><a href="#L-265"><span class="linenos">265</span></a><span class="c1"># Split the cell contour points of 32 vertices into two 16 vertices.
+</span><span id="L-266"><a href="#L-266"><span class="linenos">266</span></a><span class="c1"># The separation of strange-shaped cells such as gourd shapes and S shapes needs to be considered.</span>
 </span><span id="L-267"><a href="#L-267"><span class="linenos">267</span></a><span class="c1"># @print_running_time</span>
 </span><span id="L-268"><a href="#L-268"><span class="linenos">268</span></a><span class="k">def</span> <span class="nf">split_32points_cell_border</span><span class="p">(</span><span class="n">border_data</span><span class="p">):</span>
 </span><span id="L-269"><a href="#L-269"><span class="linenos">269</span></a>    <span class="n">border_data_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">border_data</span><span class="p">)</span>
-</span><span id="L-270"><a href="#L-270"><span class="linenos">270</span></a>    <span class="c1"># 处理细胞轮廓点的数量大于32个的情况，多于32个点直接舍弃</span>
+</span><span id="L-270"><a href="#L-270"><span class="linenos">270</span></a> <span class="c1"># Treatment: If the number of cell contour points is greater than 32, the number of more than 32 points will be discarded directly</span>
 </span><span id="L-271"><a href="#L-271"><span class="linenos">271</span></a>    <span class="k">if</span> <span class="n">border_data_len</span> <span class="o">&gt;</span> <span class="mi">31</span><span class="p">:</span>
 </span><span id="L-272"><a href="#L-272"><span class="linenos">272</span></a>        <span class="n">border_data</span> <span class="o">=</span> <span class="n">border_data</span><span class="p">[:</span><span class="mi">32</span><span class="p">]</span>
 </span><span id="L-273"><a href="#L-273"><span class="linenos">273</span></a>    <span class="n">valid_len</span> <span class="o">=</span> <span class="n">get_valid_border_len</span><span class="p">(</span><span class="n">border_data</span><span class="p">)</span>
 </span><span id="L-274"><a href="#L-274"><span class="linenos">274</span></a>    <span class="n">valid_border_point_list</span> <span class="o">=</span> <span class="n">border_data</span><span class="p">[:</span><span class="n">valid_len</span><span class="p">]</span>
-</span><span id="L-275"><a href="#L-275"><span class="linenos">275</span></a>    <span class="c1"># 如果点数超过30，就做剔除，留下30个轮廓点。因为30个点的细胞轮廓拆分出来后，有两个点是复制出来的，刚好能拆成两个16个点的细胞</span>
+</span><span id="L-275"><a href="#L-275"><span class="linenos">275</span></a> <span class="c1"># If the number of points exceeds 30, remove them and leave 30 contour points. Because after the 30-point cell outline is split, two points are copied, which can be just broken into two 16-point cells</span>
 </span><span id="L-276"><a href="#L-276"><span class="linenos">276</span></a>    <span class="n">simply_point_list</span> <span class="o">=</span> <span class="n">valingam_whyatt_shape_simplification</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="n">valid_border_point_list</span><span class="p">,</span> <span class="kc">False</span><span class="p">)[</span><span class="s2">&quot;point_list&quot;</span><span class="p">]</span>
 </span><span id="L-277"><a href="#L-277"><span class="linenos">277</span></a>    <span class="n">point_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">simply_point_list</span><span class="p">)</span>
 </span><span id="L-278"><a href="#L-278"><span class="linenos">278</span></a>    <span class="k">if</span> <span class="n">point_length</span> <span class="o">&gt;</span> <span class="mi">16</span><span class="p">:</span>
@@ -468,16 +468,16 @@
 </span><span id="L-280"><a href="#L-280"><span class="linenos">280</span></a>        <span class="n">vertex</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">simply_point_list</span><span class="p">)</span>
 </span><span id="L-281"><a href="#L-281"><span class="linenos">281</span></a>        <span class="n">rings</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">point_length</span><span class="p">])</span>
 </span><span id="L-282"><a href="#L-282"><span class="linenos">282</span></a>
-</span><span id="L-283"><a href="#L-283"><span class="linenos">283</span></a>        <span class="c1"># 进行耳切，找到切分点。切出来的两个细胞轮廓点的数量不能大于16</span>
+</span><span id="L-283"><a href="#L-283"><span class="linenos">283</span></a> <span class="c1"># Perform ear cleavage and find the cleavage point. The number of two cell outline points that are cut out cannot be greater than 16</span>
 </span><span id="L-284"><a href="#L-284"><span class="linenos">284</span></a>        <span class="n">index_arr</span> <span class="o">=</span> <span class="n">earcut</span><span class="o">.</span><span class="n">triangulate_float32</span><span class="p">(</span><span class="n">vertex</span><span class="p">,</span> <span class="n">rings</span><span class="p">)</span>
 </span><span id="L-285"><a href="#L-285"><span class="linenos">285</span></a>        <span class="n">triangle_count</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">index_arr</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3</span><span class="p">)</span>
 </span><span id="L-286"><a href="#L-286"><span class="linenos">286</span></a>
 </span><span id="L-287"><a href="#L-287"><span class="linenos">287</span></a>        <span class="n">slit_point_1_index</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="L-288"><a href="#L-288"><span class="linenos">288</span></a>        <span class="n">slit_point_2_index</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="L-289"><a href="#L-289"><span class="linenos">289</span></a>        <span class="n">is_got_split_line</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span id="L-290"><a href="#L-290"><span class="linenos">290</span></a>        <span class="c1"># 找到earcut后的中间切线。为了将葫芦形或者S形的细胞拆分成正确的两个细胞，切线不能超过原有的细胞轮廓。</span>
-</span><span id="L-291"><a href="#L-291"><span class="linenos">291</span></a>        <span class="c1"># 耳切法三角剖分后，找到任意一条线，能将细胞切成两个轮廓点小于等于16的小细胞。</span>
-</span><span id="L-292"><a href="#L-292"><span class="linenos">292</span></a>        <span class="c1"># 耳切后，得到数量为triangle_count的三角面，index_arr中3个为一组代表一个三角面的下标顶点</span>
+</span><span id="L-290"><a href="#L-290"><span class="linenos">290</span></a> <span class="c1"># Find the intermediate tangent after earcut. In order to split the gourd-shaped or S-shaped cells into the correct two cells, the tangent line cannot exceed the original cell outline.</span>
+</span><span id="L-291"><a href="#L-291"><span class="linenos">291</span></a> <span class="c1"># After triangulation, find any line and can cut the cells into two small cells with contour points less than or equal to 16.</span>
+</span><span id="L-292"><a href="#L-292"><span class="linenos">292</span></a> <span class="c1"># After ear cutting, we get a triangle face with the number of triangle_count. The three in index_arr are a group of subscript vertices representing a triangle face</span>
 </span><span id="L-293"><a href="#L-293"><span class="linenos">293</span></a>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">triangle_count</span><span class="p">):</span>
 </span><span id="L-294"><a href="#L-294"><span class="linenos">294</span></a>
 </span><span id="L-295"><a href="#L-295"><span class="linenos">295</span></a>            <span class="n">slit_point_1_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">index_arr</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">3</span><span class="p">])</span>
@@ -507,14 +507,14 @@
 </span><span id="L-319"><a href="#L-319"><span class="linenos">319</span></a>
 </span><span id="L-320"><a href="#L-320"><span class="linenos">320</span></a>            <span class="n">start_list</span> <span class="o">=</span> <span class="n">simply_point_list</span><span class="p">[</span><span class="n">start_index</span><span class="p">:</span><span class="n">end_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
 </span><span id="L-321"><a href="#L-321"><span class="linenos">321</span></a>            <span class="n">end_list</span> <span class="o">=</span> <span class="n">simply_point_list</span><span class="p">[</span><span class="n">end_index</span><span class="p">:]</span> <span class="o">+</span> <span class="n">simply_point_list</span><span class="p">[:</span><span class="n">start_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
-</span><span id="L-322"><a href="#L-322"><span class="linenos">322</span></a>            <span class="c1"># 截取到顶点数量比较多的细胞轮廓，放到第一个。渲染时，LOD等级切换到6个顶点时，可不渲染小的那半部分的细胞，提高渲染性能</span>
+</span><span id="L-322"><a href="#L-322"><span class="linenos">322</span></a> <span class="c1"># Intercept the cell outline with a large number of vertices and place it in the first place. When rendering, when the LOD level is switched to 6 vertices, the small half of the cells can be not rendered to improve rendering performance</span>
 </span><span id="L-323"><a href="#L-323"><span class="linenos">323</span></a>            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">end_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">start_list</span><span class="p">):</span>
 </span><span id="L-324"><a href="#L-324"><span class="linenos">324</span></a>                <span class="n">start_list</span><span class="p">,</span> <span class="n">end_list</span> <span class="o">=</span> <span class="n">end_list</span><span class="p">,</span> <span class="n">start_list</span>
-</span><span id="L-325"><a href="#L-325"><span class="linenos">325</span></a>        <span class="c1"># 如果耳切后，没有适合的边，意味着这个细胞形状为凸多边形。</span>
+</span><span id="L-325"><a href="#L-325"><span class="linenos">325</span></a> <span class="c1"># If there is no suitable edge after ear cutting, it means that the cell shape is a convex polygon.</span>
 </span><span id="L-326"><a href="#L-326"><span class="linenos">326</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="L-327"><a href="#L-327"><span class="linenos">327</span></a>            <span class="c1"># 将前16个轮廓点抽出作为第一个切分细胞</span>
+</span><span id="L-327"><a href="#L-327"><span class="linenos">327</span></a> <span class="c1"># Extract the first 16 contour points as the first secting cell</span>
 </span><span id="L-328"><a href="#L-328"><span class="linenos">328</span></a>            <span class="n">start_list</span> <span class="o">=</span> <span class="n">border_data</span><span class="p">[:</span><span class="mi">16</span><span class="p">]</span>
-</span><span id="L-329"><a href="#L-329"><span class="linenos">329</span></a>            <span class="c1"># 第16个点到最后一个有效点为第二个细胞轮廓，另外还要将第一个点复制到第二个切分的细胞。</span>
+</span><span id="L-329"><a href="#L-329"><span class="linenos">329</span></a> <span class="c1"># The 16th point to the last valid point is the second cell outline, and the first point must be copied to the second segmented cell.</span>
 </span><span id="L-330"><a href="#L-330"><span class="linenos">330</span></a>            <span class="n">end_list</span> <span class="o">=</span> <span class="n">border_data</span><span class="p">[</span><span class="mi">15</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">simply_point_list</span><span class="p">)]</span>
 </span><span id="L-331"><a href="#L-331"><span class="linenos">331</span></a>            <span class="n">end_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">border_data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 </span><span id="L-332"><a href="#L-332"><span class="linenos">332</span></a>    <span class="k">else</span><span class="p">:</span>
@@ -524,12 +524,12 @@
 </span><span id="L-336"><a href="#L-336"><span class="linenos">336</span></a>    <span class="k">return</span> <span class="p">[</span><span class="n">start_list</span><span class="p">,</span> <span class="n">end_list</span><span class="p">]</span>
 </span><span id="L-337"><a href="#L-337"><span class="linenos">337</span></a>
 </span><span id="L-338"><a href="#L-338"><span class="linenos">338</span></a>
-</span><span id="L-339"><a href="#L-339"><span class="linenos">339</span></a><span class="c1"># 获取有效的细胞轮廓点数量</span>
+</span><span id="L-339"><a href="#L-339"><span class="linenos">339</span></a><span class="c1"># Get effective number of cell contour points</span>
 </span><span id="L-340"><a href="#L-340"><span class="linenos">340</span></a><span class="c1"># @print_running_time</span>
 </span><span id="L-341"><a href="#L-341"><span class="linenos">341</span></a><span class="k">def</span> <span class="nf">get_valid_border_len</span><span class="p">(</span><span class="n">border_data</span><span class="p">):</span>
 </span><span id="L-342"><a href="#L-342"><span class="linenos">342</span></a>    <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">border_data</span><span class="p">)</span>
 </span><span id="L-343"><a href="#L-343"><span class="linenos">343</span></a>    <span class="n">border_vertex_len</span> <span class="o">=</span> <span class="n">length</span>
-</span><span id="L-344"><a href="#L-344"><span class="linenos">344</span></a>    <span class="c1"># 计算细胞轮廓有效点的数量</span>
+</span><span id="L-344"><a href="#L-344"><span class="linenos">344</span></a> <span class="c1"># Calculate the number of effective points in cell profile</span>
 </span><span id="L-345"><a href="#L-345"><span class="linenos">345</span></a>    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">length</span><span class="p">):</span>
 </span><span id="L-346"><a href="#L-346"><span class="linenos">346</span></a>        <span class="n">pos_arr</span> <span class="o">=</span> <span class="n">border_data</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
 </span><span id="L-347"><a href="#L-347"><span class="linenos">347</span></a>        <span class="k">if</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="n">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
@@ -553,12 +553,12 @@
 </span><span id="L-365"><a href="#L-365"><span class="linenos">365</span></a>    <span class="n">chunk_cells_dict</span><span class="p">[</span><span class="n">chunk_key</span><span class="p">]</span><span class="o">.</span><span class="n">cell_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span>
 </span><span id="L-366"><a href="#L-366"><span class="linenos">366</span></a>
 </span><span id="L-367"><a href="#L-367"><span class="linenos">367</span></a>
-</span><span id="L-368"><a href="#L-368"><span class="linenos">368</span></a><span class="c1"># 创建分块字典 key:String 例如：0_0_0  value: list&lt;Cell&gt;</span>
+</span><span id="L-368"><a href="#L-368"><span class="linenos">368</span></a><span class="c1"># Create a chunked dictionary key:String For example: 0_0_0 value: list&lt;Cell&gt;</span>
 </span><span id="L-369"><a href="#L-369"><span class="linenos">369</span></a><span class="nd">@print_running_time</span>
 </span><span id="L-370"><a href="#L-370"><span class="linenos">370</span></a><span class="k">def</span> <span class="nf">create_chunk_grids_dict</span><span class="p">(</span><span class="n">_grid_shape</span><span class="p">,</span> <span class="n">output_folder</span><span class="p">):</span>
 </span><span id="L-371"><a href="#L-371"><span class="linenos">371</span></a>    <span class="n">result_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
 </span><span id="L-372"><a href="#L-372"><span class="linenos">372</span></a>    <span class="c1"># byte_file_dir = output_folder + &#39;/L0&#39;</span>
-</span><span id="L-373"><a href="#L-373"><span class="linenos">373</span></a>    <span class="c1"># if not os.path.exists(byte_file_dir):  # 判断当前路径是否存在，没有则创建文件夹</span>
+</span><span id="L-373"><a href="#L-373"><span class="linenos">373</span></a> <span class="c1"># if not os.path.exists(byte_file_dir): # To determine whether the current path exists, create a folder if there is no</span>
 </span><span id="L-374"><a href="#L-374"><span class="linenos">374</span></a>    <span class="c1">#     os.makedirs(byte_file_dir)</span>
 </span><span id="L-375"><a href="#L-375"><span class="linenos">375</span></a>
 </span><span id="L-376"><a href="#L-376"><span class="linenos">376</span></a>    <span class="n">byte_file_dir</span> <span class="o">=</span> <span class="s1">&#39;codedCellBlock/L0&#39;</span>
@@ -601,7 +601,7 @@
 </span><span id="L-413"><a href="#L-413"><span class="linenos">413</span></a>
 </span><span id="L-414"><a href="#L-414"><span class="linenos">414</span></a>
 </span><span id="L-415"><a href="#L-415"><span class="linenos">415</span></a><span class="c1"># @print_running_time</span>
-</span><span id="L-416"><a href="#L-416"><span class="linenos">416</span></a><span class="c1"># 保留有效面积 (Visvalingam-Whyatt) 算法，剔除部分点。保留target_len长度的list</span>
+</span><span id="L-416"><a href="#L-416"><span class="linenos">416</span></a><span class="c1"># Reserve the effective area (Visvalingam-Whyatt) algorithm, remove some points. Reserve the list of target_len length</span>
 </span><span id="L-417"><a href="#L-417"><span class="linenos">417</span></a><span class="k">def</span> <span class="nf">valingam_whyatt_shape_simplification</span><span class="p">(</span><span class="n">target_count</span><span class="p">,</span> <span class="n">point_list</span><span class="p">,</span> <span class="n">is_need_earcut</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="L-418"><a href="#L-418"><span class="linenos">418</span></a>    <span class="n">point_list_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">point_list</span><span class="p">)</span>
 </span><span id="L-419"><a href="#L-419"><span class="linenos">419</span></a>    <span class="k">if</span> <span class="n">point_list_len</span> <span class="o">&lt;=</span> <span class="n">target_count</span><span class="p">:</span>
@@ -694,7 +694,7 @@
 </span><span id="L-506"><a href="#L-506"><span class="linenos">506</span></a>
 </span><span id="L-507"><a href="#L-507"><span class="linenos">507</span></a>    <span class="c1"># @print_running_time</span>
 </span><span id="L-508"><a href="#L-508"><span class="linenos">508</span></a>    <span class="k">def</span> <span class="nf">get_LOD_vertices_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-509"><a href="#L-509"><span class="linenos">509</span></a>        <span class="c1"># 将有效轮廓点的二维数组降维成一维数组，最多有16个点</span>
+</span><span id="L-509"><a href="#L-509"><span class="linenos">509</span></a> <span class="c1"># Reduce the dimensionality of the two-dimensional array of effective contour points into a one-dimensional array, with a maximum of 16 points</span>
 </span><span id="L-510"><a href="#L-510"><span class="linenos">510</span></a>        <span class="n">vertex</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">border_data</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">border_vertex_len</span><span class="p">])</span>
 </span><span id="L-511"><a href="#L-511"><span class="linenos">511</span></a>        <span class="n">rings</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">border_vertex_len</span><span class="p">])</span>
 </span><span id="L-512"><a href="#L-512"><span class="linenos">512</span></a>        <span class="n">index_arr_lod_level_1</span> <span class="o">=</span> <span class="n">earcut</span><span class="o">.</span><span class="n">triangulate_float32</span><span class="p">(</span><span class="n">vertex</span><span class="p">,</span> <span class="n">rings</span><span class="p">)</span>
@@ -726,7 +726,7 @@
 </span><span id="L-538"><a href="#L-538"><span class="linenos">538</span></a>        <span class="k">for</span> <span class="n">vertex_index</span> <span class="ow">in</span> <span class="n">index_arr_lod_level_3</span><span class="p">:</span>
 </span><span id="L-539"><a href="#L-539"><span class="linenos">539</span></a>            <span class="n">vertices_index_arr</span><span class="p">[</span><span class="n">offset</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertex_index</span>
 </span><span id="L-540"><a href="#L-540"><span class="linenos">540</span></a>            <span class="n">offset</span> <span class="o">+=</span> <span class="mi">1</span>
-</span><span id="L-541"><a href="#L-541"><span class="linenos">541</span></a>        <span class="c1"># 细胞是否被拆分的标识</span>
+</span><span id="L-541"><a href="#L-541"><span class="linenos">541</span></a> <span class="c1"># Identification of whether the cells are split</span>
 </span><span id="L-542"><a href="#L-542"><span class="linenos">542</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_split_cell</span><span class="p">:</span>
 </span><span id="L-543"><a href="#L-543"><span class="linenos">543</span></a>            <span class="n">vertices_index_arr</span><span class="p">[</span><span class="mi">66</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 </span><span id="L-544"><a href="#L-544"><span class="linenos">544</span></a>
@@ -784,7 +784,7 @@
 </span><span id="L-596"><a href="#L-596"><span class="linenos">596</span></a>                <span class="n">buf</span> <span class="o">=</span> <span class="n">cell_border</span><span class="o">.</span><span class="n">get_LOD_vertices_index</span><span class="p">()</span>
 </span><span id="L-597"><a href="#L-597"><span class="linenos">597</span></a>                <span class="n">bytes_out</span> <span class="o">+=</span> <span class="n">buf</span>
 </span><span id="L-598"><a href="#L-598"><span class="linenos">598</span></a>
-</span><span id="L-599"><a href="#L-599"><span class="linenos">599</span></a>            <span class="c1"># TODO bytes_out拼接效率很低，可能是bytes_out拼接时长度不定，需要不定时扩展长度，导致性能下降。需要做性能优化</span>
+</span><span id="L-599"><a href="#L-599"><span class="linenos">599</span></a> <span class="c1"># TODO bytes_out splicing efficiency is very low. It may be that the length of bytes_out splicing is uncertain, and the length needs to be expanded irregularly, resulting in performance degradation. Performance optimization is required</span>
 </span><span id="L-600"><a href="#L-600"><span class="linenos">600</span></a>            <span class="n">f_out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">gzip</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">bytes_out</span><span class="p">))</span>
 </span><span id="L-601"><a href="#L-601"><span class="linenos">601</span></a>
 </span><span id="L-602"><a href="#L-602"><span class="linenos">602</span></a>    <span class="k">def</span> <span class="nf">write_h5</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group</span><span class="p">):</span>
@@ -998,10 +998,10 @@
     <a class="headerlink" href="#create_group"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="create_group-53"><a href="#create_group-53"><span class="linenos">53</span></a><span class="k">def</span> <span class="nf">create_group</span><span class="p">(</span><span class="n">group_name</span><span class="p">):</span>
 </span><span id="create_group-54"><a href="#create_group-54"><span class="linenos">54</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="create_group-55"><a href="#create_group-55"><span class="linenos">55</span></a><span class="sd">    h5文件创建group</span>
+</span><span id="create_group-55"><a href="#create_group-55"><span class="linenos">55</span></a><span class="sd"> h5 file creation group</span>
 </span><span id="create_group-56"><a href="#create_group-56"><span class="linenos">56</span></a>
-</span><span id="create_group-57"><a href="#create_group-57"><span class="linenos">57</span></a><span class="sd">    :param group_name: group 名称</span>
-</span><span id="create_group-58"><a href="#create_group-58"><span class="linenos">58</span></a><span class="sd">    :return: group 对象</span>
+</span><span id="create_group-57"><a href="#create_group-57"><span class="linenos">57</span></a><span class="sd"> :param group_name: group name</span>
+</span><span id="create_group-58"><a href="#create_group-58"><span class="linenos">58</span></a><span class="sd"> :return: group object</span>
 </span><span id="create_group-59"><a href="#create_group-59"><span class="linenos">59</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="create_group-60"><a href="#create_group-60"><span class="linenos">60</span></a>    <span class="k">global</span> <span class="n">H5_FILE_POINT</span>
 </span><span id="create_group-61"><a href="#create_group-61"><span class="linenos">61</span></a>    <span class="k">if</span> <span class="n">H5_FILE_POINT</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">group_name</span><span class="p">):</span>
@@ -1010,18 +1010,18 @@
 </span></pre></div>
 
 
-            <div class="docstring"><p>h5文件创建group</p>
+            <div class="docstring"><p>h5 file creation group</p>
 
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>group_name</strong>:  group 名称</li>
+<li><strong>group_name</strong>: group name</li>
 </ul>
 
 <h6 id="returns">Returns</h6>
 
 <blockquote>
-  <p>group 对象</p>
+  <p>group object</p>
 </blockquote>
 </div>
 
@@ -1040,25 +1040,25 @@
     <a class="headerlink" href="#set_attrs"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="set_attrs-66"><a href="#set_attrs-66"><span class="linenos">66</span></a><span class="k">def</span> <span class="nf">set_attrs</span><span class="p">(</span><span class="n">group</span><span class="p">:</span> <span class="n">h5py</span><span class="o">.</span><span class="n">Group</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
 </span><span id="set_attrs-67"><a href="#set_attrs-67"><span class="linenos">67</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="set_attrs-68"><a href="#set_attrs-68"><span class="linenos">68</span></a><span class="sd">    h5 group 设置属性</span>
+</span><span id="set_attrs-68"><a href="#set_attrs-68"><span class="linenos">68</span></a><span class="sd"> h5 group Set properties</span>
 </span><span id="set_attrs-69"><a href="#set_attrs-69"><span class="linenos">69</span></a>
-</span><span id="set_attrs-70"><a href="#set_attrs-70"><span class="linenos">70</span></a><span class="sd">    :param group: group 名称</span>
-</span><span id="set_attrs-71"><a href="#set_attrs-71"><span class="linenos">71</span></a><span class="sd">    :param key: 属性名</span>
-</span><span id="set_attrs-72"><a href="#set_attrs-72"><span class="linenos">72</span></a><span class="sd">    :param values: 属性值</span>
+</span><span id="set_attrs-70"><a href="#set_attrs-70"><span class="linenos">70</span></a><span class="sd"> :param group: group name</span>
+</span><span id="set_attrs-71"><a href="#set_attrs-71"><span class="linenos">71</span></a><span class="sd"> :param key: Attribute name</span>
+</span><span id="set_attrs-72"><a href="#set_attrs-72"><span class="linenos">72</span></a><span class="sd"> :param values: attribute values</span>
 </span><span id="set_attrs-73"><a href="#set_attrs-73"><span class="linenos">73</span></a><span class="sd">    :return:</span>
 </span><span id="set_attrs-74"><a href="#set_attrs-74"><span class="linenos">74</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="set_attrs-75"><a href="#set_attrs-75"><span class="linenos">75</span></a>    <span class="n">group</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>h5 group 设置属性</p>
+            <div class="docstring"><p>h5 group setting properties</p>
 
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>group</strong>:  group 名称</li>
-<li><strong>key</strong>:  属性名</li>
-<li><strong>values</strong>:  属性值</li>
+<li><strong>group</strong>: group name</li>
+<li><strong>key</strong>: Attribute name</li>
+<li><strong>values</strong>: attribute value</li>
 </ul>
 
 <h6 id="returns">Returns</h6>
@@ -1079,26 +1079,26 @@
     <a class="headerlink" href="#create_dataset"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="create_dataset-78"><a href="#create_dataset-78"><span class="linenos">78</span></a><span class="k">def</span> <span class="nf">create_dataset</span><span class="p">(</span><span class="n">group</span><span class="p">:</span> <span class="n">h5py</span><span class="o">.</span><span class="n">Group</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="create_dataset-79"><a href="#create_dataset-79"><span class="linenos">79</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="create_dataset-80"><a href="#create_dataset-80"><span class="linenos">80</span></a><span class="sd">    h5 group 创建数据集</span>
-</span><span id="create_dataset-81"><a href="#create_dataset-81"><span class="linenos">81</span></a><span class="sd">    :param group: group名称</span>
-</span><span id="create_dataset-82"><a href="#create_dataset-82"><span class="linenos">82</span></a><span class="sd">    :param name: 数据集名称</span>
-</span><span id="create_dataset-83"><a href="#create_dataset-83"><span class="linenos">83</span></a><span class="sd">    :param data: 数据</span>
-</span><span id="create_dataset-84"><a href="#create_dataset-84"><span class="linenos">84</span></a><span class="sd">    :param dtype: 数据类型 **暂未用到</span>
+</span><span id="create_dataset-80"><a href="#create_dataset-80"><span class="linenos">80</span></a><span class="sd"> h5 group Create dataset</span>
+</span><span id="create_dataset-81"><a href="#create_dataset-81"><span class="linenos">81</span></a><span class="sd"> :param group: group name</span>
+</span><span id="create_dataset-82"><a href="#create_dataset-82"><span class="linenos">82</span></a><span class="sd"> :param name: Dataset name</span>
+</span><span id="create_dataset-83"><a href="#create_dataset-83"><span class="linenos">83</span></a><span class="sd"> :param data: Data</span>
+</span><span id="create_dataset-84"><a href="#create_dataset-84"><span class="linenos">84</span></a><span class="sd"> :param dtype: Data type ** Not used yet</span>
 </span><span id="create_dataset-85"><a href="#create_dataset-85"><span class="linenos">85</span></a><span class="sd">    :return:</span>
 </span><span id="create_dataset-86"><a href="#create_dataset-86"><span class="linenos">86</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="create_dataset-87"><a href="#create_dataset-87"><span class="linenos">87</span></a>    <span class="n">group</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>h5 group 创建数据集</p>
+            <div class="docstring"><p>h5 group Create dataset</p>
 
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>group</strong>:  group名称</li>
-<li><strong>name</strong>:  数据集名称</li>
-<li><strong>data</strong>:  数据</li>
-<li><strong>dtype</strong>:  数据类型 **暂未用到</li>
+<li><strong>group</strong>: group name</li>
+<li><strong>name</strong>: Dataset name</li>
+<li><strong>data</strong>: Data</li>
+<li><strong>dtype</strong>: Data type **Not used yet</li>
 </ul>
 
 <h6 id="returns">Returns</h6>
@@ -1179,7 +1179,7 @@
 </span><span id="divChunk-148"><a href="#divChunk-148"><span class="linenos">148</span></a>        <span class="n">min_size</span> <span class="o">=</span> <span class="n">bounding_size_y</span>
 </span><span id="divChunk-149"><a href="#divChunk-149"><span class="linenos">149</span></a>        <span class="n">max_size</span> <span class="o">=</span> <span class="n">bounding_size_x</span>
 </span><span id="divChunk-150"><a href="#divChunk-150"><span class="linenos">150</span></a>        <span class="n">min_dim</span> <span class="o">=</span> <span class="mi">1</span>
-</span><span id="divChunk-151"><a href="#divChunk-151"><span class="linenos">151</span></a>    <span class="c1"># 1.415为根号2的近似值</span>
+</span><span id="divChunk-151"><a href="#divChunk-151"><span class="linenos">151</span></a> <span class="c1"># 1.415 is an approximate value of root number 2</span>
 </span><span id="divChunk-152"><a href="#divChunk-152"><span class="linenos">152</span></a>    <span class="n">target_size</span> <span class="o">=</span> <span class="mf">1.415</span> <span class="o">*</span> <span class="n">min_size</span>
 </span><span id="divChunk-153"><a href="#divChunk-153"><span class="linenos">153</span></a>    <span class="n">pre_div_times</span> <span class="o">=</span> <span class="mi">0</span>
 </span><span id="divChunk-154"><a href="#divChunk-154"><span class="linenos">154</span></a>
@@ -1246,12 +1246,12 @@
     <a class="headerlink" href="#split_32points_cell_border"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="split_32points_cell_border-269"><a href="#split_32points_cell_border-269"><span class="linenos">269</span></a><span class="k">def</span> <span class="nf">split_32points_cell_border</span><span class="p">(</span><span class="n">border_data</span><span class="p">):</span>
 </span><span id="split_32points_cell_border-270"><a href="#split_32points_cell_border-270"><span class="linenos">270</span></a>    <span class="n">border_data_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">border_data</span><span class="p">)</span>
-</span><span id="split_32points_cell_border-271"><a href="#split_32points_cell_border-271"><span class="linenos">271</span></a>    <span class="c1"># 处理细胞轮廓点的数量大于32个的情况，多于32个点直接舍弃</span>
+</span><span id="split_32points_cell_border-271"><a href="#split_32points_cell_border-271"><span class="linenos">271</span></a> <span class="c1"># Treatment: If the number of cell contour points is greater than 32, the number of more than 32 points will be discarded directly</span>
 </span><span id="split_32points_cell_border-272"><a href="#split_32points_cell_border-272"><span class="linenos">272</span></a>    <span class="k">if</span> <span class="n">border_data_len</span> <span class="o">&gt;</span> <span class="mi">31</span><span class="p">:</span>
 </span><span id="split_32points_cell_border-273"><a href="#split_32points_cell_border-273"><span class="linenos">273</span></a>        <span class="n">border_data</span> <span class="o">=</span> <span class="n">border_data</span><span class="p">[:</span><span class="mi">32</span><span class="p">]</span>
 </span><span id="split_32points_cell_border-274"><a href="#split_32points_cell_border-274"><span class="linenos">274</span></a>    <span class="n">valid_len</span> <span class="o">=</span> <span class="n">get_valid_border_len</span><span class="p">(</span><span class="n">border_data</span><span class="p">)</span>
 </span><span id="split_32points_cell_border-275"><a href="#split_32points_cell_border-275"><span class="linenos">275</span></a>    <span class="n">valid_border_point_list</span> <span class="o">=</span> <span class="n">border_data</span><span class="p">[:</span><span class="n">valid_len</span><span class="p">]</span>
-</span><span id="split_32points_cell_border-276"><a href="#split_32points_cell_border-276"><span class="linenos">276</span></a>    <span class="c1"># 如果点数超过30，就做剔除，留下30个轮廓点。因为30个点的细胞轮廓拆分出来后，有两个点是复制出来的，刚好能拆成两个16个点的细胞</span>
+</span><span id="split_32points_cell_border-276"><a href="#split_32points_cell_border-276"><span class="linenos">276</span></a> <span class="c1"># If the number of points exceeds 30, remove them and leave 30 contour points. Because after the 30-point cell outline is split, two points are copied, which can be split into two 16-point cells</span>
 </span><span id="split_32points_cell_border-277"><a href="#split_32points_cell_border-277"><span class="linenos">277</span></a>    <span class="n">simply_point_list</span> <span class="o">=</span> <span class="n">valingam_whyatt_shape_simplification</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="n">valid_border_point_list</span><span class="p">,</span> <span class="kc">False</span><span class="p">)[</span><span class="s2">&quot;point_list&quot;</span><span class="p">]</span>
 </span><span id="split_32points_cell_border-278"><a href="#split_32points_cell_border-278"><span class="linenos">278</span></a>    <span class="n">point_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">simply_point_list</span><span class="p">)</span>
 </span><span id="split_32points_cell_border-279"><a href="#split_32points_cell_border-279"><span class="linenos">279</span></a>    <span class="k">if</span> <span class="n">point_length</span> <span class="o">&gt;</span> <span class="mi">16</span><span class="p">:</span>
@@ -1259,16 +1259,16 @@
 </span><span id="split_32points_cell_border-281"><a href="#split_32points_cell_border-281"><span class="linenos">281</span></a>        <span class="n">vertex</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">simply_point_list</span><span class="p">)</span>
 </span><span id="split_32points_cell_border-282"><a href="#split_32points_cell_border-282"><span class="linenos">282</span></a>        <span class="n">rings</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">point_length</span><span class="p">])</span>
 </span><span id="split_32points_cell_border-283"><a href="#split_32points_cell_border-283"><span class="linenos">283</span></a>
-</span><span id="split_32points_cell_border-284"><a href="#split_32points_cell_border-284"><span class="linenos">284</span></a>        <span class="c1"># 进行耳切，找到切分点。切出来的两个细胞轮廓点的数量不能大于16</span>
+</span><span id="split_32points_cell_border-284"><a href="#split_32points_cell_border-284"><span class="linenos">284</span></a> <span class="c1"># Perform ear cleavage and find the cleavage point. The number of two cell outline points that are cut out cannot be greater than 16</span>
 </span><span id="split_32points_cell_border-285"><a href="#split_32points_cell_border-285"><span class="linenos">285</span></a>        <span class="n">index_arr</span> <span class="o">=</span> <span class="n">earcut</span><span class="o">.</span><span class="n">triangulate_float32</span><span class="p">(</span><span class="n">vertex</span><span class="p">,</span> <span class="n">rings</span><span class="p">)</span>
 </span><span id="split_32points_cell_border-286"><a href="#split_32points_cell_border-286"><span class="linenos">286</span></a>        <span class="n">triangle_count</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">index_arr</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3</span><span class="p">)</span>
 </span><span id="split_32points_cell_border-287"><a href="#split_32points_cell_border-287"><span class="linenos">287</span></a>
 </span><span id="split_32points_cell_border-288"><a href="#split_32points_cell_border-288"><span class="linenos">288</span></a>        <span class="n">slit_point_1_index</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="split_32points_cell_border-289"><a href="#split_32points_cell_border-289"><span class="linenos">289</span></a>        <span class="n">slit_point_2_index</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="split_32points_cell_border-290"><a href="#split_32points_cell_border-290"><span class="linenos">290</span></a>        <span class="n">is_got_split_line</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span id="split_32points_cell_border-291"><a href="#split_32points_cell_border-291"><span class="linenos">291</span></a>        <span class="c1"># 找到earcut后的中间切线。为了将葫芦形或者S形的细胞拆分成正确的两个细胞，切线不能超过原有的细胞轮廓。</span>
-</span><span id="split_32points_cell_border-292"><a href="#split_32points_cell_border-292"><span class="linenos">292</span></a>        <span class="c1"># 耳切法三角剖分后，找到任意一条线，能将细胞切成两个轮廓点小于等于16的小细胞。</span>
-</span><span id="split_32points_cell_border-293"><a href="#split_32points_cell_border-293"><span class="linenos">293</span></a>        <span class="c1"># 耳切后，得到数量为triangle_count的三角面，index_arr中3个为一组代表一个三角面的下标顶点</span>
+</span><span id="split_32points_cell_border-291"><a href="#split_32points_cell_border-291"><span class="linenos">291</span></a> <span class="c1"># Find the intermediate tangent after earcut. In order to split the gourd-shaped or S-shaped cells into the correct two cells, the tangent cannot exceed the original cell outline.</span>
+</span><span id="split_32points_cell_border-292"><a href="#split_32points_cell_border-292"><span class="linenos">292</span></a> <span class="c1"># After triangulation of the ear chondrature method, find any line and can cut the cells into two small cells with contour points less than or equal to 16.</span>
+</span><span id="split_32points_cell_border-293"><a href="#split_32points_cell_border-293"><span class="linenos">293</span></a> <span class="c1"># After ear cutting, we get a triangle face with the number of triangle_count. The three in index_arr are a group of subscript vertices representing a triangle face</span>
 </span><span id="split_32points_cell_border-294"><a href="#split_32points_cell_border-294"><span class="linenos">294</span></a>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">triangle_count</span><span class="p">):</span>
 </span><span id="split_32points_cell_border-295"><a href="#split_32points_cell_border-295"><span class="linenos">295</span></a>
 </span><span id="split_32points_cell_border-296"><a href="#split_32points_cell_border-296"><span class="linenos">296</span></a>            <span class="n">slit_point_1_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">index_arr</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">3</span><span class="p">])</span>
@@ -1298,14 +1298,14 @@
 </span><span id="split_32points_cell_border-320"><a href="#split_32points_cell_border-320"><span class="linenos">320</span></a>
 </span><span id="split_32points_cell_border-321"><a href="#split_32points_cell_border-321"><span class="linenos">321</span></a>            <span class="n">start_list</span> <span class="o">=</span> <span class="n">simply_point_list</span><span class="p">[</span><span class="n">start_index</span><span class="p">:</span><span class="n">end_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
 </span><span id="split_32points_cell_border-322"><a href="#split_32points_cell_border-322"><span class="linenos">322</span></a>            <span class="n">end_list</span> <span class="o">=</span> <span class="n">simply_point_list</span><span class="p">[</span><span class="n">end_index</span><span class="p">:]</span> <span class="o">+</span> <span class="n">simply_point_list</span><span class="p">[:</span><span class="n">start_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
-</span><span id="split_32points_cell_border-323"><a href="#split_32points_cell_border-323"><span class="linenos">323</span></a>            <span class="c1"># 截取到顶点数量比较多的细胞轮廓，放到第一个。渲染时，LOD等级切换到6个顶点时，可不渲染小的那半部分的细胞，提高渲染性能</span>
+</span><span id="split_32points_cell_border-323"><a href="#split_32points_cell_border-323"><span class="linenos">323</span></a> <span class="c1"># Intercept the cell outline with a large number of vertices and place it in the first place. When rendering, when the LOD level is switched to 6 vertices, the small half of the cells can be not rendered to improve rendering performance</span>
 </span><span id="split_32points_cell_border-324"><a href="#split_32points_cell_border-324"><span class="linenos">324</span></a>            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">end_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">start_list</span><span class="p">):</span>
 </span><span id="split_32points_cell_border-325"><a href="#split_32points_cell_border-325"><span class="linenos">325</span></a>                <span class="n">start_list</span><span class="p">,</span> <span class="n">end_list</span> <span class="o">=</span> <span class="n">end_list</span><span class="p">,</span> <span class="n">start_list</span>
-</span><span id="split_32points_cell_border-326"><a href="#split_32points_cell_border-326"><span class="linenos">326</span></a>        <span class="c1"># 如果耳切后，没有适合的边，意味着这个细胞形状为凸多边形。</span>
+</span><span id="split_32points_cell_border-326"><a href="#split_32points_cell_border-326"><span class="linenos">326</span></a> <span class="c1"># If there is no suitable edge after ear cutting, it means that the cell shape is a convex polygon.</span>
 </span><span id="split_32points_cell_border-327"><a href="#split_32points_cell_border-327"><span class="linenos">327</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="split_32points_cell_border-328"><a href="#split_32points_cell_border-328"><span class="linenos">328</span></a>            <span class="c1"># 将前16个轮廓点抽出作为第一个切分细胞</span>
+</span><span id="split_32points_cell_border-328"><a href="#split_32points_cell_border-328"><span class="linenos">328</span></a> <span class="c1"># Extract the first 16 contour points as the first slicing cell</span>
 </span><span id="split_32points_cell_border-329"><a href="#split_32points_cell_border-329"><span class="linenos">329</span></a>            <span class="n">start_list</span> <span class="o">=</span> <span class="n">border_data</span><span class="p">[:</span><span class="mi">16</span><span class="p">]</span>
-</span><span id="split_32points_cell_border-330"><a href="#split_32points_cell_border-330"><span class="linenos">330</span></a>            <span class="c1"># 第16个点到最后一个有效点为第二个细胞轮廓，另外还要将第一个点复制到第二个切分的细胞。</span>
+</span><span id="split_32points_cell_border-330"><a href="#split_32points_cell_border-330"><span class="linenos">330</span></a> <span class="c1"># The 16th point to the last valid point is the second cell outline, and the first point must be copied to the second split cell.</span>
 </span><span id="split_32points_cell_border-331"><a href="#split_32points_cell_border-331"><span class="linenos">331</span></a>            <span class="n">end_list</span> <span class="o">=</span> <span class="n">border_data</span><span class="p">[</span><span class="mi">15</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">simply_point_list</span><span class="p">)]</span>
 </span><span id="split_32points_cell_border-332"><a href="#split_32points_cell_border-332"><span class="linenos">332</span></a>            <span class="n">end_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">border_data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 </span><span id="split_32points_cell_border-333"><a href="#split_32points_cell_border-333"><span class="linenos">333</span></a>    <span class="k">else</span><span class="p">:</span>
@@ -1333,7 +1333,7 @@
             <div class="pdoc-code codehilite"><pre><span></span><span id="get_valid_border_len-342"><a href="#get_valid_border_len-342"><span class="linenos">342</span></a><span class="k">def</span> <span class="nf">get_valid_border_len</span><span class="p">(</span><span class="n">border_data</span><span class="p">):</span>
 </span><span id="get_valid_border_len-343"><a href="#get_valid_border_len-343"><span class="linenos">343</span></a>    <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">border_data</span><span class="p">)</span>
 </span><span id="get_valid_border_len-344"><a href="#get_valid_border_len-344"><span class="linenos">344</span></a>    <span class="n">border_vertex_len</span> <span class="o">=</span> <span class="n">length</span>
-</span><span id="get_valid_border_len-345"><a href="#get_valid_border_len-345"><span class="linenos">345</span></a>    <span class="c1"># 计算细胞轮廓有效点的数量</span>
+</span><span id="get_valid_border_len-345"><a href="#get_valid_border_len-345"><span class="linenos">345</span></a> <span class="c1"># Calculate the number of valid points in cell profile</span>
 </span><span id="get_valid_border_len-346"><a href="#get_valid_border_len-346"><span class="linenos">346</span></a>    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">length</span><span class="p">):</span>
 </span><span id="get_valid_border_len-347"><a href="#get_valid_border_len-347"><span class="linenos">347</span></a>        <span class="n">pos_arr</span> <span class="o">=</span> <span class="n">border_data</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
 </span><span id="get_valid_border_len-348"><a href="#get_valid_border_len-348"><span class="linenos">348</span></a>        <span class="k">if</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="n">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
@@ -1590,7 +1590,7 @@
 </span><span id="CellBorder-507"><a href="#CellBorder-507"><span class="linenos">507</span></a>
 </span><span id="CellBorder-508"><a href="#CellBorder-508"><span class="linenos">508</span></a>    <span class="c1"># @print_running_time</span>
 </span><span id="CellBorder-509"><a href="#CellBorder-509"><span class="linenos">509</span></a>    <span class="k">def</span> <span class="nf">get_LOD_vertices_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="CellBorder-510"><a href="#CellBorder-510"><span class="linenos">510</span></a>        <span class="c1"># 将有效轮廓点的二维数组降维成一维数组，最多有16个点</span>
+</span><span id="CellBorder-510"><a href="#CellBorder-510"><span class="linenos">510</span></a> <span class="c1"># Reduce the dimensionality of the two-dimensional array of effective contour points into a one-dimensional array, with a maximum of 16 points</span>
 </span><span id="CellBorder-511"><a href="#CellBorder-511"><span class="linenos">511</span></a>        <span class="n">vertex</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">border_data</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">border_vertex_len</span><span class="p">])</span>
 </span><span id="CellBorder-512"><a href="#CellBorder-512"><span class="linenos">512</span></a>        <span class="n">rings</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">border_vertex_len</span><span class="p">])</span>
 </span><span id="CellBorder-513"><a href="#CellBorder-513"><span class="linenos">513</span></a>        <span class="n">index_arr_lod_level_1</span> <span class="o">=</span> <span class="n">earcut</span><span class="o">.</span><span class="n">triangulate_float32</span><span class="p">(</span><span class="n">vertex</span><span class="p">,</span> <span class="n">rings</span><span class="p">)</span>
@@ -1622,7 +1622,7 @@
 </span><span id="CellBorder-539"><a href="#CellBorder-539"><span class="linenos">539</span></a>        <span class="k">for</span> <span class="n">vertex_index</span> <span class="ow">in</span> <span class="n">index_arr_lod_level_3</span><span class="p">:</span>
 </span><span id="CellBorder-540"><a href="#CellBorder-540"><span class="linenos">540</span></a>            <span class="n">vertices_index_arr</span><span class="p">[</span><span class="n">offset</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertex_index</span>
 </span><span id="CellBorder-541"><a href="#CellBorder-541"><span class="linenos">541</span></a>            <span class="n">offset</span> <span class="o">+=</span> <span class="mi">1</span>
-</span><span id="CellBorder-542"><a href="#CellBorder-542"><span class="linenos">542</span></a>        <span class="c1"># 细胞是否被拆分的标识</span>
+</span><span id="CellBorder-542"><a href="#CellBorder-542"><span class="linenos">542</span></a> <span class="c1"># Identification of whether the cells are split</span>
 </span><span id="CellBorder-543"><a href="#CellBorder-543"><span class="linenos">543</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_split_cell</span><span class="p">:</span>
 </span><span id="CellBorder-544"><a href="#CellBorder-544"><span class="linenos">544</span></a>            <span class="n">vertices_index_arr</span><span class="p">[</span><span class="mi">66</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 </span><span id="CellBorder-545"><a href="#CellBorder-545"><span class="linenos">545</span></a>
@@ -1739,7 +1739,7 @@
     </div>
     <a class="headerlink" href="#CellBorder.get_LOD_vertices_index"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="CellBorder.get_LOD_vertices_index-509"><a href="#CellBorder.get_LOD_vertices_index-509"><span class="linenos">509</span></a>    <span class="k">def</span> <span class="nf">get_LOD_vertices_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="CellBorder.get_LOD_vertices_index-510"><a href="#CellBorder.get_LOD_vertices_index-510"><span class="linenos">510</span></a>        <span class="c1"># 将有效轮廓点的二维数组降维成一维数组，最多有16个点</span>
+</span><span id="CellBorder.get_LOD_vertices_index-510"><a href="#CellBorder.get_LOD_vertices_index-510"><span class="linenos">510</span></a> <span class="c1"># Reduce the dimensionality of the two-dimensional array of valid contour points into a one-dimensional array, with a maximum of 16 points</span>
 </span><span id="CellBorder.get_LOD_vertices_index-511"><a href="#CellBorder.get_LOD_vertices_index-511"><span class="linenos">511</span></a>        <span class="n">vertex</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">border_data</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">border_vertex_len</span><span class="p">])</span>
 </span><span id="CellBorder.get_LOD_vertices_index-512"><a href="#CellBorder.get_LOD_vertices_index-512"><span class="linenos">512</span></a>        <span class="n">rings</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">border_vertex_len</span><span class="p">])</span>
 </span><span id="CellBorder.get_LOD_vertices_index-513"><a href="#CellBorder.get_LOD_vertices_index-513"><span class="linenos">513</span></a>        <span class="n">index_arr_lod_level_1</span> <span class="o">=</span> <span class="n">earcut</span><span class="o">.</span><span class="n">triangulate_float32</span><span class="p">(</span><span class="n">vertex</span><span class="p">,</span> <span class="n">rings</span><span class="p">)</span>
@@ -1771,7 +1771,7 @@
 </span><span id="CellBorder.get_LOD_vertices_index-539"><a href="#CellBorder.get_LOD_vertices_index-539"><span class="linenos">539</span></a>        <span class="k">for</span> <span class="n">vertex_index</span> <span class="ow">in</span> <span class="n">index_arr_lod_level_3</span><span class="p">:</span>
 </span><span id="CellBorder.get_LOD_vertices_index-540"><a href="#CellBorder.get_LOD_vertices_index-540"><span class="linenos">540</span></a>            <span class="n">vertices_index_arr</span><span class="p">[</span><span class="n">offset</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertex_index</span>
 </span><span id="CellBorder.get_LOD_vertices_index-541"><a href="#CellBorder.get_LOD_vertices_index-541"><span class="linenos">541</span></a>            <span class="n">offset</span> <span class="o">+=</span> <span class="mi">1</span>
-</span><span id="CellBorder.get_LOD_vertices_index-542"><a href="#CellBorder.get_LOD_vertices_index-542"><span class="linenos">542</span></a>        <span class="c1"># 细胞是否被拆分的标识</span>
+</span><span id="CellBorder.get_LOD_vertices_index-542"><a href="#CellBorder.get_LOD_vertices_index-542"><span class="linenos">542</span></a> <span class="c1"># Identification of whether the cell is split</span>
 </span><span id="CellBorder.get_LOD_vertices_index-543"><a href="#CellBorder.get_LOD_vertices_index-543"><span class="linenos">543</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_split_cell</span><span class="p">:</span>
 </span><span id="CellBorder.get_LOD_vertices_index-544"><a href="#CellBorder.get_LOD_vertices_index-544"><span class="linenos">544</span></a>            <span class="n">vertices_index_arr</span><span class="p">[</span><span class="mi">66</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 </span><span id="CellBorder.get_LOD_vertices_index-545"><a href="#CellBorder.get_LOD_vertices_index-545"><span class="linenos">545</span></a>
@@ -1845,7 +1845,7 @@
 </span><span id="Chunk-597"><a href="#Chunk-597"><span class="linenos">597</span></a>                <span class="n">buf</span> <span class="o">=</span> <span class="n">cell_border</span><span class="o">.</span><span class="n">get_LOD_vertices_index</span><span class="p">()</span>
 </span><span id="Chunk-598"><a href="#Chunk-598"><span class="linenos">598</span></a>                <span class="n">bytes_out</span> <span class="o">+=</span> <span class="n">buf</span>
 </span><span id="Chunk-599"><a href="#Chunk-599"><span class="linenos">599</span></a>
-</span><span id="Chunk-600"><a href="#Chunk-600"><span class="linenos">600</span></a>            <span class="c1"># TODO bytes_out拼接效率很低，可能是bytes_out拼接时长度不定，需要不定时扩展长度，导致性能下降。需要做性能优化</span>
+</span><span id="Chunk-600"><a href="#Chunk-600"><span class="linenos">600</span></a> <span class="c1"># TODO bytes_out splicing efficiency is very low. It may be because the length of bytes_out splicing is uncertain, and the length needs to be expanded irregularly, resulting in performance degradation. Performance optimization is required</span>
 </span><span id="Chunk-601"><a href="#Chunk-601"><span class="linenos">601</span></a>            <span class="n">f_out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">gzip</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">bytes_out</span><span class="p">))</span>
 </span><span id="Chunk-602"><a href="#Chunk-602"><span class="linenos">602</span></a>
 </span><span id="Chunk-603"><a href="#Chunk-603"><span class="linenos">603</span></a>    <span class="k">def</span> <span class="nf">write_h5</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group</span><span class="p">):</span>
@@ -1989,7 +1989,7 @@
 </span><span id="Chunk.output_byte_file-597"><a href="#Chunk.output_byte_file-597"><span class="linenos">597</span></a>                <span class="n">buf</span> <span class="o">=</span> <span class="n">cell_border</span><span class="o">.</span><span class="n">get_LOD_vertices_index</span><span class="p">()</span>
 </span><span id="Chunk.output_byte_file-598"><a href="#Chunk.output_byte_file-598"><span class="linenos">598</span></a>                <span class="n">bytes_out</span> <span class="o">+=</span> <span class="n">buf</span>
 </span><span id="Chunk.output_byte_file-599"><a href="#Chunk.output_byte_file-599"><span class="linenos">599</span></a>
-</span><span id="Chunk.output_byte_file-600"><a href="#Chunk.output_byte_file-600"><span class="linenos">600</span></a>            <span class="c1"># TODO bytes_out拼接效率很低，可能是bytes_out拼接时长度不定，需要不定时扩展长度，导致性能下降。需要做性能优化</span>
+</span><span id="Chunk.output_byte_file-600"><a href="#Chunk.output_byte_file-600"><span class="linenos">600</span></a> <span class="c1"># TODO bytes_out splicing efficiency is very low. It may be because the length of bytes_out splicing is uncertain, and the length needs to be expanded irregularly, resulting in performance degradation. Performance optimization is required</span>
 </span><span id="Chunk.output_byte_file-601"><a href="#Chunk.output_byte_file-601"><span class="linenos">601</span></a>            <span class="n">f_out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">gzip</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">bytes_out</span><span class="p">))</span>
 </span></pre></div>
 

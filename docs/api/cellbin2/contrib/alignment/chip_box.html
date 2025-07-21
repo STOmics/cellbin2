@@ -104,7 +104,7 @@
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="k">class</span> <span class="nc">ChipAlignment</span><span class="p">(</span><span class="n">Alignment</span><span class="p">):</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="sd">    满足TissueBin需求：利用2模态芯片角为特征点，计算变换参数，实现配准。误差约100pix</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="sd"> Meet TissueBin requirements: use 2-modal chip angle as feature points to calculate transformation parameters and achieve registration. The error is about 100pix</span>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -121,11 +121,11 @@
 </span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_hflip</span> <span class="o">=</span> <span class="n">flip_flag</span>
 </span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">no_trans_flag</span> <span class="o">=</span> <span class="kc">False</span>
 </span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a>
-</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">9996</span>  <span class="c1"># 图像降采样最大尺寸</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a> <span class="bp">self</span><span class="o">.</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">9996</span> <span class="c1"># Maximum image downsampling size</span>
 </span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a>
 </span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>    <span class="k">def</span> <span class="nf">registration_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
 </span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a>                           <span class="n">file</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">CBImage</span><span class="p">]):</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; 对待变换的图像，调用图像处理库按照对齐参数，返回变换后的图 &quot;&quot;&quot;</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a><span class="w"> </span><span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;&quot;When treats the transformed image, call the image processing library to follow the alignment parameters and return the transformed image.&quot;&quot;</span>
 </span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a>
 </span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">CBImage</span><span class="p">):</span>
 </span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>            <span class="n">image</span> <span class="o">=</span> <span class="n">cbimread</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
@@ -265,9 +265,9 @@
 </span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a>        <span class="n">rot90_flag</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a><span class="p">):</span>
 </span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a><span class="sd">    :param moving_image: 待配准图，通常是染色图（如ssDNA、HE）</span>
-</span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a><span class="sd">    :param fixed_image: 固定图</span>
-</span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a><span class="sd">    :param from_stitched: 从拼接图开始</span>
+</span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a><span class="sd"> :param moving_image: The image to be registered, usually a staining image (such as ssDNA, HE)</span>
+</span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a><span class="sd"> :param fixed_image: fixed image</span>
+</span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a><span class="sd"> :param from_stitched: Start with the stitching diagram</span>
 </span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a><span class="sd">    :param flip_flag:</span>
 </span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a><span class="sd">    :param rot90_flag:</span>
 </span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a>
@@ -341,7 +341,7 @@
 </span><span id="L-249"><a href="#L-249"><span class="linenos">249</span></a>    <span class="kn">from</span> <span class="nn">cellbin2.matrix.box_detect</span> <span class="kn">import</span> <span class="n">detect_chip_box</span>
 </span><span id="L-250"><a href="#L-250"><span class="linenos">250</span></a>
 </span><span id="L-251"><a href="#L-251"><span class="linenos">251</span></a>
-</span><span id="L-252"><a href="#L-252"><span class="linenos">252</span></a>    <span class="c1"># 移动图像信息</span>
+</span><span id="L-252"><a href="#L-252"><span class="linenos">252</span></a> <span class="c1"># Mobile image information</span>
 </span><span id="L-253"><a href="#L-253"><span class="linenos">253</span></a>    <span class="n">moving_image</span> <span class="o">=</span> <span class="n">ChipFeature</span><span class="p">()</span>
 </span><span id="L-254"><a href="#L-254"><span class="linenos">254</span></a>    <span class="n">moving_image</span><span class="o">.</span><span class="n">tech_type</span> <span class="o">=</span> <span class="n">TechType</span><span class="o">.</span><span class="n">DAPI</span>
 </span><span id="L-255"><a href="#L-255"><span class="linenos">255</span></a>    <span class="n">moving_mat</span> <span class="o">=</span> <span class="n">cbimread</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;D:\02.data\temp\temp_cellbin2_test\register\D04499F1F2\D04499F1F2_ssDNA_stitch.tif&quot;</span><span class="p">)</span>
@@ -372,7 +372,7 @@
 </span><span id="L-280"><a href="#L-280"><span class="linenos">280</span></a>    <span class="n">m_info</span> <span class="o">=</span> <span class="n">detect_chip</span><span class="p">(</span><span class="n">moving_mat</span><span class="o">.</span><span class="n">image</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="p">,</span> <span class="n">stain_type</span><span class="o">=</span><span class="n">TechType</span><span class="o">.</span><span class="n">DAPI</span><span class="p">,</span> <span class="n">actual_size</span><span class="o">=</span><span class="p">(</span><span class="mi">19992</span><span class="p">,</span> <span class="mi">19992</span> <span class="o">*</span> <span class="mi">2</span><span class="p">))</span>
 </span><span id="L-281"><a href="#L-281"><span class="linenos">281</span></a>    <span class="n">moving_image</span><span class="o">.</span><span class="n">set_chip_box</span><span class="p">(</span><span class="n">m_info</span><span class="p">)</span>
 </span><span id="L-282"><a href="#L-282"><span class="linenos">282</span></a>
-</span><span id="L-283"><a href="#L-283"><span class="linenos">283</span></a>    <span class="c1"># 固定对象信息</span>
+</span><span id="L-283"><a href="#L-283"><span class="linenos">283</span></a> <span class="c1"># Fixed object information</span>
 </span><span id="L-284"><a href="#L-284"><span class="linenos">284</span></a>    <span class="n">fixed_image</span> <span class="o">=</span> <span class="n">ChipFeature</span><span class="p">()</span>
 </span><span id="L-285"><a href="#L-285"><span class="linenos">285</span></a>    <span class="n">fixed_image</span><span class="o">.</span><span class="n">tech_type</span> <span class="o">=</span> <span class="n">TechType</span><span class="o">.</span><span class="n">Transcriptomics</span>
 </span><span id="L-286"><a href="#L-286"><span class="linenos">286</span></a>    <span class="n">fixed_image</span><span class="o">.</span><span class="n">set_mat</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;D:\02.data\temp\temp_cellbin2_test\register\D04499F1F2\D04499F1F2_Transcriptomics.tif&quot;</span><span class="p">)</span>
@@ -400,7 +400,7 @@
     <a class="headerlink" href="#ChipAlignment"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="ChipAlignment-14"><a href="#ChipAlignment-14"><span class="linenos"> 14</span></a><span class="k">class</span> <span class="nc">ChipAlignment</span><span class="p">(</span><span class="n">Alignment</span><span class="p">):</span>
 </span><span id="ChipAlignment-15"><a href="#ChipAlignment-15"><span class="linenos"> 15</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="ChipAlignment-16"><a href="#ChipAlignment-16"><span class="linenos"> 16</span></a><span class="sd">    满足TissueBin需求：利用2模态芯片角为特征点，计算变换参数，实现配准。误差约100pix</span>
+</span><span id="ChipAlignment-16"><a href="#ChipAlignment-16"><span class="linenos"> 16</span></a><span class="sd"> Meet TissueBin requirements: use 2-modal chip angle as feature points to calculate transformation parameters and achieve registration. Error is about 100pix</span>
 </span><span id="ChipAlignment-17"><a href="#ChipAlignment-17"><span class="linenos"> 17</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="ChipAlignment-18"><a href="#ChipAlignment-18"><span class="linenos"> 18</span></a>
 </span><span id="ChipAlignment-19"><a href="#ChipAlignment-19"><span class="linenos"> 19</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -417,11 +417,11 @@
 </span><span id="ChipAlignment-30"><a href="#ChipAlignment-30"><span class="linenos"> 30</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_hflip</span> <span class="o">=</span> <span class="n">flip_flag</span>
 </span><span id="ChipAlignment-31"><a href="#ChipAlignment-31"><span class="linenos"> 31</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">no_trans_flag</span> <span class="o">=</span> <span class="kc">False</span>
 </span><span id="ChipAlignment-32"><a href="#ChipAlignment-32"><span class="linenos"> 32</span></a>
-</span><span id="ChipAlignment-33"><a href="#ChipAlignment-33"><span class="linenos"> 33</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">9996</span>  <span class="c1"># 图像降采样最大尺寸</span>
+</span><span id="ChipAlignment-33"><a href="#ChipAlignment-33"><span class="linenos"> 33</span></a> <span class="bp">self</span><span class="o">.</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">9996</span> <span class="c1"># Maximum image downsampling size</span>
 </span><span id="ChipAlignment-34"><a href="#ChipAlignment-34"><span class="linenos"> 34</span></a>
 </span><span id="ChipAlignment-35"><a href="#ChipAlignment-35"><span class="linenos"> 35</span></a>    <span class="k">def</span> <span class="nf">registration_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
 </span><span id="ChipAlignment-36"><a href="#ChipAlignment-36"><span class="linenos"> 36</span></a>                           <span class="n">file</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">CBImage</span><span class="p">]):</span>
-</span><span id="ChipAlignment-37"><a href="#ChipAlignment-37"><span class="linenos"> 37</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; 对待变换的图像，调用图像处理库按照对齐参数，返回变换后的图 &quot;&quot;&quot;</span>
+</span><span id="ChipAlignment-37"><a href="#ChipAlignment-37"><span class="linenos"> 37</span></a><span class="w"> </span><span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;&quot;When treats the transformed image, call the image processing library to follow the alignment parameters and return the transformed image.&quot;&quot;</span>
 </span><span id="ChipAlignment-38"><a href="#ChipAlignment-38"><span class="linenos"> 38</span></a>
 </span><span id="ChipAlignment-39"><a href="#ChipAlignment-39"><span class="linenos"> 39</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">CBImage</span><span class="p">):</span>
 </span><span id="ChipAlignment-40"><a href="#ChipAlignment-40"><span class="linenos"> 40</span></a>            <span class="n">image</span> <span class="o">=</span> <span class="n">cbimread</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
@@ -554,7 +554,7 @@
 </span></pre></div>
 
 
-            <div class="docstring"><p>满足TissueBin需求：利用2模态芯片角为特征点，计算变换参数，实现配准。误差约100pix</p>
+            <div class="docstring"><p>Meet TissueBin requirements: use 2-modal chip angle as feature points to calculate transformation parameters and realize registration. Error is about 100pix</p>
 </div>
 
 
@@ -582,7 +582,7 @@
 </span><span id="ChipAlignment.__init__-30"><a href="#ChipAlignment.__init__-30"><span class="linenos">30</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_hflip</span> <span class="o">=</span> <span class="n">flip_flag</span>
 </span><span id="ChipAlignment.__init__-31"><a href="#ChipAlignment.__init__-31"><span class="linenos">31</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">no_trans_flag</span> <span class="o">=</span> <span class="kc">False</span>
 </span><span id="ChipAlignment.__init__-32"><a href="#ChipAlignment.__init__-32"><span class="linenos">32</span></a>
-</span><span id="ChipAlignment.__init__-33"><a href="#ChipAlignment.__init__-33"><span class="linenos">33</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">9996</span>  <span class="c1"># 图像降采样最大尺寸</span>
+</span><span id="ChipAlignment.__init__-33"><a href="#ChipAlignment.__init__-33"><span class="linenos">33</span></a> <span class="bp">self</span><span class="o">.</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">9996</span> <span class="c1"># Maximum image downsampling size</span>
 </span></pre></div>
 
 
@@ -657,7 +657,7 @@
     <a class="headerlink" href="#ChipAlignment.registration_image"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="ChipAlignment.registration_image-35"><a href="#ChipAlignment.registration_image-35"><span class="linenos">35</span></a>    <span class="k">def</span> <span class="nf">registration_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
 </span><span id="ChipAlignment.registration_image-36"><a href="#ChipAlignment.registration_image-36"><span class="linenos">36</span></a>                           <span class="n">file</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">CBImage</span><span class="p">]):</span>
-</span><span id="ChipAlignment.registration_image-37"><a href="#ChipAlignment.registration_image-37"><span class="linenos">37</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; 对待变换的图像，调用图像处理库按照对齐参数，返回变换后的图 &quot;&quot;&quot;</span>
+</span><span id="ChipAlignment.registration_image-37"><a href="#ChipAlignment.registration_image-37"><span class="linenos">37</span></a><span class="w"> </span><span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;When treats the transformed image, call the image processing library to follow the alignment parameters and return the transformed image.&quot;&quot;</span>
 </span><span id="ChipAlignment.registration_image-38"><a href="#ChipAlignment.registration_image-38"><span class="linenos">38</span></a>
 </span><span id="ChipAlignment.registration_image-39"><a href="#ChipAlignment.registration_image-39"><span class="linenos">39</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">CBImage</span><span class="p">):</span>
 </span><span id="ChipAlignment.registration_image-40"><a href="#ChipAlignment.registration_image-40"><span class="linenos">40</span></a>            <span class="n">image</span> <span class="o">=</span> <span class="n">cbimread</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
@@ -681,7 +681,7 @@
 </span></pre></div>
 
 
-            <div class="docstring"><p>对待变换的图像，调用图像处理库按照对齐参数，返回变换后的图</p>
+            <div class="docstring"><p>For transformed images, call the image processing library to follow the alignment parameters and return the transformed images.</p>
 </div>
 
 
@@ -887,9 +887,9 @@
 </span><span id="chip_align-174"><a href="#chip_align-174"><span class="linenos">174</span></a>        <span class="n">rot90_flag</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="chip_align-175"><a href="#chip_align-175"><span class="linenos">175</span></a><span class="p">):</span>
 </span><span id="chip_align-176"><a href="#chip_align-176"><span class="linenos">176</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="chip_align-177"><a href="#chip_align-177"><span class="linenos">177</span></a><span class="sd">    :param moving_image: 待配准图，通常是染色图（如ssDNA、HE）</span>
-</span><span id="chip_align-178"><a href="#chip_align-178"><span class="linenos">178</span></a><span class="sd">    :param fixed_image: 固定图</span>
-</span><span id="chip_align-179"><a href="#chip_align-179"><span class="linenos">179</span></a><span class="sd">    :param from_stitched: 从拼接图开始</span>
+</span><span id="chip_align-177"><a href="#chip_align-177"><span class="linenos">177</span></a><span class="sd"> :param moving_image: The image to be registered, usually a staining image (such as ssDNA, HE)</span>
+</span><span id="chip_align-178"><a href="#chip_align-178"><span class="linenos">178</span></a><span class="sd"> :param fixed_image: fixed image</span>
+</span><span id="chip_align-179"><a href="#chip_align-179"><span class="linenos">179</span></a><span class="sd"> :param from_stitched: Start with the stitching diagram</span>
 </span><span id="chip_align-180"><a href="#chip_align-180"><span class="linenos">180</span></a><span class="sd">    :param flip_flag:</span>
 </span><span id="chip_align-181"><a href="#chip_align-181"><span class="linenos">181</span></a><span class="sd">    :param rot90_flag:</span>
 </span><span id="chip_align-182"><a href="#chip_align-182"><span class="linenos">182</span></a>
@@ -920,9 +920,9 @@
             <div class="docstring"><h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>moving_image</strong>:  待配准图，通常是染色图（如ssDNA、HE）</li>
-<li><strong>fixed_image</strong>:  固定图</li>
-<li><strong>from_stitched</strong>:  从拼接图开始</li>
+<li><strong>moving_image</strong>: The image to be registered, usually a staining image (such as ssDNA, HE)</li>
+<li><strong>fixed_image</strong>: Fixed image</li>
+<li><strong>from_stitched</strong>: Start with a stitching diagram</li>
 <li><strong>flip_flag</strong>: </li>
 <li><strong>rot90_flag</strong>: </li>
 </ul>

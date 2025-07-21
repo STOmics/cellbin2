@@ -343,7 +343,7 @@
 </span><span id="L-218"><a href="#L-218"><span class="linenos">218</span></a><span class="sd">    :param percentile: cutoff used to threshold image</span>
 </span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a><span class="sd">    :return: np.array: thresholded version of input image</span>
 </span><span id="L-220"><a href="#L-220"><span class="linenos">220</span></a>
-</span><span id="L-221"><a href="#L-221"><span class="linenos">221</span></a><span class="sd">    2023/09/20 @fxzhao 增加overwrite_input参数,可省去percentile的临时内存开销</span>
+</span><span id="L-221"><a href="#L-221"><span class="linenos">221</span></a><span class="sd"> 2023/09/20 @fxzhao Add overwrite_input parameter to save the temporary memory overhead of percentile</span>
 </span><span id="L-222"><a href="#L-222"><span class="linenos">222</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-223"><a href="#L-223"><span class="linenos">223</span></a>
 </span><span id="L-224"><a href="#L-224"><span class="linenos">224</span></a>    <span class="c1"># non_zero_vals = img[np.nonzero(img)]</span>
@@ -370,7 +370,7 @@
 </span><span id="L-245"><a href="#L-245"><span class="linenos">245</span></a><span class="sd">            defaults to 1/8 of image size.</span>
 </span><span id="L-246"><a href="#L-246"><span class="linenos">246</span></a><span class="sd">    :return: numpy.array:Pre-processed image</span>
 </span><span id="L-247"><a href="#L-247"><span class="linenos">247</span></a>
-</span><span id="L-248"><a href="#L-248"><span class="linenos">248</span></a><span class="sd">    2023/09/20 @fxzhao 使用cv方法替换skimage方法,提高计算速度并降低内存占用</span>
+</span><span id="L-248"><a href="#L-248"><span class="linenos">248</span></a><span class="sd"> 2023/09/20 @fxzhao Use the cv method to replace the skimage method, improve the calculation speed and reduce the memory usage</span>
 </span><span id="L-249"><a href="#L-249"><span class="linenos">249</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-250"><a href="#L-250"><span class="linenos">250</span></a>    <span class="c1"># return equalize_adapthist(img, kernel_size=kernel_size)</span>
 </span><span id="L-251"><a href="#L-251"><span class="linenos">251</span></a>    <span class="k">if</span> <span class="n">kernel_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -380,7 +380,7 @@
 </span><span id="L-255"><a href="#L-255"><span class="linenos">255</span></a>    <span class="n">img</span> <span class="o">=</span> <span class="n">clahe</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
 </span><span id="L-256"><a href="#L-256"><span class="linenos">256</span></a>    <span class="k">return</span> <span class="n">img</span>
 </span><span id="L-257"><a href="#L-257"><span class="linenos">257</span></a>
-</span><span id="L-258"><a href="#L-258"><span class="linenos">258</span></a><span class="k">def</span> <span class="nf">f_equalize_adapthist_V2</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>    <span class="c1">#该函数是cellbin1.2.0.16中的f_equalize_adapthist()，由于已经有同名函数，因此重命名为V2</span>
+</span><span id="L-258"><a href="#L-258"><span class="linenos">258</span></a><span class="k">def</span> <span class="nf">f_equalize_adapthist_V2</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span> <span class="c1">#This function is f_equalize_adapthist() in cellbin1.2.0.16. Since there is already a function with the same name, it is renamed to V2</span>
 </span><span id="L-259"><a href="#L-259"><span class="linenos">259</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-260"><a href="#L-260"><span class="linenos">260</span></a><span class="sd">    Pre-process images using Contrast Limited Adaptive</span>
 </span><span id="L-261"><a href="#L-261"><span class="linenos">261</span></a><span class="sd">    Histogram Equalization (CLAHE).</span>
@@ -412,7 +412,7 @@
 </span><span id="L-287"><a href="#L-287"><span class="linenos">287</span></a><span class="sd">    :param img: (CHANGE) (numpy.array): numpy array of phase image data.</span>
 </span><span id="L-288"><a href="#L-288"><span class="linenos">288</span></a><span class="sd">    :return: numpy.array:image data with dtype float32.</span>
 </span><span id="L-289"><a href="#L-289"><span class="linenos">289</span></a>
-</span><span id="L-290"><a href="#L-290"><span class="linenos">290</span></a><span class="sd">    2023/09/20 @fxzhao 使用numba加速rescale_intensity方法</span>
+</span><span id="L-290"><a href="#L-290"><span class="linenos">290</span></a><span class="sd"> 2023/09/20 @fxzhao Using numba to speed up rescale_intensity method</span>
 </span><span id="L-291"><a href="#L-291"><span class="linenos">291</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-292"><a href="#L-292"><span class="linenos">292</span></a>
 </span><span id="L-293"><a href="#L-293"><span class="linenos">293</span></a>    <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float32&#39;</span><span class="p">)</span>
@@ -482,8 +482,8 @@
 </span><span id="L-357"><a href="#L-357"><span class="linenos">357</span></a><span class="nd">@njit</span><span class="p">(</span><span class="n">parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="L-358"><a href="#L-358"><span class="linenos">358</span></a><span class="k">def</span> <span class="nf">f_ij_16_to_8_v2</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
 </span><span id="L-359"><a href="#L-359"><span class="linenos">359</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-360"><a href="#L-360"><span class="linenos">360</span></a><span class="sd">    2023/09/20 @fxzhao f_ij_16_to_8的升级版本,使用numba加速</span>
-</span><span id="L-361"><a href="#L-361"><span class="linenos">361</span></a><span class="sd">    2023/10/16 @fxzhao 支持三通道图片输入</span>
+</span><span id="L-360"><a href="#L-360"><span class="linenos">360</span></a><span class="sd"> 2023/09/20 @fxzhao f_ij_16_to_8 upgraded version, using numba acceleration</span>
+</span><span id="L-361"><a href="#L-361"><span class="linenos">361</span></a><span class="sd"> 2023/10/16 @fxzhao supports three-channel picture input</span>
 </span><span id="L-362"><a href="#L-362"><span class="linenos">362</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-363"><a href="#L-363"><span class="linenos">363</span></a>
 </span><span id="L-364"><a href="#L-364"><span class="linenos">364</span></a>    <span class="n">dst</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
@@ -1180,7 +1180,7 @@ Otherwise, the default filter is Resampling.BICUBIC</li>
 </span><span id="f_percentile_threshold-219"><a href="#f_percentile_threshold-219"><span class="linenos">219</span></a><span class="sd">    :param percentile: cutoff used to threshold image</span>
 </span><span id="f_percentile_threshold-220"><a href="#f_percentile_threshold-220"><span class="linenos">220</span></a><span class="sd">    :return: np.array: thresholded version of input image</span>
 </span><span id="f_percentile_threshold-221"><a href="#f_percentile_threshold-221"><span class="linenos">221</span></a>
-</span><span id="f_percentile_threshold-222"><a href="#f_percentile_threshold-222"><span class="linenos">222</span></a><span class="sd">    2023/09/20 @fxzhao 增加overwrite_input参数,可省去percentile的临时内存开销</span>
+</span><span id="f_percentile_threshold-222"><a href="#f_percentile_threshold-222"><span class="linenos">222</span></a><span class="sd"> 2023/09/20 @fxzhao Add overwrite_input parameter to save the temporary memory overhead of percentile</span>
 </span><span id="f_percentile_threshold-223"><a href="#f_percentile_threshold-223"><span class="linenos">223</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="f_percentile_threshold-224"><a href="#f_percentile_threshold-224"><span class="linenos">224</span></a>
 </span><span id="f_percentile_threshold-225"><a href="#f_percentile_threshold-225"><span class="linenos">225</span></a>    <span class="c1"># non_zero_vals = img[np.nonzero(img)]</span>
@@ -1213,7 +1213,7 @@ Otherwise, the default filter is Resampling.BICUBIC</li>
   <p>np.array: thresholded version of input image</p>
 </blockquote>
 
-<p>2023/09/20 @fxzhao 增加overwrite_input参数,可省去percentile的临时内存开销</p>
+<p>2023/09/20 @fxzhao Add overwrite_input parameter to save the temporary memory overhead of percentile</p>
 </div>
 
 
@@ -1239,7 +1239,7 @@ Otherwise, the default filter is Resampling.BICUBIC</li>
 </span><span id="f_equalize_adapthist-246"><a href="#f_equalize_adapthist-246"><span class="linenos">246</span></a><span class="sd">            defaults to 1/8 of image size.</span>
 </span><span id="f_equalize_adapthist-247"><a href="#f_equalize_adapthist-247"><span class="linenos">247</span></a><span class="sd">    :return: numpy.array:Pre-processed image</span>
 </span><span id="f_equalize_adapthist-248"><a href="#f_equalize_adapthist-248"><span class="linenos">248</span></a>
-</span><span id="f_equalize_adapthist-249"><a href="#f_equalize_adapthist-249"><span class="linenos">249</span></a><span class="sd">    2023/09/20 @fxzhao 使用cv方法替换skimage方法,提高计算速度并降低内存占用</span>
+</span><span id="f_equalize_adapthist-249"><a href="#f_equalize_adapthist-249"><span class="linenos">249</span></a><span class="sd"> 2023/09/20 @fxzhao Use the cv method to replace the skimage method, improve the calculation speed and reduce the memory usage</span>
 </span><span id="f_equalize_adapthist-250"><a href="#f_equalize_adapthist-250"><span class="linenos">250</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="f_equalize_adapthist-251"><a href="#f_equalize_adapthist-251"><span class="linenos">251</span></a>    <span class="c1"># return equalize_adapthist(img, kernel_size=kernel_size)</span>
 </span><span id="f_equalize_adapthist-252"><a href="#f_equalize_adapthist-252"><span class="linenos">252</span></a>    <span class="k">if</span> <span class="n">kernel_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1268,7 +1268,7 @@ defaults to 1/8 of image size.</li>
   <p>numpy.array:Pre-processed image</p>
 </blockquote>
 
-<p>2023/09/20 @fxzhao 使用cv方法替换skimage方法,提高计算速度并降低内存占用</p>
+<p>2023/09/20 @fxzhao Use cv method to replace skimage method, improve calculation speed and reduce memory usage</p>
 </div>
 
 
@@ -1284,7 +1284,7 @@ defaults to 1/8 of image size.</li>
 
     </div>
     <a class="headerlink" href="#f_equalize_adapthist_V2"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="f_equalize_adapthist_V2-259"><a href="#f_equalize_adapthist_V2-259"><span class="linenos">259</span></a><span class="k">def</span> <span class="nf">f_equalize_adapthist_V2</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>    <span class="c1">#该函数是cellbin1.2.0.16中的f_equalize_adapthist()，由于已经有同名函数，因此重命名为V2</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="f_equalize_adapthist_V2-259"><a href="#f_equalize_adapthist_V2-259"><span class="linenos">259</span></a><span class="k">def</span> <span class="nf">f_equalize_adapthist_V2</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span> <span class="c1">#This function is f_equalize_adapthist() in cellbin1.2.0.16. Since there is already a function with the same name, it is renamed to V2</span>
 </span><span id="f_equalize_adapthist_V2-260"><a href="#f_equalize_adapthist_V2-260"><span class="linenos">260</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="f_equalize_adapthist_V2-261"><a href="#f_equalize_adapthist_V2-261"><span class="linenos">261</span></a><span class="sd">    Pre-process images using Contrast Limited Adaptive</span>
 </span><span id="f_equalize_adapthist_V2-262"><a href="#f_equalize_adapthist_V2-262"><span class="linenos">262</span></a><span class="sd">    Histogram Equalization (CLAHE).</span>
@@ -1365,7 +1365,7 @@ defaults to 1/8 of image size.</li>
 </span><span id="f_histogram_normalization-288"><a href="#f_histogram_normalization-288"><span class="linenos">288</span></a><span class="sd">    :param img: (CHANGE) (numpy.array): numpy array of phase image data.</span>
 </span><span id="f_histogram_normalization-289"><a href="#f_histogram_normalization-289"><span class="linenos">289</span></a><span class="sd">    :return: numpy.array:image data with dtype float32.</span>
 </span><span id="f_histogram_normalization-290"><a href="#f_histogram_normalization-290"><span class="linenos">290</span></a>
-</span><span id="f_histogram_normalization-291"><a href="#f_histogram_normalization-291"><span class="linenos">291</span></a><span class="sd">    2023/09/20 @fxzhao 使用numba加速rescale_intensity方法</span>
+</span><span id="f_histogram_normalization-291"><a href="#f_histogram_normalization-291"><span class="linenos">291</span></a><span class="sd"> 2023/09/20 @fxzhao Using numba to speed up rescale_intensity method</span>
 </span><span id="f_histogram_normalization-292"><a href="#f_histogram_normalization-292"><span class="linenos">292</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="f_histogram_normalization-293"><a href="#f_histogram_normalization-293"><span class="linenos">293</span></a>
 </span><span id="f_histogram_normalization-294"><a href="#f_histogram_normalization-294"><span class="linenos">294</span></a>    <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float32&#39;</span><span class="p">)</span>
@@ -1393,7 +1393,7 @@ be normalized as an array of all zeros of the same shape.</p>
   <p>numpy.array:image data with dtype float32.</p>
 </blockquote>
 
-<p>2023/09/20 @fxzhao 使用numba加速rescale_intensity方法</p>
+<p>2023/09/20 @fxzhao Use numba to speed up rescale_intensity method</p>
 </div>
 
 
@@ -1529,8 +1529,8 @@ be normalized as an array of all zeros of the same shape.</p>
             <div class="pdoc-code codehilite"><pre><span></span><span id="f_ij_16_to_8_v2-358"><a href="#f_ij_16_to_8_v2-358"><span class="linenos">358</span></a><span class="nd">@njit</span><span class="p">(</span><span class="n">parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="f_ij_16_to_8_v2-359"><a href="#f_ij_16_to_8_v2-359"><span class="linenos">359</span></a><span class="k">def</span> <span class="nf">f_ij_16_to_8_v2</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
 </span><span id="f_ij_16_to_8_v2-360"><a href="#f_ij_16_to_8_v2-360"><span class="linenos">360</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="f_ij_16_to_8_v2-361"><a href="#f_ij_16_to_8_v2-361"><span class="linenos">361</span></a><span class="sd">    2023/09/20 @fxzhao f_ij_16_to_8的升级版本,使用numba加速</span>
-</span><span id="f_ij_16_to_8_v2-362"><a href="#f_ij_16_to_8_v2-362"><span class="linenos">362</span></a><span class="sd">    2023/10/16 @fxzhao 支持三通道图片输入</span>
+</span><span id="f_ij_16_to_8_v2-361"><a href="#f_ij_16_to_8_v2-361"><span class="linenos">361</span></a><span class="sd"> 2023/09/20 @fxzhao f_ij_16_to_8 upgraded version, using numba acceleration</span>
+</span><span id="f_ij_16_to_8_v2-362"><a href="#f_ij_16_to_8_v2-362"><span class="linenos">362</span></a><span class="sd"> 2023/10/16 @fxzhao supports three-channel picture input</span>
 </span><span id="f_ij_16_to_8_v2-363"><a href="#f_ij_16_to_8_v2-363"><span class="linenos">363</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="f_ij_16_to_8_v2-364"><a href="#f_ij_16_to_8_v2-364"><span class="linenos">364</span></a>
 </span><span id="f_ij_16_to_8_v2-365"><a href="#f_ij_16_to_8_v2-365"><span class="linenos">365</span></a>    <span class="n">dst</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
@@ -1562,8 +1562,8 @@ be normalized as an array of all zeros of the same shape.</p>
 </span></pre></div>
 
 
-            <div class="docstring"><p>2023/09/20 @fxzhao f_ij_16_to_8的升级版本,使用numba加速
-2023/10/16 @fxzhao 支持三通道图片输入</p>
+            <div class="docstring"><p>2023/09/20 @fxzhao Upgraded version of f_ij_16_to_8, using numba to speed up
+2023/10/16 @fxzhao supports three-channel picture input</p>
 </div>
 
 

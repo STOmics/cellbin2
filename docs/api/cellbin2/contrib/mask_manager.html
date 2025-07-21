@@ -138,16 +138,16 @@
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="k">class</span> <span class="nc">MaskManagerInfo</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>    <span class="n">tissue_mask</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;组织分割mask&#39;</span><span class="p">)</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a>    <span class="n">cell_mask</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;细胞分割mask&#39;</span><span class="p">)</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>    <span class="n">chip_box</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ChipBoxInfo</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;芯片框&#39;</span><span class="p">)</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>    <span class="n">stain_type</span><span class="p">:</span> <span class="n">TechType</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;染色类型&#39;</span><span class="p">)</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a>    <span class="n">method</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;使用方法，0：稳定版，1：研发版&#39;</span><span class="p">)</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a> <span class="n">tissue_mask</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Organization segmentation mask</span><span class="p">)</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a> <span class="n">cell_mask</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Cell segmentation mask&#39;</span><span class="s1">&#39; class="p">)</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a> <span class="n">chip_box</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ChipBoxInfo</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Chip frame&#39;</span><span class="p">)</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a> <span class="n">stain_type</span><span class="p">:</span> <span class="n">TechType</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Stain type&#39;Stain type&#39;Stain type&#39;Stain type&#39;Stain type&#39;Span class="s1">&#39;Stain type&#39;Span class="kc">None</span><span class="p">,</span> <span class="n">Description</span><span class="o">=</span><span class="s1">&#39;Stain type&#39;Stain type&#39;Span class="p">)</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a> <span class="n">method</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Usage method, 0: stable version, 1: R&D version&#39;</span><span class="p">)</span>
 </span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>
 </span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>
 </span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="k">class</span> <span class="nc">BestTissueCellMaskInfo</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a>    <span class="n">best_tissue_mask</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;融合后的组织分割mask&#39;</span><span class="p">)</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a>    <span class="n">best_cell_mask</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;融合后的细胞分割mask&#39;</span><span class="p">)</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a> <span class="n">best_tissue_mask</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Enterprise segmentation after fused mask&#39;</span><span class="p">)</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a> <span class="n">best_cell_mask</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Cell segmentation after fusion mask&#39;</span><span class="p">)</span>
 </span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a>
 </span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a>
 </span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="k">class</span> <span class="nc">BestTissueCellMask</span><span class="p">:</span>
@@ -311,8 +311,8 @@
 </span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a>
 </span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a><span class="k">def</span> <span class="nf">instance2semantics</span><span class="p">(</span><span class="n">ins</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 </span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a><span class="sd">    :param ins: 实例mask（0-N）</span>
-</span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a><span class="sd">    :return: 语义mask（0-1）</span>
+</span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a><span class="sd"> :param ins: instance mask (0-N)</span>
+</span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a><span class="sd"> :return: semantic mask (0-1)</span>
 </span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a>    <span class="n">ins_</span> <span class="o">=</span> <span class="n">ins</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 </span><span id="L-196"><a href="#L-196"><span class="linenos">196</span></a>    <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">ins_</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
@@ -334,17 +334,17 @@
 </span><span id="L-212"><a href="#L-212"><span class="linenos">212</span></a>        <span class="n">conflict_cover</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;nuclear&quot;</span>
 </span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CBImage</span><span class="p">:</span>
 </span><span id="L-214"><a href="#L-214"><span class="linenos">214</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-215"><a href="#L-215"><span class="linenos">215</span></a><span class="sd">    :param nuclear_mask: 原始nuclear_mask</span>
-</span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a><span class="sd">        -- 实例格式（背景是0，然后各个细胞赋值一个ID），图像最大值是细胞的个数</span>
-</span><span id="L-217"><a href="#L-217"><span class="linenos">217</span></a><span class="sd">        -- 语义格式（01数组）</span>
+</span><span id="L-215"><a href="#L-215"><span class="linenos">215</span></a><span class="sd"> :param nuclear_mask: original nuclear_mask</span>
+</span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a><span class="sd"> -- Example format (the background is 0, and each cell is assigned an ID), the maximum image value is the number of cells</span>
+</span><span id="L-217"><a href="#L-217"><span class="linenos">217</span></a><span class="sd"> -- Semantic Format (01 Array)</span>
 </span><span id="L-218"><a href="#L-218"><span class="linenos">218</span></a>
-</span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a><span class="sd">    :param membrane_mask: 原始membrane_mask</span>
-</span><span id="L-220"><a href="#L-220"><span class="linenos">220</span></a><span class="sd">        -- 实例格式（背景是0，然后各个细胞赋值一个ID），图像最大值是细胞的个数</span>
-</span><span id="L-221"><a href="#L-221"><span class="linenos">221</span></a><span class="sd">        -- 语义格式（01数组）</span>
+</span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a><span class="sd"> :param membrane_mask: original membrane_mask</span>
+</span><span id="L-220"><a href="#L-220"><span class="linenos">220</span></a><span class="sd"> -- Example format (the background is 0, and each cell is assigned an ID), the maximum image value is the number of cells</span>
+</span><span id="L-221"><a href="#L-221"><span class="linenos">221</span></a><span class="sd"> -- Semantic Format (01 Array)</span>
 </span><span id="L-222"><a href="#L-222"><span class="linenos">222</span></a>
-</span><span id="L-223"><a href="#L-223"><span class="linenos">223</span></a><span class="sd">    :param conflict_cover: 冲突主体 nuclear | membrane</span>
+</span><span id="L-223"><a href="#L-223"><span class="linenos">223</span></a><span class="sd"> :param conflict_cover: conflict subject nuclear | membrane</span>
 </span><span id="L-224"><a href="#L-224"><span class="linenos">224</span></a>
-</span><span id="L-225"><a href="#L-225"><span class="linenos">225</span></a><span class="sd">    :return: 合并mask</span>
+</span><span id="L-225"><a href="#L-225"><span class="linenos">225</span></a><span class="sd"> :return: Merge mask</span>
 </span><span id="L-226"><a href="#L-226"><span class="linenos">226</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-227"><a href="#L-227"><span class="linenos">227</span></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">nuclear_mask</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
 </span><span id="L-228"><a href="#L-228"><span class="linenos">228</span></a>        <span class="n">nuclear_mask_sem</span> <span class="o">=</span> <span class="n">instance2semantics</span><span class="p">(</span><span class="n">nuclear_mask</span><span class="p">)</span>
@@ -391,7 +391,7 @@
 </span><span id="L-269"><a href="#L-269"><span class="linenos">269</span></a>
 </span><span id="L-270"><a href="#L-270"><span class="linenos">270</span></a>    <span class="n">chip_box</span> <span class="o">=</span> <span class="n">ChipBoxInfo</span><span class="p">()</span>
 </span><span id="L-271"><a href="#L-271"><span class="linenos">271</span></a>
-</span><span id="L-272"><a href="#L-272"><span class="linenos">272</span></a>    <span class="c1"># HE测试数据细胞分割mask和组织分割mask路径</span>
+</span><span id="L-272"><a href="#L-272"><span class="linenos">272</span></a> <span class="c1"># HE test data cell segmentation mask and tissue segmentation mask path</span>
 </span><span id="L-273"><a href="#L-273"><span class="linenos">273</span></a>    <span class="n">cell_mask_path</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;F:\01.users\hedongdong\cellbin2_test\cell_mask\C04042E3_HE_regist_v3_mask.tif&quot;</span>
 </span><span id="L-274"><a href="#L-274"><span class="linenos">274</span></a>    <span class="n">tissue_mask_path</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;F:\01.users\hedongdong\cellbin2_test\result_mask\C04042E3_HE_regist.tif&quot;</span>
 </span><span id="L-275"><a href="#L-275"><span class="linenos">275</span></a>
@@ -404,7 +404,7 @@
 </span><span id="L-282"><a href="#L-282"><span class="linenos">282</span></a>    <span class="n">stain_type</span> <span class="o">=</span> <span class="n">TechType</span><span class="o">.</span><span class="n">DAPI</span>
 </span><span id="L-283"><a href="#L-283"><span class="linenos">283</span></a>    <span class="n">method</span> <span class="o">=</span> <span class="mi">1</span>
 </span><span id="L-284"><a href="#L-284"><span class="linenos">284</span></a>
-</span><span id="L-285"><a href="#L-285"><span class="linenos">285</span></a>    <span class="c1"># # ssDNA测试数据细胞分割mask和组织分割mask路径</span>
+</span><span id="L-285"><a href="#L-285"><span class="linenos">285</span></a> <span class="c1"># # ssDNA test data cell segmentation mask and tissue segmentation mask path</span>
 </span><span id="L-286"><a href="#L-286"><span class="linenos">286</span></a>    <span class="c1"># cell_mask_path = r&quot;F:\01.users\hedongdong\cellbin2_test\cell_mask\A04535A4C6_fov_stitched_v3_mask.tif&quot;</span>
 </span><span id="L-287"><a href="#L-287"><span class="linenos">287</span></a>    <span class="c1"># tissue_mask_path = r&quot;F:\01.users\hedongdong\cellbin2_test\result_mask\A04535A4C6_fov_stitched.tif&quot;</span>
 </span><span id="L-288"><a href="#L-288"><span class="linenos">288</span></a>    <span class="c1">#</span>
@@ -461,11 +461,11 @@
     </div>
     <a class="headerlink" href="#MaskManagerInfo"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="MaskManagerInfo-19"><a href="#MaskManagerInfo-19"><span class="linenos">19</span></a><span class="k">class</span> <span class="nc">MaskManagerInfo</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="MaskManagerInfo-20"><a href="#MaskManagerInfo-20"><span class="linenos">20</span></a>    <span class="n">tissue_mask</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;组织分割mask&#39;</span><span class="p">)</span>
-</span><span id="MaskManagerInfo-21"><a href="#MaskManagerInfo-21"><span class="linenos">21</span></a>    <span class="n">cell_mask</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;细胞分割mask&#39;</span><span class="p">)</span>
-</span><span id="MaskManagerInfo-22"><a href="#MaskManagerInfo-22"><span class="linenos">22</span></a>    <span class="n">chip_box</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ChipBoxInfo</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;芯片框&#39;</span><span class="p">)</span>
-</span><span id="MaskManagerInfo-23"><a href="#MaskManagerInfo-23"><span class="linenos">23</span></a>    <span class="n">stain_type</span><span class="p">:</span> <span class="n">TechType</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;染色类型&#39;</span><span class="p">)</span>
-</span><span id="MaskManagerInfo-24"><a href="#MaskManagerInfo-24"><span class="linenos">24</span></a>    <span class="n">method</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;使用方法，0：稳定版，1：研发版&#39;</span><span class="p">)</span>
+</span><span id="MaskManagerInfo-20"><a href="#MaskManagerInfo-20"><span class="linenos">20</span></a> <span class="n">tissue_mask</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;organization segmentation mask&#39;</span><span class="p">)</span>
+</span><span id="MaskManagerInfo-21"><a href="#MaskManagerInfo-21"><span class="linenos">21</span></a> <span class="n">cell_mask</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Cell segmentation mask&#39;</span><span class="p">)</span>
+</span><span id="MaskManagerInfo-22"><a href="#MaskManagerInfo-22"><span class="linenos">22</span></a> <span class="n">chip_box</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ChipBoxInfo</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Chip frame&#39;</span><span class="p">)</span>
+</span><span id="MaskManagerInfo-23"><a href="#MaskManagerInfo-23"><span class="linenos">23</span></a> <span class="n">stain_type</span><span class="p">:</span> <span class="n">TechType</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Staining Type&#39;</span><span class="p">)</span>
+</span><span id="MaskManagerInfo-24"><a href="#MaskManagerInfo-24"><span class="linenos">24</span></a> <span class="n">method</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Usage method, 0: stable version, 1: R&D version&#39;</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -619,8 +619,8 @@ is set to <code>'allow'</code>.</li>
     </div>
     <a class="headerlink" href="#BestTissueCellMaskInfo"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="BestTissueCellMaskInfo-27"><a href="#BestTissueCellMaskInfo-27"><span class="linenos">27</span></a><span class="k">class</span> <span class="nc">BestTissueCellMaskInfo</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="BestTissueCellMaskInfo-28"><a href="#BestTissueCellMaskInfo-28"><span class="linenos">28</span></a>    <span class="n">best_tissue_mask</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;融合后的组织分割mask&#39;</span><span class="p">)</span>
-</span><span id="BestTissueCellMaskInfo-29"><a href="#BestTissueCellMaskInfo-29"><span class="linenos">29</span></a>    <span class="n">best_cell_mask</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;融合后的细胞分割mask&#39;</span><span class="p">)</span>
+</span><span id="BestTissueCellMaskInfo-28"><a href="#BestTissueCellMaskInfo-28"><span class="linenos">28</span></a> <span class="n">best_tissue_mask</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Enterprise segmentation after fused mask&#39;</span><span class="p">)</span>
+</span><span id="BestTissueCellMaskInfo-29"><a href="#BestTissueCellMaskInfo-29"><span class="linenos">29</span></a> <span class="n">best_cell_mask</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Cell segmentation after fusion mask&#39;</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -1190,8 +1190,8 @@ is set to <code>'allow'</code>.</li>
     <a class="headerlink" href="#instance2semantics"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="instance2semantics-191"><a href="#instance2semantics-191"><span class="linenos">191</span></a><span class="k">def</span> <span class="nf">instance2semantics</span><span class="p">(</span><span class="n">ins</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 </span><span id="instance2semantics-192"><a href="#instance2semantics-192"><span class="linenos">192</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="instance2semantics-193"><a href="#instance2semantics-193"><span class="linenos">193</span></a><span class="sd">    :param ins: 实例mask（0-N）</span>
-</span><span id="instance2semantics-194"><a href="#instance2semantics-194"><span class="linenos">194</span></a><span class="sd">    :return: 语义mask（0-1）</span>
+</span><span id="instance2semantics-193"><a href="#instance2semantics-193"><span class="linenos">193</span></a><span class="sd"> :param ins: instance mask (0-N)</span>
+</span><span id="instance2semantics-194"><a href="#instance2semantics-194"><span class="linenos">194</span></a><span class="sd"> :return: semantic mask (0-1)</span>
 </span><span id="instance2semantics-195"><a href="#instance2semantics-195"><span class="linenos">195</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="instance2semantics-196"><a href="#instance2semantics-196"><span class="linenos">196</span></a>    <span class="n">ins_</span> <span class="o">=</span> <span class="n">ins</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 </span><span id="instance2semantics-197"><a href="#instance2semantics-197"><span class="linenos">197</span></a>    <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">ins_</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
@@ -1210,13 +1210,13 @@ is set to <code>'allow'</code>.</li>
             <div class="docstring"><h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>ins</strong>:  实例mask（0-N）</li>
+<li><strong>ins</strong>: Instance mask (0-N)</li>
 </ul>
 
 <h6 id="returns">Returns</h6>
 
 <blockquote>
-  <p>语义mask（0-1）</p>
+  <p>Semantic mask(0-1)</p>
 </blockquote>
 </div>
 
@@ -1249,19 +1249,19 @@ is set to <code>'allow'</code>.</li>
             <div class="docstring"><h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><p><strong>nuclear_mask</strong>:  原始nuclear_mask
--- 实例格式（背景是0，然后各个细胞赋值一个ID），图像最大值是细胞的个数
--- 语义格式（01数组）</p></li>
-<li><p><strong>membrane_mask</strong>:  原始membrane_mask
--- 实例格式（背景是0，然后各个细胞赋值一个ID），图像最大值是细胞的个数
--- 语义格式（01数组）</p></li>
-<li><p><strong>conflict_cover</strong>:  冲突主体 nuclear | membrane</p></li>
+<li><p><strong>nuclear_mask</strong>: original nuclear_mask
+-- The example format (the background is 0, and each cell is assigned an ID), the maximum image value is the number of cells
+-- Semantic Format (01 Array)</p></li>
+<li><p><strong>membrane_mask</strong>: original membrane_mask
+-- The example format (the background is 0, and each cell is assigned an ID), the maximum image value is the number of cells
+-- Semantic Format (01 Array)</p></li>
+<li><p><strong>conflict_cover</strong>: conflict subject nuclear | membrane</p></li>
 </ul>
 
 <h6 id="returns">Returns</h6>
 
 <blockquote>
-  <p>合并mask</p>
+  <p>Merge mask</p>
 </blockquote>
 </div>
 

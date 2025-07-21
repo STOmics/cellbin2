@@ -93,7 +93,7 @@ class StitchingWSI(object):
                         x, y = self.fov_location[i, j]
                         x_, y_ = (int(x / down_sample), int(y / down_sample))
 
-                        # ------------- 融合
+                        # ------------ Fusion
                         if fuse_flag:
                             if j > 0:
                                 if rc_key(i, j - 1) in src_image.keys():

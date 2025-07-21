@@ -113,7 +113,7 @@
 
                         <label class="view-source-button" for="mod-utils-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="c1"># 支撑功能</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="c1"># Support function</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">import</span> <span class="nn">h5py</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span> <span class="nn">os</span>
@@ -138,7 +138,7 @@
 </span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a>            <span class="n">sub</span> <span class="o">=</span> <span class="n">h5</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
 </span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>            <span class="n">dict2h5</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">sub</span><span class="p">)</span>
 </span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a>            <span class="n">h5</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s2">&quot;lzf&quot;</span><span class="p">)</span>  <span class="c1"># TODO: 压缩后h5 view看不到，等不需要debug了再开</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a> <span class="n">h5</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="o">=</span><span class="n"> class="s2">&quot;lzf&quot;</span><span class="p">)</span> <span class="c1"># TODO: After compression, you can't see the h5 view, wait until you don't need to debug it before opening</span>
 </span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a>            <span class="n">h5</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
 </span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a>
@@ -221,7 +221,7 @@
 </span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>
 </span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>
 </span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="k">class</span> <span class="nc">DictEncoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">):</span>
-</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; 适配json各种数据类型 &quot;&quot;&quot;</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a><span class="w"> </span><span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;Adapt json various data types &quot;&quot;&quot;</span>
 </span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>
 </span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>    <span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 </span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
@@ -297,7 +297,7 @@
 </span><span id="dict2h5-24"><a href="#dict2h5-24"><span class="linenos">24</span></a>            <span class="n">sub</span> <span class="o">=</span> <span class="n">h5</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
 </span><span id="dict2h5-25"><a href="#dict2h5-25"><span class="linenos">25</span></a>            <span class="n">dict2h5</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">sub</span><span class="p">)</span>
 </span><span id="dict2h5-26"><a href="#dict2h5-26"><span class="linenos">26</span></a>        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-</span><span id="dict2h5-27"><a href="#dict2h5-27"><span class="linenos">27</span></a>            <span class="n">h5</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s2">&quot;lzf&quot;</span><span class="p">)</span>  <span class="c1"># TODO: 压缩后h5 view看不到，等不需要debug了再开</span>
+</span><span id="dict2h5-27"><a href="#dict2h5-27"><span class="linenos">27</span></a> <span class="n">h5</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="o">=</span><span class="n"> class="s2">&quot;lzf&quot;</span><span class="p">)</span> <span class="c1"># TODO: After compression, you can't see the h5 view, wait until you don't need to debug it before opening</span>
 </span><span id="dict2h5-28"><a href="#dict2h5-28"><span class="linenos">28</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="dict2h5-29"><a href="#dict2h5-29"><span class="linenos">29</span></a>            <span class="n">h5</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
 </span></pre></div>
@@ -543,7 +543,7 @@
     </div>
     <a class="headerlink" href="#DictEncoder"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="DictEncoder-109"><a href="#DictEncoder-109"><span class="linenos">109</span></a><span class="k">class</span> <span class="nc">DictEncoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">):</span>
-</span><span id="DictEncoder-110"><a href="#DictEncoder-110"><span class="linenos">110</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; 适配json各种数据类型 &quot;&quot;&quot;</span>
+</span><span id="DictEncoder-110"><a href="#DictEncoder-110"><span class="linenos">110</span></a><span class="w"> </span><span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;&quot;Adapt json various data types &quot;&quot;&quot;</span>
 </span><span id="DictEncoder-111"><a href="#DictEncoder-111"><span class="linenos">111</span></a>
 </span><span id="DictEncoder-112"><a href="#DictEncoder-112"><span class="linenos">112</span></a>    <span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 </span><span id="DictEncoder-113"><a href="#DictEncoder-113"><span class="linenos">113</span></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
@@ -559,7 +559,7 @@
 </span></pre></div>
 
 
-            <div class="docstring"><p>适配json各种数据类型</p>
+            <div class="docstring"><p>Adapt to various data types of json</p>
 </div>
 
 

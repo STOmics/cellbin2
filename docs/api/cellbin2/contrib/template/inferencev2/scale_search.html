@@ -88,7 +88,7 @@
 </span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="k">class</span> <span class="nc">ScaleSearch</span><span class="p">:</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="sd">    track检点进行尺度判定, 需要给明角度</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="sd"> Track checks for scale judgment, need to give a clear angle</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>                 <span class="n">search_range</span><span class="o">=</span><span class="p">[</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">1.7</span><span class="p">],</span>
@@ -103,7 +103,7 @@
 </span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>    <span class="nd">@staticmethod</span>
 </span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>    <span class="k">def</span> <span class="nf">_center_point_search</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 </span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="sd">        中心点匹配</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="sd"> Center point matching</span>
 </span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="sd">        Args:</span>
 </span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="sd">            points:</span>
 </span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -117,7 +117,7 @@
 </span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a><span class="sd">        one point of temp0 map to only one point of temp1</span>
 </span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="sd">        Args:</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="sd">            dis: 距离测量</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="sd"> dis: Distance measurement</span>
 </span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>        <span class="kn">import</span> <span class="nn">scipy.spatial</span> <span class="k">as</span> <span class="nn">spt</span>
 </span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>
@@ -200,7 +200,7 @@
 </span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>
 </span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>    <span class="k">def</span> <span class="nf">_valid_scale_judge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_points</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">search_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a><span class="sd">        搜索尺度时，解决对于小scale尺度匹配距离过小问题</span>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a><span class="sd"> When searching for scales, solve the problem of too small matching distance for small scales</span>
 </span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>        <span class="n">point_re</span><span class="p">,</span> <span class="n">point_qc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pair_to_template</span><span class="p">(</span><span class="n">target_points</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">template</span><span class="p">,</span> <span class="n">search_thresh</span><span class="p">)</span>
 </span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>
@@ -219,7 +219,7 @@
 </span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>                <span class="n">valid_temp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
 </span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>
 </span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>        <span class="k">if</span> <span class="n">points_count</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_points</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">rate</span> <span class="ow">or</span> \
-</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>                <span class="n">points_count</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_points</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">:</span>  <span class="c1"># 匹配点圈内点数量不多于1.2倍或不多于10个检点数</span>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a> <span class="n">points_count</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_points</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">:</span> <span class="c1"># The number of points in the matching point circle should not exceed 1.2 times or not more than 10 inspection points</span>
 </span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>            <span class="k">return</span> <span class="kc">True</span>
 </span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>        <span class="k">elif</span> <span class="n">points_count</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_points</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">rate</span> <span class="ow">or</span> \
 </span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>                <span class="n">points_count</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_points</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">20</span><span class="p">:</span>
@@ -248,9 +248,9 @@
 </span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a>    <span class="k">def</span> <span class="nf">_index_search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_points</span><span class="p">,</span> <span class="n">center_point</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a><span class="sd">        Args:</span>
-</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a><span class="sd">            target_points: 单个FOV的点集</span>
+</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a><span class="sd"> target_points: Point sets of single FOV</span>
 </span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a><span class="sd">        Return:</span>
-</span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a><span class="sd">            best_center_point: FOV中心点的坐标及索引</span>
+</span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a><span class="sd"> best_center_point: Coordinates and indexes of the center point of FOV</span>
 </span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a>        <span class="n">best_center_point</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
 </span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a>        <span class="k">if</span> <span class="n">center_point</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -273,11 +273,11 @@
 </span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a>
 </span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a>    <span class="k">def</span> <span class="nf">get_scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">rotate</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
 </span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a><span class="sd">        尺度搜索</span>
+</span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a><span class="sd"> Scale search</span>
 </span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a><span class="sd">        Args:</span>
 </span><span id="L-196"><a href="#L-196"><span class="linenos">196</span></a><span class="sd">            points:</span>
 </span><span id="L-197"><a href="#L-197"><span class="linenos">197</span></a><span class="sd">            rotate:</span>
-</span><span id="L-198"><a href="#L-198"><span class="linenos">198</span></a><span class="sd">            n: 点数</span>
+</span><span id="L-198"><a href="#L-198"><span class="linenos">198</span></a><span class="sd"> n: points</span>
 </span><span id="L-199"><a href="#L-199"><span class="linenos">199</span></a><span class="sd">        Return:</span>
 </span><span id="L-200"><a href="#L-200"><span class="linenos">200</span></a><span class="sd">            scale:</span>
 </span><span id="L-201"><a href="#L-201"><span class="linenos">201</span></a><span class="sd">            best_point:</span>
@@ -343,7 +343,7 @@
     <a class="headerlink" href="#ScaleSearch"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="ScaleSearch-8"><a href="#ScaleSearch-8"><span class="linenos">  8</span></a><span class="k">class</span> <span class="nc">ScaleSearch</span><span class="p">:</span>
 </span><span id="ScaleSearch-9"><a href="#ScaleSearch-9"><span class="linenos">  9</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="ScaleSearch-10"><a href="#ScaleSearch-10"><span class="linenos"> 10</span></a><span class="sd">    track检点进行尺度判定, 需要给明角度</span>
+</span><span id="ScaleSearch-10"><a href="#ScaleSearch-10"><span class="linenos"> 10</span></a><span class="sd"> track checks for scale judgment, need to give a clear angle</span>
 </span><span id="ScaleSearch-11"><a href="#ScaleSearch-11"><span class="linenos"> 11</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="ScaleSearch-12"><a href="#ScaleSearch-12"><span class="linenos"> 12</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
 </span><span id="ScaleSearch-13"><a href="#ScaleSearch-13"><span class="linenos"> 13</span></a>                 <span class="n">search_range</span><span class="o">=</span><span class="p">[</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">1.7</span><span class="p">],</span>
@@ -358,7 +358,7 @@
 </span><span id="ScaleSearch-22"><a href="#ScaleSearch-22"><span class="linenos"> 22</span></a>    <span class="nd">@staticmethod</span>
 </span><span id="ScaleSearch-23"><a href="#ScaleSearch-23"><span class="linenos"> 23</span></a>    <span class="k">def</span> <span class="nf">_center_point_search</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 </span><span id="ScaleSearch-24"><a href="#ScaleSearch-24"><span class="linenos"> 24</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="ScaleSearch-25"><a href="#ScaleSearch-25"><span class="linenos"> 25</span></a><span class="sd">        中心点匹配</span>
+</span><span id="ScaleSearch-25"><a href="#ScaleSearch-25"><span class="linenos"> 25</span></a><span class="sd"> Center point matching</span>
 </span><span id="ScaleSearch-26"><a href="#ScaleSearch-26"><span class="linenos"> 26</span></a><span class="sd">        Args:</span>
 </span><span id="ScaleSearch-27"><a href="#ScaleSearch-27"><span class="linenos"> 27</span></a><span class="sd">            points:</span>
 </span><span id="ScaleSearch-28"><a href="#ScaleSearch-28"><span class="linenos"> 28</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -372,7 +372,7 @@
 </span><span id="ScaleSearch-36"><a href="#ScaleSearch-36"><span class="linenos"> 36</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ScaleSearch-37"><a href="#ScaleSearch-37"><span class="linenos"> 37</span></a><span class="sd">        one point of temp0 map to only one point of temp1</span>
 </span><span id="ScaleSearch-38"><a href="#ScaleSearch-38"><span class="linenos"> 38</span></a><span class="sd">        Args:</span>
-</span><span id="ScaleSearch-39"><a href="#ScaleSearch-39"><span class="linenos"> 39</span></a><span class="sd">            dis: 距离测量</span>
+</span><span id="ScaleSearch-39"><a href="#ScaleSearch-39"><span class="linenos"> 39</span></a><span class="sd"> dis: Distance measurement</span>
 </span><span id="ScaleSearch-40"><a href="#ScaleSearch-40"><span class="linenos"> 40</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="ScaleSearch-41"><a href="#ScaleSearch-41"><span class="linenos"> 41</span></a>        <span class="kn">import</span> <span class="nn">scipy.spatial</span> <span class="k">as</span> <span class="nn">spt</span>
 </span><span id="ScaleSearch-42"><a href="#ScaleSearch-42"><span class="linenos"> 42</span></a>
@@ -455,7 +455,7 @@
 </span><span id="ScaleSearch-119"><a href="#ScaleSearch-119"><span class="linenos">119</span></a>
 </span><span id="ScaleSearch-120"><a href="#ScaleSearch-120"><span class="linenos">120</span></a>    <span class="k">def</span> <span class="nf">_valid_scale_judge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_points</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">search_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="ScaleSearch-121"><a href="#ScaleSearch-121"><span class="linenos">121</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="ScaleSearch-122"><a href="#ScaleSearch-122"><span class="linenos">122</span></a><span class="sd">        搜索尺度时，解决对于小scale尺度匹配距离过小问题</span>
+</span><span id="ScaleSearch-122"><a href="#ScaleSearch-122"><span class="linenos">122</span></a><span class="sd"> When searching for scales, solve the problem of too small matching distance for small scale scales</span>
 </span><span id="ScaleSearch-123"><a href="#ScaleSearch-123"><span class="linenos">123</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="ScaleSearch-124"><a href="#ScaleSearch-124"><span class="linenos">124</span></a>        <span class="n">point_re</span><span class="p">,</span> <span class="n">point_qc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pair_to_template</span><span class="p">(</span><span class="n">target_points</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">template</span><span class="p">,</span> <span class="n">search_thresh</span><span class="p">)</span>
 </span><span id="ScaleSearch-125"><a href="#ScaleSearch-125"><span class="linenos">125</span></a>
@@ -474,7 +474,7 @@
 </span><span id="ScaleSearch-138"><a href="#ScaleSearch-138"><span class="linenos">138</span></a>                <span class="n">valid_temp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
 </span><span id="ScaleSearch-139"><a href="#ScaleSearch-139"><span class="linenos">139</span></a>
 </span><span id="ScaleSearch-140"><a href="#ScaleSearch-140"><span class="linenos">140</span></a>        <span class="k">if</span> <span class="n">points_count</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_points</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">rate</span> <span class="ow">or</span> \
-</span><span id="ScaleSearch-141"><a href="#ScaleSearch-141"><span class="linenos">141</span></a>                <span class="n">points_count</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_points</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">:</span>  <span class="c1"># 匹配点圈内点数量不多于1.2倍或不多于10个检点数</span>
+</span><span id="ScaleSearch-141"><a href="#ScaleSearch-141"><span class="linenos">141</span></a> <span class="n">points_count</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_points</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">:</span> <span class="c1"># The number of points in the matching point circle should not exceed 1.2 times or not more than 10 inspection points</span>
 </span><span id="ScaleSearch-142"><a href="#ScaleSearch-142"><span class="linenos">142</span></a>            <span class="k">return</span> <span class="kc">True</span>
 </span><span id="ScaleSearch-143"><a href="#ScaleSearch-143"><span class="linenos">143</span></a>        <span class="k">elif</span> <span class="n">points_count</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_points</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">rate</span> <span class="ow">or</span> \
 </span><span id="ScaleSearch-144"><a href="#ScaleSearch-144"><span class="linenos">144</span></a>                <span class="n">points_count</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_points</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">20</span><span class="p">:</span>
@@ -503,9 +503,9 @@
 </span><span id="ScaleSearch-167"><a href="#ScaleSearch-167"><span class="linenos">167</span></a>    <span class="k">def</span> <span class="nf">_index_search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_points</span><span class="p">,</span> <span class="n">center_point</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="ScaleSearch-168"><a href="#ScaleSearch-168"><span class="linenos">168</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ScaleSearch-169"><a href="#ScaleSearch-169"><span class="linenos">169</span></a><span class="sd">        Args:</span>
-</span><span id="ScaleSearch-170"><a href="#ScaleSearch-170"><span class="linenos">170</span></a><span class="sd">            target_points: 单个FOV的点集</span>
+</span><span id="ScaleSearch-170"><a href="#ScaleSearch-170"><span class="linenos">170</span></a><span class="sd"> target_points: Point sets of single FOV</span>
 </span><span id="ScaleSearch-171"><a href="#ScaleSearch-171"><span class="linenos">171</span></a><span class="sd">        Return:</span>
-</span><span id="ScaleSearch-172"><a href="#ScaleSearch-172"><span class="linenos">172</span></a><span class="sd">            best_center_point: FOV中心点的坐标及索引</span>
+</span><span id="ScaleSearch-172"><a href="#ScaleSearch-172"><span class="linenos">172</span></a><span class="sd"> best_center_point: Coordinates and indexes of the center point of FOV</span>
 </span><span id="ScaleSearch-173"><a href="#ScaleSearch-173"><span class="linenos">173</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="ScaleSearch-174"><a href="#ScaleSearch-174"><span class="linenos">174</span></a>        <span class="n">best_center_point</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
 </span><span id="ScaleSearch-175"><a href="#ScaleSearch-175"><span class="linenos">175</span></a>        <span class="k">if</span> <span class="n">center_point</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -528,11 +528,11 @@
 </span><span id="ScaleSearch-192"><a href="#ScaleSearch-192"><span class="linenos">192</span></a>
 </span><span id="ScaleSearch-193"><a href="#ScaleSearch-193"><span class="linenos">193</span></a>    <span class="k">def</span> <span class="nf">get_scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">rotate</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
 </span><span id="ScaleSearch-194"><a href="#ScaleSearch-194"><span class="linenos">194</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="ScaleSearch-195"><a href="#ScaleSearch-195"><span class="linenos">195</span></a><span class="sd">        尺度搜索</span>
+</span><span id="ScaleSearch-195"><a href="#ScaleSearch-195"><span class="linenos">195</span></a><span class="sd"> Scale Search</span>
 </span><span id="ScaleSearch-196"><a href="#ScaleSearch-196"><span class="linenos">196</span></a><span class="sd">        Args:</span>
 </span><span id="ScaleSearch-197"><a href="#ScaleSearch-197"><span class="linenos">197</span></a><span class="sd">            points:</span>
 </span><span id="ScaleSearch-198"><a href="#ScaleSearch-198"><span class="linenos">198</span></a><span class="sd">            rotate:</span>
-</span><span id="ScaleSearch-199"><a href="#ScaleSearch-199"><span class="linenos">199</span></a><span class="sd">            n: 点数</span>
+</span><span id="ScaleSearch-199"><a href="#ScaleSearch-199"><span class="linenos">199</span></a><span class="sd"> n: points</span>
 </span><span id="ScaleSearch-200"><a href="#ScaleSearch-200"><span class="linenos">200</span></a><span class="sd">        Return:</span>
 </span><span id="ScaleSearch-201"><a href="#ScaleSearch-201"><span class="linenos">201</span></a><span class="sd">            scale:</span>
 </span><span id="ScaleSearch-202"><a href="#ScaleSearch-202"><span class="linenos">202</span></a><span class="sd">            best_point:</span>
@@ -565,7 +565,7 @@
 </span></pre></div>
 
 
-            <div class="docstring"><p>track检点进行尺度判定, 需要给明角度</p>
+            <div class="docstring"><p>Track checking points for scale judgment, need to give clear angle</p>
 </div>
 
 
@@ -655,7 +655,7 @@
 </span><span id="ScaleSearch.pair_to_template-36"><a href="#ScaleSearch.pair_to_template-36"><span class="linenos">36</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ScaleSearch.pair_to_template-37"><a href="#ScaleSearch.pair_to_template-37"><span class="linenos">37</span></a><span class="sd">        one point of temp0 map to only one point of temp1</span>
 </span><span id="ScaleSearch.pair_to_template-38"><a href="#ScaleSearch.pair_to_template-38"><span class="linenos">38</span></a><span class="sd">        Args:</span>
-</span><span id="ScaleSearch.pair_to_template-39"><a href="#ScaleSearch.pair_to_template-39"><span class="linenos">39</span></a><span class="sd">            dis: 距离测量</span>
+</span><span id="ScaleSearch.pair_to_template-39"><a href="#ScaleSearch.pair_to_template-39"><span class="linenos">39</span></a><span class="sd"> dis: Distance measurement</span>
 </span><span id="ScaleSearch.pair_to_template-40"><a href="#ScaleSearch.pair_to_template-40"><span class="linenos">40</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="ScaleSearch.pair_to_template-41"><a href="#ScaleSearch.pair_to_template-41"><span class="linenos">41</span></a>        <span class="kn">import</span> <span class="nn">scipy.spatial</span> <span class="k">as</span> <span class="nn">spt</span>
 </span><span id="ScaleSearch.pair_to_template-42"><a href="#ScaleSearch.pair_to_template-42"><span class="linenos">42</span></a>
@@ -685,7 +685,7 @@
 <h6 id="arguments">Arguments:</h6>
 
 <ul>
-<li><strong>dis:</strong>  距离测量</li>
+<li><strong>dis:</strong> Distance measurement</li>
 </ul>
 </div>
 
@@ -704,11 +704,11 @@
     <a class="headerlink" href="#ScaleSearch.get_scale"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="ScaleSearch.get_scale-193"><a href="#ScaleSearch.get_scale-193"><span class="linenos">193</span></a>    <span class="k">def</span> <span class="nf">get_scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">rotate</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
 </span><span id="ScaleSearch.get_scale-194"><a href="#ScaleSearch.get_scale-194"><span class="linenos">194</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="ScaleSearch.get_scale-195"><a href="#ScaleSearch.get_scale-195"><span class="linenos">195</span></a><span class="sd">        尺度搜索</span>
+</span><span id="ScaleSearch.get_scale-195"><a href="#ScaleSearch.get_scale-195"><span class="linenos">195</span></a><span class="sd"> Scale search</span>
 </span><span id="ScaleSearch.get_scale-196"><a href="#ScaleSearch.get_scale-196"><span class="linenos">196</span></a><span class="sd">        Args:</span>
 </span><span id="ScaleSearch.get_scale-197"><a href="#ScaleSearch.get_scale-197"><span class="linenos">197</span></a><span class="sd">            points:</span>
 </span><span id="ScaleSearch.get_scale-198"><a href="#ScaleSearch.get_scale-198"><span class="linenos">198</span></a><span class="sd">            rotate:</span>
-</span><span id="ScaleSearch.get_scale-199"><a href="#ScaleSearch.get_scale-199"><span class="linenos">199</span></a><span class="sd">            n: 点数</span>
+</span><span id="ScaleSearch.get_scale-199"><a href="#ScaleSearch.get_scale-199"><span class="linenos">199</span></a><span class="sd"> n: points</span>
 </span><span id="ScaleSearch.get_scale-200"><a href="#ScaleSearch.get_scale-200"><span class="linenos">200</span></a><span class="sd">        Return:</span>
 </span><span id="ScaleSearch.get_scale-201"><a href="#ScaleSearch.get_scale-201"><span class="linenos">201</span></a><span class="sd">            scale:</span>
 </span><span id="ScaleSearch.get_scale-202"><a href="#ScaleSearch.get_scale-202"><span class="linenos">202</span></a><span class="sd">            best_point:</span>
@@ -741,14 +741,14 @@
 </span></pre></div>
 
 
-            <div class="docstring"><p>尺度搜索</p>
+            <div class="docstring"><p>Scale search</p>
 
 <h6 id="arguments">Arguments:</h6>
 
 <ul>
 <li><strong>points:</strong> </li>
 <li><strong>rotate:</strong> </li>
-<li><strong>n:</strong>  点数</li>
+<li><strong>n:</strong> points</li>
 </ul>
 
 <h6 id="return">Return:</h6>

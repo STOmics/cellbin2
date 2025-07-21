@@ -181,7 +181,7 @@ class ImageTransform(pyvips.Image):
     def __get_padding(self, rotate, h, w):
         """
         For pyvips rotation angle padding calculation
-        用于pyvips旋转角度 补齐量
+        Used for pyvips rotation angle to make up for quantity
         """
         if 360 - rotate % 360 > 180:
             k_x = 1

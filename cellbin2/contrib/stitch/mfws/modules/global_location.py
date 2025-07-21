@@ -1,5 +1,5 @@
 """
-求解拼接坐标
+Solve splicing coordinates
 """
 import os
 import glog
@@ -640,7 +640,7 @@ class CenterLrDiffuseStitch:
             row, col = item
             self.stitch_masked[row, col] = 1
             if np.max(stitch_mask) == 0:
-                # get the closest FOV to the stitched connected domain in current domain  寻找当前domain中, 与已经拼接的连通域 最近的fov
+                # get the closest FOV to the stitched connected domain in current domain Find the connected domain that has been spliced with the recent fov
                 stitched_loc = np.where(self.stitch_masked == 1)
                 stitched_loc = np.vstack(stitched_loc).T
                 nearest_domain_fov, _ = self.get_nearest_domain_fov(stitch_list, stitched_loc)
@@ -674,7 +674,7 @@ class CenterLrDiffuseStitch:
 
                 if len(loc_list) >= 1:
                     loc_list = np.array(loc_list)
-                    self.global_loc[row, col] = np.mean(loc_list, axis=0) + 0.5  # 四舍五入
+                    self.global_loc[row, col] = np.mean(loc_list, axis=0) + 0.5  # Rounding
                     stitch_mask[row, col] = 1
                     if len(loc_list) >= 2:
                         ptp = np.ptp(loc_list, axis=0) / 2
@@ -682,7 +682,7 @@ class CenterLrDiffuseStitch:
                 else:
                     stitch_list.append(item)
                     # glog.info("{}:{} no stitch neighbor".format(row, col))
-        # adjust the location of FOV of nearest-neighbor domain to predicted location 将最近邻连通域的FOV的位置调整到预测位置
+        # adjust the location of FOV of nearest-neighbor domain to predicted location
         if nearest_domain_fov is not None:
             nearest_fov_scope_loc = self.scope_global_loc[nearest_domain_fov[0], nearest_domain_fov[1]]
             offset = self.global_loc[nearest_domain_fov[0], nearest_domain_fov[1]] - \
@@ -750,7 +750,7 @@ class CenterLrDiffuseStitch:
 
     def check_up_stitch(self, row, col):
         '''
-        检查指定FOV的否可以基于以及算法出来的offset进行拼接
+        Check whether the specified FOV can be spliced based on the offset produced by the algorithm.
         :param row:
         :param col:
         :return:

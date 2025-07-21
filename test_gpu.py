@@ -31,50 +31,50 @@ def download(local_file, file_url):
         print('{} already exists'.format(f_name))
 
 def check_onnxruntime_env():
-    """全面检测 ONNX Runtime 运行环境支持情况"""
-    # 基础环境检测
+    """Comprehensive detection of ONNX Runtime operating environment support"""
+    # Basic environment detection
     use_list = ort.get_available_providers()
     gpu_available = 'CUDAExecutionProvider' in use_list
     cpu_available = 'CPUExecutionProvider' in use_list
 
-    # 场景1: 完全不支持 GPU
+    # Scenario 1: GPU is not supported at all
     if not gpu_available:
         if cpu_available:
-            print("❌ 环境不支持 GPU，仅支持 CPU")
+            print("❌ The environment does not support GPU, only CPU")
             return {"status": "cpu_only", "gpu_support": False}
         else:
-            print("❌ 环境既不支持 GPU 也不支持 CPU（异常情况）")
+            print("❌ The environment does not support GPU nor CPU (Exception)")
             return {"status": "no_provider", "gpu_support": False}
 
 
-    print("✅ 环境理论支持 GPU，开始实际验证...")
+    print("✅ Environmental theory supports GPU, and start actual verification...")
     if not os.path.exists(PATH):
         os.makedirs(WEIGHTS_DIR, exist_ok=True)
         download(PATH, URL)
 
     try:
-        # 尝试 GPU 初始化
+        # Try GPU initialization
         session = ort.InferenceSession(
             PATH,
             providers=['CUDAExecutionProvider'],
             provider_options=[{'device_id': '0'}]
         )
 
-        # 获取实际运行的 Provider
+        # Get the actual running provider
         active_provider = session.get_providers()[0]
 
-        # 场景3: 成功运行在 GPU
+        # Scenario 3: Running successfully on the GPU
         if active_provider == 'CUDAExecutionProvider':
-            print("🎉 成功运行在 GPU 模式")
+            print("🎉 Run successfully in GPU mode")
             return {
                 "status": "gpu_ok",
                 "gpu_support": True,
                 "active_provider": active_provider
             }
 
-        # 场景4: 自动回退到 CPU
+        # Scenario 4: Automatic fallback to CPU
         elif active_provider == 'CPUExecutionProvider':
-            print(f"⚠️ GPU 初始化失败，自动回退到 CPU")
+            print(f"⚠️ GPU initialization failed and automatically falls back to CPU")
             return {
                 "status": "gpu_fallback_cpu",
                 "gpu_support": False,
@@ -85,9 +85,9 @@ def check_onnxruntime_env():
                           "3. Missing CUDA dependencies"
             }
 
-        # 场景5: 其他异常回退（如 TensorRT）
+        # Scenario 5: Other exception fallbacks (such as TensorRT)
         else:
-            print(f"⚠️ 意外回退到 {active_provider}")
+            print(f"⚠️ Unexpected fallback to {active_provider}")
             return {
                 "status": "unexpected_fallback",
                 "gpu_support": False,
@@ -95,8 +95,8 @@ def check_onnxruntime_env():
             }
 
     except RuntimeException as e:
-        # 场景6: GPU 初始化抛出明确异常
-        print(f"❌ GPU 初始化失败: {str(e)}")
+        # Scenario 6: GPU initialization throws a clear exception
+        print(f"❌ GPU initialization failed: {str(e)}")
         return {
             "status": "gpu_init_failed",
             "gpu_support": False,
@@ -109,8 +109,8 @@ def check_onnxruntime_env():
         }
 
     except Exception as e:
-        # 场景7: 其他未知异常
-        print(f"❌ 未知错误: {str(e)}")
+        # Scene 7: Other unknown exceptions
+        print(f"❌ Unknown error: {str(e)}")
         return {
             "status": "unknown_error",
             "gpu_support": False,
@@ -119,9 +119,9 @@ def check_onnxruntime_env():
         }
 
 
-# 使用示例
+#User Example
 if __name__ == "__main__":
     result = check_onnxruntime_env()
-    print("\n详细诊断信息:")
+    print("\nDetailed diagnostic information:")
     for k, v in result.items():
         print(f"{k:>20}: {v}")

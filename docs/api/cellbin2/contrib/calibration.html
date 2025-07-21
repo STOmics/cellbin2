@@ -135,15 +135,15 @@
 </span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a>
 </span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>
 </span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="k">class</span> <span class="nc">CalibrationParam</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a>    <span class="n">offset_thr</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;阈值，用于判断是否通过的标志位&quot;</span><span class="p">)</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a> <span class="n">offset_thr</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;threshold, the flag bit used to determine whether it has passed&quot;</span><span class="p">)</span>
 </span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>
 </span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>
 </span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="k">class</span> <span class="nc">Calibrate</span><span class="p">:</span>
 </span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a>
-</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="sd">        * 使用FFT进行图像间的匹配</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a><span class="sd">        * 两图模态需要相同或接近，否则计算准确性不高</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="sd">        * 可进行平移计算及旋转缩放计算</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="sd"> * Use FFT to match between images</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a><span class="sd"> * The two graph modalities need to be the same or close, otherwise the calculation accuracy will not be high</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="sd"> * Can perform translation calculations and rotation scaling calculations</span>
 </span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a>
 </span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>
@@ -155,15 +155,15 @@
 </span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>            <span class="n">down_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4000</span>
 </span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>    <span class="p">):</span>
 </span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a><span class="sd">        初始化参数，变换 dst 到 src ！！！</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a><span class="sd"> Initialize the parameters, transform dst to src!!!</span>
 </span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>
 </span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a><span class="sd">        Args:</span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a><span class="sd">            src_image: image path | array  表示目标配准图像</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a><span class="sd">            dst_image: image path | array  表示待配准图像</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a><span class="sd">            method: 校准使用方法  0 | 1</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a><span class="sd">                * 0 表示只做平移校准 求得参数仅为 offset</span>
-</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a><span class="sd">                * 1 表示做仿射变换校准 求得参数为 scale, rotate, offset</span>
-</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a><span class="sd">            down_size: 计算FFT时，图像最长边缩放至该参数</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a><span class="sd"> src_image: image path | array Indicates the target registration image</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a><span class="sd"> dst_image: image path | array Indicates the image to be registered</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a><span class="sd"> method: How to use calibration 0 | 1</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a><span class="sd"> * 0 means only translation calibration. The parameters are only offset</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a><span class="sd"> * 1 indicates that affine transformation calibration is required. The parameters are scale, rotate, offset</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a><span class="sd"> down_size: When calculating FFT, the longest edge of the image is scaled to this parameter</span>
 </span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a>
 </span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
@@ -183,7 +183,7 @@
 </span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="sd">        Returns:</span>
 </span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>
 </span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>        <span class="c1"># TODO 可接其他io方式</span>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a> <span class="c1"># TODO can be used with other io methods</span>
 </span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>        <span class="k">if</span> <span class="n">im</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span>
 </span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>
 </span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -287,8 +287,8 @@
 </span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a>
 </span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a>    <span class="k">def</span> <span class="nf">calibration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a><span class="sd">        * 对图像进行缩放、尺寸统一处理</span>
-</span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a><span class="sd">        * 并进行校准操作</span>
+</span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a><span class="sd"> * Scaling and uniformly processing the image</span>
+</span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a><span class="sd"> * and perform calibration operations</span>
 </span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a>
 </span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a><span class="sd">        Returns:</span>
 </span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a>
@@ -311,7 +311,7 @@
 </span><span id="L-196"><a href="#L-196"><span class="linenos">196</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="L-197"><a href="#L-197"><span class="linenos">197</span></a>            <span class="n">ret</span> <span class="o">=</span> <span class="n">imreg_dft</span><span class="o">.</span><span class="n">similarity</span><span class="p">(</span><span class="n">src_img</span><span class="p">,</span> <span class="n">dst_img</span><span class="p">)</span>
 </span><span id="L-198"><a href="#L-198"><span class="linenos">198</span></a>
-</span><span id="L-199"><a href="#L-199"><span class="linenos">199</span></a>        <span class="c1"># 解析结果</span>
+</span><span id="L-199"><a href="#L-199"><span class="linenos">199</span></a> <span class="c1"># Analysis results</span>
 </span><span id="L-200"><a href="#L-200"><span class="linenos">200</span></a>        <span class="n">offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">ret</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;tvec&#39;</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">down_scale</span><span class="p">)</span>
 </span><span id="L-201"><a href="#L-201"><span class="linenos">201</span></a>        <span class="n">score</span> <span class="o">=</span> <span class="n">ret</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;success&#39;</span><span class="p">)</span>
 </span><span id="L-202"><a href="#L-202"><span class="linenos">202</span></a>        <span class="n">scale</span> <span class="o">=</span> <span class="n">ret</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;scale&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
@@ -387,7 +387,7 @@
     </div>
     <a class="headerlink" href="#CalibrationParam"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="CalibrationParam-23"><a href="#CalibrationParam-23"><span class="linenos">23</span></a><span class="k">class</span> <span class="nc">CalibrationParam</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="CalibrationParam-24"><a href="#CalibrationParam-24"><span class="linenos">24</span></a>    <span class="n">offset_thr</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;阈值，用于判断是否通过的标志位&quot;</span><span class="p">)</span>
+</span><span id="CalibrationParam-24"><a href="#CalibrationParam-24"><span class="linenos">24</span></a> <span class="n">offset_thr</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;threshold, the flag bit used to determine whether it has passed&quot;</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -499,9 +499,9 @@ is set to <code>'allow'</code>.</li>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Calibrate-27"><a href="#Calibrate-27"><span class="linenos"> 27</span></a><span class="k">class</span> <span class="nc">Calibrate</span><span class="p">:</span>
 </span><span id="Calibrate-28"><a href="#Calibrate-28"><span class="linenos"> 28</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Calibrate-29"><a href="#Calibrate-29"><span class="linenos"> 29</span></a>
-</span><span id="Calibrate-30"><a href="#Calibrate-30"><span class="linenos"> 30</span></a><span class="sd">        * 使用FFT进行图像间的匹配</span>
-</span><span id="Calibrate-31"><a href="#Calibrate-31"><span class="linenos"> 31</span></a><span class="sd">        * 两图模态需要相同或接近，否则计算准确性不高</span>
-</span><span id="Calibrate-32"><a href="#Calibrate-32"><span class="linenos"> 32</span></a><span class="sd">        * 可进行平移计算及旋转缩放计算</span>
+</span><span id="Calibrate-30"><a href="#Calibrate-30"><span class="linenos"> 30</span></a><span class="sd"> * Use FFT for matching between images</span>
+</span><span id="Calibrate-31"><a href="#Calibrate-31"><span class="linenos"> 31</span></a><span class="sd"> * The two graph modalities need to be the same or close, otherwise the calculation accuracy will not be high</span>
+</span><span id="Calibrate-32"><a href="#Calibrate-32"><span class="linenos"> 32</span></a><span class="sd"> * Can perform translation calculations and rotation scaling calculations</span>
 </span><span id="Calibrate-33"><a href="#Calibrate-33"><span class="linenos"> 33</span></a>
 </span><span id="Calibrate-34"><a href="#Calibrate-34"><span class="linenos"> 34</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="Calibrate-35"><a href="#Calibrate-35"><span class="linenos"> 35</span></a>
@@ -513,15 +513,15 @@ is set to <code>'allow'</code>.</li>
 </span><span id="Calibrate-41"><a href="#Calibrate-41"><span class="linenos"> 41</span></a>            <span class="n">down_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4000</span>
 </span><span id="Calibrate-42"><a href="#Calibrate-42"><span class="linenos"> 42</span></a>    <span class="p">):</span>
 </span><span id="Calibrate-43"><a href="#Calibrate-43"><span class="linenos"> 43</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Calibrate-44"><a href="#Calibrate-44"><span class="linenos"> 44</span></a><span class="sd">        初始化参数，变换 dst 到 src ！！！</span>
+</span><span id="Calibrate-44"><a href="#Calibrate-44"><span class="linenos"> 44</span></a><span class="sd"> Initialize the parameters, transform dst to src!!!</span>
 </span><span id="Calibrate-45"><a href="#Calibrate-45"><span class="linenos"> 45</span></a>
 </span><span id="Calibrate-46"><a href="#Calibrate-46"><span class="linenos"> 46</span></a><span class="sd">        Args:</span>
-</span><span id="Calibrate-47"><a href="#Calibrate-47"><span class="linenos"> 47</span></a><span class="sd">            src_image: image path | array  表示目标配准图像</span>
-</span><span id="Calibrate-48"><a href="#Calibrate-48"><span class="linenos"> 48</span></a><span class="sd">            dst_image: image path | array  表示待配准图像</span>
-</span><span id="Calibrate-49"><a href="#Calibrate-49"><span class="linenos"> 49</span></a><span class="sd">            method: 校准使用方法  0 | 1</span>
-</span><span id="Calibrate-50"><a href="#Calibrate-50"><span class="linenos"> 50</span></a><span class="sd">                * 0 表示只做平移校准 求得参数仅为 offset</span>
-</span><span id="Calibrate-51"><a href="#Calibrate-51"><span class="linenos"> 51</span></a><span class="sd">                * 1 表示做仿射变换校准 求得参数为 scale, rotate, offset</span>
-</span><span id="Calibrate-52"><a href="#Calibrate-52"><span class="linenos"> 52</span></a><span class="sd">            down_size: 计算FFT时，图像最长边缩放至该参数</span>
+</span><span id="Calibrate-47"><a href="#Calibrate-47"><span class="linenos"> 47</span></a><span class="sd"> src_image: image path | array Indicates the target registration image</span>
+</span><span id="Calibrate-48"><a href="#Calibrate-48"><span class="linenos"> 48</span></a><span class="sd"> dst_image: image path | array Indicates the image to be registered</span>
+</span><span id="Calibrate-49"><a href="#Calibrate-49"><span class="linenos"> 49</span></a><span class="sd"> method: How to use calibration 0 | 1</span>
+</span><span id="Calibrate-50"><a href="#Calibrate-50"><span class="linenos"> 50</span></a><span class="sd"> * 0 means only translation calibration. The parameters are only offset</span>
+</span><span id="Calibrate-51"><a href="#Calibrate-51"><span class="linenos"> 51</span></a><span class="sd"> * 1 Indicates that affine transformation calibration is used to obtain the parameters as scale, rotate, offset</span>
+</span><span id="Calibrate-52"><a href="#Calibrate-52"><span class="linenos"> 52</span></a><span class="sd"> down_size: When calculating FFT, the longest edge of the image is scaled to this parameter</span>
 </span><span id="Calibrate-53"><a href="#Calibrate-53"><span class="linenos"> 53</span></a>
 </span><span id="Calibrate-54"><a href="#Calibrate-54"><span class="linenos"> 54</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Calibrate-55"><a href="#Calibrate-55"><span class="linenos"> 55</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
@@ -541,7 +541,7 @@ is set to <code>'allow'</code>.</li>
 </span><span id="Calibrate-69"><a href="#Calibrate-69"><span class="linenos"> 69</span></a><span class="sd">        Returns:</span>
 </span><span id="Calibrate-70"><a href="#Calibrate-70"><span class="linenos"> 70</span></a>
 </span><span id="Calibrate-71"><a href="#Calibrate-71"><span class="linenos"> 71</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="Calibrate-72"><a href="#Calibrate-72"><span class="linenos"> 72</span></a>        <span class="c1"># TODO 可接其他io方式</span>
+</span><span id="Calibrate-72"><a href="#Calibrate-72"><span class="linenos"> 72</span></a> <span class="c1"># TODO can be used with other io methods</span>
 </span><span id="Calibrate-73"><a href="#Calibrate-73"><span class="linenos"> 73</span></a>        <span class="k">if</span> <span class="n">im</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span>
 </span><span id="Calibrate-74"><a href="#Calibrate-74"><span class="linenos"> 74</span></a>
 </span><span id="Calibrate-75"><a href="#Calibrate-75"><span class="linenos"> 75</span></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -645,8 +645,8 @@ is set to <code>'allow'</code>.</li>
 </span><span id="Calibrate-173"><a href="#Calibrate-173"><span class="linenos">173</span></a>
 </span><span id="Calibrate-174"><a href="#Calibrate-174"><span class="linenos">174</span></a>    <span class="k">def</span> <span class="nf">calibration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="Calibrate-175"><a href="#Calibrate-175"><span class="linenos">175</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Calibrate-176"><a href="#Calibrate-176"><span class="linenos">176</span></a><span class="sd">        * 对图像进行缩放、尺寸统一处理</span>
-</span><span id="Calibrate-177"><a href="#Calibrate-177"><span class="linenos">177</span></a><span class="sd">        * 并进行校准操作</span>
+</span><span id="Calibrate-176"><a href="#Calibrate-176"><span class="linenos">176</span></a><span class="sd"> * Scaling and uniformly processing the image</span>
+</span><span id="Calibrate-177"><a href="#Calibrate-177"><span class="linenos">177</span></a><span class="sd"> * and perform calibration operations</span>
 </span><span id="Calibrate-178"><a href="#Calibrate-178"><span class="linenos">178</span></a>
 </span><span id="Calibrate-179"><a href="#Calibrate-179"><span class="linenos">179</span></a><span class="sd">        Returns:</span>
 </span><span id="Calibrate-180"><a href="#Calibrate-180"><span class="linenos">180</span></a>
@@ -669,7 +669,7 @@ is set to <code>'allow'</code>.</li>
 </span><span id="Calibrate-197"><a href="#Calibrate-197"><span class="linenos">197</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="Calibrate-198"><a href="#Calibrate-198"><span class="linenos">198</span></a>            <span class="n">ret</span> <span class="o">=</span> <span class="n">imreg_dft</span><span class="o">.</span><span class="n">similarity</span><span class="p">(</span><span class="n">src_img</span><span class="p">,</span> <span class="n">dst_img</span><span class="p">)</span>
 </span><span id="Calibrate-199"><a href="#Calibrate-199"><span class="linenos">199</span></a>
-</span><span id="Calibrate-200"><a href="#Calibrate-200"><span class="linenos">200</span></a>        <span class="c1"># 解析结果</span>
+</span><span id="Calibrate-200"><a href="#Calibrate-200"><span class="linenos">200</span></a> <span class="c1"># Analysis results</span>
 </span><span id="Calibrate-201"><a href="#Calibrate-201"><span class="linenos">201</span></a>        <span class="n">offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">ret</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;tvec&#39;</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">down_scale</span><span class="p">)</span>
 </span><span id="Calibrate-202"><a href="#Calibrate-202"><span class="linenos">202</span></a>        <span class="n">score</span> <span class="o">=</span> <span class="n">ret</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;success&#39;</span><span class="p">)</span>
 </span><span id="Calibrate-203"><a href="#Calibrate-203"><span class="linenos">203</span></a>        <span class="n">scale</span> <span class="o">=</span> <span class="n">ret</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;scale&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
@@ -695,9 +695,9 @@ is set to <code>'allow'</code>.</li>
 
 
             <div class="docstring"><ul>
-<li>使用FFT进行图像间的匹配</li>
-<li>两图模态需要相同或接近，否则计算准确性不高</li>
-<li>可进行平移计算及旋转缩放计算</li>
+<li>Use FFT for matching between images</li>
+<li>The two graph modes need to be the same or close, otherwise the calculation accuracy will not be high </li>
+<li>Put translation calculation and rotation scaling calculation can be performed</li>
 </ul>
 </div>
 
@@ -720,15 +720,15 @@ is set to <code>'allow'</code>.</li>
 </span><span id="Calibrate.__init__-41"><a href="#Calibrate.__init__-41"><span class="linenos">41</span></a>            <span class="n">down_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4000</span>
 </span><span id="Calibrate.__init__-42"><a href="#Calibrate.__init__-42"><span class="linenos">42</span></a>    <span class="p">):</span>
 </span><span id="Calibrate.__init__-43"><a href="#Calibrate.__init__-43"><span class="linenos">43</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Calibrate.__init__-44"><a href="#Calibrate.__init__-44"><span class="linenos">44</span></a><span class="sd">        初始化参数，变换 dst 到 src ！！！</span>
+</span><span id="Calibrate.__init__-44"><a href="#Calibrate.__init__-44"><span class="linenos">44</span></a><span class="sd"> Initialize the parameters, transform dst to src!!!</span>
 </span><span id="Calibrate.__init__-45"><a href="#Calibrate.__init__-45"><span class="linenos">45</span></a>
 </span><span id="Calibrate.__init__-46"><a href="#Calibrate.__init__-46"><span class="linenos">46</span></a><span class="sd">        Args:</span>
-</span><span id="Calibrate.__init__-47"><a href="#Calibrate.__init__-47"><span class="linenos">47</span></a><span class="sd">            src_image: image path | array  表示目标配准图像</span>
-</span><span id="Calibrate.__init__-48"><a href="#Calibrate.__init__-48"><span class="linenos">48</span></a><span class="sd">            dst_image: image path | array  表示待配准图像</span>
-</span><span id="Calibrate.__init__-49"><a href="#Calibrate.__init__-49"><span class="linenos">49</span></a><span class="sd">            method: 校准使用方法  0 | 1</span>
-</span><span id="Calibrate.__init__-50"><a href="#Calibrate.__init__-50"><span class="linenos">50</span></a><span class="sd">                * 0 表示只做平移校准 求得参数仅为 offset</span>
-</span><span id="Calibrate.__init__-51"><a href="#Calibrate.__init__-51"><span class="linenos">51</span></a><span class="sd">                * 1 表示做仿射变换校准 求得参数为 scale, rotate, offset</span>
-</span><span id="Calibrate.__init__-52"><a href="#Calibrate.__init__-52"><span class="linenos">52</span></a><span class="sd">            down_size: 计算FFT时，图像最长边缩放至该参数</span>
+</span><span id="Calibrate.__init__-47"><a href="#Calibrate.__init__-47"><span class="linenos">47</span></a><span class="sd"> src_image: image path | array represents the target registration image</span>
+</span><span id="Calibrate.__init__-48"><a href="#Calibrate.__init__-48"><span class="linenos">48</span></a><span class="sd"> dst_image: image path | array Indicates the image to be registered</span>
+</span><span id="Calibrate.__init__-49"><a href="#Calibrate.__init__-49"><span class="linenos">49</span></a><span class="sd"> method: How to use calibration 0 | 1</span>
+</span><span id="Calibrate.__init__-50"><a href="#Calibrate.__init__-50"><span class="linenos">50</span></a><span class="sd"> * 0 means that only translation calibration is done. The parameters are offset</span>
+</span><span id="Calibrate.__init__-51"><a href="#Calibrate.__init__-51"><span class="linenos">51</span></a><span class="sd"> * 1 indicates that affine transformation calibration is required. The parameters are scale, rotate, offset</span>
+</span><span id="Calibrate.__init__-52"><a href="#Calibrate.__init__-52"><span class="linenos">52</span></a><span class="sd"> down_size: When calculating FFT, the longest edge of the image is scaled to this parameter</span>
 </span><span id="Calibrate.__init__-53"><a href="#Calibrate.__init__-53"><span class="linenos">53</span></a>
 </span><span id="Calibrate.__init__-54"><a href="#Calibrate.__init__-54"><span class="linenos">54</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Calibrate.__init__-55"><a href="#Calibrate.__init__-55"><span class="linenos">55</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
@@ -740,19 +740,19 @@ is set to <code>'allow'</code>.</li>
 </span></pre></div>
 
 
-            <div class="docstring"><p>初始化参数，变换 dst 到 src ！！！</p>
+            <div class="docstring"><p>Initialize the parameters, transform dst to src! ! !</p>
 
 <h6 id="arguments">Arguments:</h6>
 
 <ul>
-<li><strong>src_image:</strong>  image path | array  表示目标配准图像</li>
-<li><strong>dst_image:</strong>  image path | array  表示待配准图像</li>
-<li><strong>method:</strong>  校准使用方法  0 | 1
+<li><strong>src_image:</strong> image path | array represents the target registration image</li>
+<li><strong>dst_image:</strong> image path | array indicates the image to be registered</li>
+<li><strong>method:</strong> Calibration usage 0 | 1
 <ul>
-<li>0 表示只做平移校准 求得参数仅为 offset</li>
-<li>1 表示做仿射变换校准 求得参数为 scale, rotate, offset</li>
+<li>0 means only translation calibration is done. The parameters are only offset</li>
+<li>1 means to do affine transformation calibration. Find the parameters as scale, rotate, offset</li>
 </ul></li>
-<li><strong>down_size:</strong>  计算FFT时，图像最长边缩放至该参数</li>
+<li><strong>down_size:</strong> When calculating FFT, the longest edge of the image is scaled to this parameter</li>
 </ul>
 </div>
 
@@ -824,7 +824,7 @@ is set to <code>'allow'</code>.</li>
 </span><span id="Calibrate.parse_img-69"><a href="#Calibrate.parse_img-69"><span class="linenos">69</span></a><span class="sd">        Returns:</span>
 </span><span id="Calibrate.parse_img-70"><a href="#Calibrate.parse_img-70"><span class="linenos">70</span></a>
 </span><span id="Calibrate.parse_img-71"><a href="#Calibrate.parse_img-71"><span class="linenos">71</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="Calibrate.parse_img-72"><a href="#Calibrate.parse_img-72"><span class="linenos">72</span></a>        <span class="c1"># TODO 可接其他io方式</span>
+</span><span id="Calibrate.parse_img-72"><a href="#Calibrate.parse_img-72"><span class="linenos">72</span></a> <span class="c1"># TODO can be used with other io methods</span>
 </span><span id="Calibrate.parse_img-73"><a href="#Calibrate.parse_img-73"><span class="linenos">73</span></a>        <span class="k">if</span> <span class="n">im</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span>
 </span><span id="Calibrate.parse_img-74"><a href="#Calibrate.parse_img-74"><span class="linenos">74</span></a>
 </span><span id="Calibrate.parse_img-75"><a href="#Calibrate.parse_img-75"><span class="linenos">75</span></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -985,8 +985,8 @@ is set to <code>'allow'</code>.</li>
     <a class="headerlink" href="#Calibrate.calibration"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Calibrate.calibration-174"><a href="#Calibrate.calibration-174"><span class="linenos">174</span></a>    <span class="k">def</span> <span class="nf">calibration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="Calibrate.calibration-175"><a href="#Calibrate.calibration-175"><span class="linenos">175</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Calibrate.calibration-176"><a href="#Calibrate.calibration-176"><span class="linenos">176</span></a><span class="sd">        * 对图像进行缩放、尺寸统一处理</span>
-</span><span id="Calibrate.calibration-177"><a href="#Calibrate.calibration-177"><span class="linenos">177</span></a><span class="sd">        * 并进行校准操作</span>
+</span><span id="Calibrate.calibration-176"><a href="#Calibrate.calibration-176"><span class="linenos">176</span></a><span class="sd"> * Scaling and uniformly processing the image</span>
+</span><span id="Calibrate.calibration-177"><a href="#Calibrate.calibration-177"><span class="linenos">177</span></a><span class="sd"> * And perform calibration operations</span>
 </span><span id="Calibrate.calibration-178"><a href="#Calibrate.calibration-178"><span class="linenos">178</span></a>
 </span><span id="Calibrate.calibration-179"><a href="#Calibrate.calibration-179"><span class="linenos">179</span></a><span class="sd">        Returns:</span>
 </span><span id="Calibrate.calibration-180"><a href="#Calibrate.calibration-180"><span class="linenos">180</span></a>
@@ -1009,7 +1009,7 @@ is set to <code>'allow'</code>.</li>
 </span><span id="Calibrate.calibration-197"><a href="#Calibrate.calibration-197"><span class="linenos">197</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="Calibrate.calibration-198"><a href="#Calibrate.calibration-198"><span class="linenos">198</span></a>            <span class="n">ret</span> <span class="o">=</span> <span class="n">imreg_dft</span><span class="o">.</span><span class="n">similarity</span><span class="p">(</span><span class="n">src_img</span><span class="p">,</span> <span class="n">dst_img</span><span class="p">)</span>
 </span><span id="Calibrate.calibration-199"><a href="#Calibrate.calibration-199"><span class="linenos">199</span></a>
-</span><span id="Calibrate.calibration-200"><a href="#Calibrate.calibration-200"><span class="linenos">200</span></a>        <span class="c1"># 解析结果</span>
+</span><span id="Calibrate.calibration-200"><a href="#Calibrate.calibration-200"><span class="linenos">200</span></a> <span class="c1"># Analysis results</span>
 </span><span id="Calibrate.calibration-201"><a href="#Calibrate.calibration-201"><span class="linenos">201</span></a>        <span class="n">offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">ret</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;tvec&#39;</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">down_scale</span><span class="p">)</span>
 </span><span id="Calibrate.calibration-202"><a href="#Calibrate.calibration-202"><span class="linenos">202</span></a>        <span class="n">score</span> <span class="o">=</span> <span class="n">ret</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;success&#39;</span><span class="p">)</span>
 </span><span id="Calibrate.calibration-203"><a href="#Calibrate.calibration-203"><span class="linenos">203</span></a>        <span class="n">scale</span> <span class="o">=</span> <span class="n">ret</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;scale&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
@@ -1035,8 +1035,8 @@ is set to <code>'allow'</code>.</li>
 
 
             <div class="docstring"><ul>
-<li>对图像进行缩放、尺寸统一处理</li>
-<li>并进行校准操作</li>
+<li>Scaling and uniformly processing the image</li>
+<li>And perform calibration operations</li>
 </ul>
 
 <p>Returns:</p>

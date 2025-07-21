@@ -102,7 +102,7 @@
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="k">class</span> <span class="nc">Template00PtAlignment</span><span class="p">(</span><span class="n">Alignment</span><span class="p">):</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="sd">    满足CellBin需求，利用芯片切割特性，实现左上角第一个周期起始点对齐。实现配准，误差在10pix</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="sd"> Meets the requirements of CellBin, and uses chip cutting characteristics to achieve alignment of the first cycle starting point in the upper left corner. Recognition, error is 10pix</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>
 </span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
@@ -160,7 +160,7 @@
 </span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>            <span class="n">file</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">CBImage</span><span class="p">]</span>
 </span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CBImage</span><span class="p">:</span>
 </span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a><span class="sd">        从拼接图开始配</span>
+</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a><span class="sd"> Start with the splicing diagram</span>
 </span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a><span class="sd">        Args:</span>
 </span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a><span class="sd">            file:</span>
 </span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>
@@ -182,7 +182,7 @@
 </span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>            <span class="n">rot90</span><span class="o">=</span><span class="mi">4</span> <span class="o">-</span> <span class="n">rot90</span><span class="p">,</span>
 </span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>            <span class="n">offset</span><span class="o">=</span><span class="n">offset</span><span class="p">,</span>
 </span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>            <span class="n">dst_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_register_shape</span><span class="p">,</span>
-</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>            <span class="n">flip_ud</span><span class="o">=</span><span class="kc">True</span>  <span class="c1"># 配准前置默认是上下翻转即可对齐</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a> <span class="n">flip_ud</span><span class="o">=</span><span class="kc">True</span> <span class="c1"># The registration preset is to be aligned by flipping up and down</span>
 </span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>        <span class="p">)</span>
 </span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>
 </span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>        <span class="k">return</span> <span class="n">result</span>
@@ -296,7 +296,7 @@
 </span><span id="L-207"><a href="#L-207"><span class="linenos">207</span></a>    <span class="k">def</span> <span class="nf">get_lt_zero_point</span><span class="p">(</span><span class="n">template_points</span><span class="p">,</span> <span class="n">x_index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y_index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 </span><span id="L-208"><a href="#L-208"><span class="linenos">208</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-209"><a href="#L-209"><span class="linenos">209</span></a><span class="sd">        Args:</span>
-</span><span id="L-210"><a href="#L-210"><span class="linenos">210</span></a><span class="sd">            template_points: np.array, 模板点 -- shape == (*, 4)</span>
+</span><span id="L-210"><a href="#L-210"><span class="linenos">210</span></a><span class="sd"> template_points: np.array, template point -- shape == (*, 4)</span>
 </span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a><span class="sd">            x_index:</span>
 </span><span id="L-212"><a href="#L-212"><span class="linenos">212</span></a><span class="sd">            y_index:</span>
 </span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a><span class="sd">        Returns:</span>
@@ -322,7 +322,7 @@
 </span><span id="L-233"><a href="#L-233"><span class="linenos">233</span></a><span class="sd">        moving_image:</span>
 </span><span id="L-234"><a href="#L-234"><span class="linenos">234</span></a><span class="sd">        fixed_image:</span>
 </span><span id="L-235"><a href="#L-235"><span class="linenos">235</span></a><span class="sd">        offset_info:</span>
-</span><span id="L-236"><a href="#L-236"><span class="linenos">236</span></a><span class="sd">        fixed_offset: 矩阵图的起始 xy 信息</span>
+</span><span id="L-236"><a href="#L-236"><span class="linenos">236</span></a><span class="sd"> fixed_offset: Start xy information of the matrix graph</span>
 </span><span id="L-237"><a href="#L-237"><span class="linenos">237</span></a><span class="sd">        flip_flag:</span>
 </span><span id="L-238"><a href="#L-238"><span class="linenos">238</span></a><span class="sd">        rot90_flag:</span>
 </span><span id="L-239"><a href="#L-239"><span class="linenos">239</span></a><span class="sd">        max_length:</span>
@@ -404,9 +404,9 @@
 </span><span id="L-315"><a href="#L-315"><span class="linenos">315</span></a>        <span class="n">rot90_flag</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="L-316"><a href="#L-316"><span class="linenos">316</span></a><span class="p">):</span>
 </span><span id="L-317"><a href="#L-317"><span class="linenos">317</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-318"><a href="#L-318"><span class="linenos">318</span></a><span class="sd">    :param moving_image: 待配准图，通常是染色图（如ssDNA、HE）</span>
-</span><span id="L-319"><a href="#L-319"><span class="linenos">319</span></a><span class="sd">    :param ref: 模板周期，仅在模板相关配准方法下用到</span>
-</span><span id="L-320"><a href="#L-320"><span class="linenos">320</span></a><span class="sd">    :param dst_shape: 配准图理论尺寸</span>
+</span><span id="L-318"><a href="#L-318"><span class="linenos">318</span></a><span class="sd"> :param moving_image: The image to be registered, usually a staining image (such as ssDNA, HE)</span>
+</span><span id="L-319"><a href="#L-319"><span class="linenos">319</span></a><span class="sd"> :param ref: Template cycle, only used under template-related registration methods</span>
+</span><span id="L-320"><a href="#L-320"><span class="linenos">320</span></a><span class="sd"> :param dst_shape: Registration diagram theoretical dimensions</span>
 </span><span id="L-321"><a href="#L-321"><span class="linenos">321</span></a><span class="sd">    :param from_stitched</span>
 </span><span id="L-322"><a href="#L-322"><span class="linenos">322</span></a><span class="sd">    :param flip_flag:</span>
 </span><span id="L-323"><a href="#L-323"><span class="linenos">323</span></a><span class="sd">    :param rot90_flag:</span>
@@ -453,7 +453,7 @@
 </span><span id="L-364"><a href="#L-364"><span class="linenos">364</span></a>    <span class="c1">#     reference = template_ref</span>
 </span><span id="L-365"><a href="#L-365"><span class="linenos">365</span></a>    <span class="c1"># )</span>
 </span><span id="L-366"><a href="#L-366"><span class="linenos">366</span></a>
-</span><span id="L-367"><a href="#L-367"><span class="linenos">367</span></a>    <span class="c1"># 移动图像信息</span>
+</span><span id="L-367"><a href="#L-367"><span class="linenos">367</span></a> <span class="c1"># Mobile image information</span>
 </span><span id="L-368"><a href="#L-368"><span class="linenos">368</span></a>    <span class="n">moving_image</span> <span class="o">=</span> <span class="n">ChipFeature</span><span class="p">()</span>
 </span><span id="L-369"><a href="#L-369"><span class="linenos">369</span></a>    <span class="n">moving_image</span><span class="o">.</span><span class="n">tech_type</span> <span class="o">=</span> <span class="n">TechType</span><span class="o">.</span><span class="n">DAPI</span>
 </span><span id="L-370"><a href="#L-370"><span class="linenos">370</span></a>    <span class="n">moving_mat</span> <span class="o">=</span> <span class="n">cbimread</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;E:\03.users\liuhuanlin\01.data\cellbin2\stitch\A03599D1_gene.tif&quot;</span><span class="p">)</span>
@@ -475,7 +475,7 @@
 </span><span id="L-386"><a href="#L-386"><span class="linenos">386</span></a>    <span class="n">m_info</span> <span class="o">=</span> <span class="n">detect_chip</span><span class="p">(</span><span class="n">moving_mat</span><span class="o">.</span><span class="n">image</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="p">,</span> <span class="n">stain_type</span><span class="o">=</span><span class="n">TechType</span><span class="o">.</span><span class="n">DAPI</span><span class="p">,</span> <span class="n">actual_size</span><span class="o">=</span><span class="p">(</span><span class="mi">19992</span><span class="p">,</span> <span class="mi">19992</span><span class="p">))</span>
 </span><span id="L-387"><a href="#L-387"><span class="linenos">387</span></a>    <span class="n">moving_image</span><span class="o">.</span><span class="n">set_chip_box</span><span class="p">(</span><span class="n">m_info</span><span class="p">)</span>
 </span><span id="L-388"><a href="#L-388"><span class="linenos">388</span></a>
-</span><span id="L-389"><a href="#L-389"><span class="linenos">389</span></a>    <span class="c1"># 矩阵理论原点位置</span>
+</span><span id="L-389"><a href="#L-389"><span class="linenos">389</span></a> <span class="c1"># Matrix theory origin position</span>
 </span><span id="L-390"><a href="#L-390"><span class="linenos">390</span></a>    <span class="n">chip_mask_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;E:\03.users\liuhuanlin\02.code\cellbin2\cellbin\config\chip_mask.json&#39;</span><span class="p">)</span>
 </span><span id="L-391"><a href="#L-391"><span class="linenos">391</span></a>    <span class="n">sc</span> <span class="o">=</span> <span class="n">StereoChip</span><span class="p">(</span><span class="n">chip_mask_file</span><span class="p">)</span>
 </span><span id="L-392"><a href="#L-392"><span class="linenos">392</span></a>    <span class="n">sc</span><span class="o">.</span><span class="n">parse_info</span><span class="p">(</span><span class="s1">&#39;A03599D1&#39;</span><span class="p">)</span>
@@ -501,7 +501,7 @@
     <a class="headerlink" href="#Template00PtAlignment"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Template00PtAlignment-15"><a href="#Template00PtAlignment-15"><span class="linenos"> 15</span></a><span class="k">class</span> <span class="nc">Template00PtAlignment</span><span class="p">(</span><span class="n">Alignment</span><span class="p">):</span>
 </span><span id="Template00PtAlignment-16"><a href="#Template00PtAlignment-16"><span class="linenos"> 16</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Template00PtAlignment-17"><a href="#Template00PtAlignment-17"><span class="linenos"> 17</span></a><span class="sd">    满足CellBin需求，利用芯片切割特性，实现左上角第一个周期起始点对齐。实现配准，误差在10pix</span>
+</span><span id="Template00PtAlignment-17"><a href="#Template00PtAlignment-17"><span class="linenos"> 17</span></a><span class="sd"> Meet CellBin requirements, use chip cutting characteristics to achieve alignment of the first cycle starting point in the upper left corner. Recognition, error is 10pix</span>
 </span><span id="Template00PtAlignment-18"><a href="#Template00PtAlignment-18"><span class="linenos"> 18</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="Template00PtAlignment-19"><a href="#Template00PtAlignment-19"><span class="linenos"> 19</span></a>
 </span><span id="Template00PtAlignment-20"><a href="#Template00PtAlignment-20"><span class="linenos"> 20</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
@@ -559,7 +559,7 @@
 </span><span id="Template00PtAlignment-72"><a href="#Template00PtAlignment-72"><span class="linenos"> 72</span></a>            <span class="n">file</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">CBImage</span><span class="p">]</span>
 </span><span id="Template00PtAlignment-73"><a href="#Template00PtAlignment-73"><span class="linenos"> 73</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CBImage</span><span class="p">:</span>
 </span><span id="Template00PtAlignment-74"><a href="#Template00PtAlignment-74"><span class="linenos"> 74</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Template00PtAlignment-75"><a href="#Template00PtAlignment-75"><span class="linenos"> 75</span></a><span class="sd">        从拼接图开始配</span>
+</span><span id="Template00PtAlignment-75"><a href="#Template00PtAlignment-75"><span class="linenos"> 75</span></a><span class="sd"> Start with the splicing map</span>
 </span><span id="Template00PtAlignment-76"><a href="#Template00PtAlignment-76"><span class="linenos"> 76</span></a><span class="sd">        Args:</span>
 </span><span id="Template00PtAlignment-77"><a href="#Template00PtAlignment-77"><span class="linenos"> 77</span></a><span class="sd">            file:</span>
 </span><span id="Template00PtAlignment-78"><a href="#Template00PtAlignment-78"><span class="linenos"> 78</span></a>
@@ -581,7 +581,7 @@
 </span><span id="Template00PtAlignment-94"><a href="#Template00PtAlignment-94"><span class="linenos"> 94</span></a>            <span class="n">rot90</span><span class="o">=</span><span class="mi">4</span> <span class="o">-</span> <span class="n">rot90</span><span class="p">,</span>
 </span><span id="Template00PtAlignment-95"><a href="#Template00PtAlignment-95"><span class="linenos"> 95</span></a>            <span class="n">offset</span><span class="o">=</span><span class="n">offset</span><span class="p">,</span>
 </span><span id="Template00PtAlignment-96"><a href="#Template00PtAlignment-96"><span class="linenos"> 96</span></a>            <span class="n">dst_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_register_shape</span><span class="p">,</span>
-</span><span id="Template00PtAlignment-97"><a href="#Template00PtAlignment-97"><span class="linenos"> 97</span></a>            <span class="n">flip_ud</span><span class="o">=</span><span class="kc">True</span>  <span class="c1"># 配准前置默认是上下翻转即可对齐</span>
+</span><span id="Template00PtAlignment-97"><a href="#Template00PtAlignment-97"><span class="linenos"> 97</span></a> <span class="n">flip_ud</span><span class="o">=</span><span class="kc">True</span> <span class="c1"># The registration preset is to be aligned by flipping up and down</span>
 </span><span id="Template00PtAlignment-98"><a href="#Template00PtAlignment-98"><span class="linenos"> 98</span></a>        <span class="p">)</span>
 </span><span id="Template00PtAlignment-99"><a href="#Template00PtAlignment-99"><span class="linenos"> 99</span></a>
 </span><span id="Template00PtAlignment-100"><a href="#Template00PtAlignment-100"><span class="linenos">100</span></a>        <span class="k">return</span> <span class="n">result</span>
@@ -695,7 +695,7 @@
 </span><span id="Template00PtAlignment-208"><a href="#Template00PtAlignment-208"><span class="linenos">208</span></a>    <span class="k">def</span> <span class="nf">get_lt_zero_point</span><span class="p">(</span><span class="n">template_points</span><span class="p">,</span> <span class="n">x_index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y_index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 </span><span id="Template00PtAlignment-209"><a href="#Template00PtAlignment-209"><span class="linenos">209</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Template00PtAlignment-210"><a href="#Template00PtAlignment-210"><span class="linenos">210</span></a><span class="sd">        Args:</span>
-</span><span id="Template00PtAlignment-211"><a href="#Template00PtAlignment-211"><span class="linenos">211</span></a><span class="sd">            template_points: np.array, 模板点 -- shape == (*, 4)</span>
+</span><span id="Template00PtAlignment-211"><a href="#Template00PtAlignment-211"><span class="linenos">211</span></a><span class="sd"> template_points: np.array, template point -- shape == (*, 4)</span>
 </span><span id="Template00PtAlignment-212"><a href="#Template00PtAlignment-212"><span class="linenos">212</span></a><span class="sd">            x_index:</span>
 </span><span id="Template00PtAlignment-213"><a href="#Template00PtAlignment-213"><span class="linenos">213</span></a><span class="sd">            y_index:</span>
 </span><span id="Template00PtAlignment-214"><a href="#Template00PtAlignment-214"><span class="linenos">214</span></a><span class="sd">        Returns:</span>
@@ -707,7 +707,7 @@
 </span></pre></div>
 
 
-            <div class="docstring"><p>满足CellBin需求，利用芯片切割特性，实现左上角第一个周期起始点对齐。实现配准，误差在10pix</p>
+            <div class="docstring"><p>Meet CellBin requirements and use chip cutting characteristics to achieve alignment of the first cycle starting point in the upper left corner. Implement registration with error of 10pix</p>
 </div>
 
 
@@ -791,7 +791,7 @@
 </span><span id="Template00PtAlignment.registration_image-72"><a href="#Template00PtAlignment.registration_image-72"><span class="linenos"> 72</span></a>            <span class="n">file</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">CBImage</span><span class="p">]</span>
 </span><span id="Template00PtAlignment.registration_image-73"><a href="#Template00PtAlignment.registration_image-73"><span class="linenos"> 73</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CBImage</span><span class="p">:</span>
 </span><span id="Template00PtAlignment.registration_image-74"><a href="#Template00PtAlignment.registration_image-74"><span class="linenos"> 74</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Template00PtAlignment.registration_image-75"><a href="#Template00PtAlignment.registration_image-75"><span class="linenos"> 75</span></a><span class="sd">        从拼接图开始配</span>
+</span><span id="Template00PtAlignment.registration_image-75"><a href="#Template00PtAlignment.registration_image-75"><span class="linenos"> 75</span></a><span class="sd"> Start with the splicing map</span>
 </span><span id="Template00PtAlignment.registration_image-76"><a href="#Template00PtAlignment.registration_image-76"><span class="linenos"> 76</span></a><span class="sd">        Args:</span>
 </span><span id="Template00PtAlignment.registration_image-77"><a href="#Template00PtAlignment.registration_image-77"><span class="linenos"> 77</span></a><span class="sd">            file:</span>
 </span><span id="Template00PtAlignment.registration_image-78"><a href="#Template00PtAlignment.registration_image-78"><span class="linenos"> 78</span></a>
@@ -813,14 +813,14 @@
 </span><span id="Template00PtAlignment.registration_image-94"><a href="#Template00PtAlignment.registration_image-94"><span class="linenos"> 94</span></a>            <span class="n">rot90</span><span class="o">=</span><span class="mi">4</span> <span class="o">-</span> <span class="n">rot90</span><span class="p">,</span>
 </span><span id="Template00PtAlignment.registration_image-95"><a href="#Template00PtAlignment.registration_image-95"><span class="linenos"> 95</span></a>            <span class="n">offset</span><span class="o">=</span><span class="n">offset</span><span class="p">,</span>
 </span><span id="Template00PtAlignment.registration_image-96"><a href="#Template00PtAlignment.registration_image-96"><span class="linenos"> 96</span></a>            <span class="n">dst_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_register_shape</span><span class="p">,</span>
-</span><span id="Template00PtAlignment.registration_image-97"><a href="#Template00PtAlignment.registration_image-97"><span class="linenos"> 97</span></a>            <span class="n">flip_ud</span><span class="o">=</span><span class="kc">True</span>  <span class="c1"># 配准前置默认是上下翻转即可对齐</span>
+</span><span id="Template00PtAlignment.registration_image-97"><a href="#Template00PtAlignment.registration_image-97"><span class="linenos"> 97</span></a> <span class="n">flip_ud</span><span class="o">=</span><span class="kc">True</span> <span class="c1"># The registration preset is to be aligned by flipping up and down</span>
 </span><span id="Template00PtAlignment.registration_image-98"><a href="#Template00PtAlignment.registration_image-98"><span class="linenos"> 98</span></a>        <span class="p">)</span>
 </span><span id="Template00PtAlignment.registration_image-99"><a href="#Template00PtAlignment.registration_image-99"><span class="linenos"> 99</span></a>
 </span><span id="Template00PtAlignment.registration_image-100"><a href="#Template00PtAlignment.registration_image-100"><span class="linenos">100</span></a>        <span class="k">return</span> <span class="n">result</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>从拼接图开始配</p>
+            <div class="docstring"><p>Start with the splicing diagram</p>
 
 <h6 id="arguments">Arguments:</h6>
 
@@ -1002,7 +1002,7 @@
 </span><span id="Template00PtAlignment.get_lt_zero_point-208"><a href="#Template00PtAlignment.get_lt_zero_point-208"><span class="linenos">208</span></a>    <span class="k">def</span> <span class="nf">get_lt_zero_point</span><span class="p">(</span><span class="n">template_points</span><span class="p">,</span> <span class="n">x_index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y_index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 </span><span id="Template00PtAlignment.get_lt_zero_point-209"><a href="#Template00PtAlignment.get_lt_zero_point-209"><span class="linenos">209</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Template00PtAlignment.get_lt_zero_point-210"><a href="#Template00PtAlignment.get_lt_zero_point-210"><span class="linenos">210</span></a><span class="sd">        Args:</span>
-</span><span id="Template00PtAlignment.get_lt_zero_point-211"><a href="#Template00PtAlignment.get_lt_zero_point-211"><span class="linenos">211</span></a><span class="sd">            template_points: np.array, 模板点 -- shape == (*, 4)</span>
+</span><span id="Template00PtAlignment.get_lt_zero_point-211"><a href="#Template00PtAlignment.get_lt_zero_point-211"><span class="linenos">211</span></a><span class="sd"> template_points: np.array, template point -- shape == (*, 4)</span>
 </span><span id="Template00PtAlignment.get_lt_zero_point-212"><a href="#Template00PtAlignment.get_lt_zero_point-212"><span class="linenos">212</span></a><span class="sd">            x_index:</span>
 </span><span id="Template00PtAlignment.get_lt_zero_point-213"><a href="#Template00PtAlignment.get_lt_zero_point-213"><span class="linenos">213</span></a><span class="sd">            y_index:</span>
 </span><span id="Template00PtAlignment.get_lt_zero_point-214"><a href="#Template00PtAlignment.get_lt_zero_point-214"><span class="linenos">214</span></a><span class="sd">        Returns:</span>
@@ -1017,7 +1017,7 @@
             <div class="docstring"><h6 id="arguments">Arguments:</h6>
 
 <ul>
-<li><strong>template_points:</strong>  np.array, 模板点 -- shape == (*, 4)</li>
+<li><strong>template_points:</strong> np.array, template point -- shape == (*, 4)</li>
 <li><strong>x_index:</strong> </li>
 <li><strong>y_index:</strong> </li>
 </ul>
@@ -1080,7 +1080,7 @@
 </span><span id="template_00pt_check-234"><a href="#template_00pt_check-234"><span class="linenos">234</span></a><span class="sd">        moving_image:</span>
 </span><span id="template_00pt_check-235"><a href="#template_00pt_check-235"><span class="linenos">235</span></a><span class="sd">        fixed_image:</span>
 </span><span id="template_00pt_check-236"><a href="#template_00pt_check-236"><span class="linenos">236</span></a><span class="sd">        offset_info:</span>
-</span><span id="template_00pt_check-237"><a href="#template_00pt_check-237"><span class="linenos">237</span></a><span class="sd">        fixed_offset: 矩阵图的起始 xy 信息</span>
+</span><span id="template_00pt_check-237"><a href="#template_00pt_check-237"><span class="linenos">237</span></a><span class="sd"> fixed_offset: Start xy information of the matrix graph</span>
 </span><span id="template_00pt_check-238"><a href="#template_00pt_check-238"><span class="linenos">238</span></a><span class="sd">        flip_flag:</span>
 </span><span id="template_00pt_check-239"><a href="#template_00pt_check-239"><span class="linenos">239</span></a><span class="sd">        rot90_flag:</span>
 </span><span id="template_00pt_check-240"><a href="#template_00pt_check-240"><span class="linenos">240</span></a><span class="sd">        max_length:</span>
@@ -1160,7 +1160,7 @@
 <li><strong>moving_image:</strong> </li>
 <li><strong>fixed_image:</strong> </li>
 <li><strong>offset_info:</strong> </li>
-<li><strong>fixed_offset:</strong>  矩阵图的起始 xy 信息</li>
+<li><strong>fixed_offset:</strong> Start xy information of matrix graph</li>
 <li><strong>flip_flag:</strong> </li>
 <li><strong>rot90_flag:</strong> </li>
 <li><strong>max_length:</strong> </li>
@@ -1191,9 +1191,9 @@
 </span><span id="template_00pt_align-316"><a href="#template_00pt_align-316"><span class="linenos">316</span></a>        <span class="n">rot90_flag</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="template_00pt_align-317"><a href="#template_00pt_align-317"><span class="linenos">317</span></a><span class="p">):</span>
 </span><span id="template_00pt_align-318"><a href="#template_00pt_align-318"><span class="linenos">318</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="template_00pt_align-319"><a href="#template_00pt_align-319"><span class="linenos">319</span></a><span class="sd">    :param moving_image: 待配准图，通常是染色图（如ssDNA、HE）</span>
-</span><span id="template_00pt_align-320"><a href="#template_00pt_align-320"><span class="linenos">320</span></a><span class="sd">    :param ref: 模板周期，仅在模板相关配准方法下用到</span>
-</span><span id="template_00pt_align-321"><a href="#template_00pt_align-321"><span class="linenos">321</span></a><span class="sd">    :param dst_shape: 配准图理论尺寸</span>
+</span><span id="template_00pt_align-319"><a href="#template_00pt_align-319"><span class="linenos">319</span></a><span class="sd"> :param moving_image: The image to be registered, usually a staining image (such as ssDNA, HE)</span>
+</span><span id="template_00pt_align-320"><a href="#template_00pt_align-320"><span class="linenos">320</span></a><span class="sd"> :param ref: Template cycle, only used under template-related registration methods</span>
+</span><span id="template_00pt_align-321"><a href="#template_00pt_align-321"><span class="linenos">321</span></a><span class="sd"> :param dst_shape: Registration diagram theoretical dimensions</span>
 </span><span id="template_00pt_align-322"><a href="#template_00pt_align-322"><span class="linenos">322</span></a><span class="sd">    :param from_stitched</span>
 </span><span id="template_00pt_align-323"><a href="#template_00pt_align-323"><span class="linenos">323</span></a><span class="sd">    :param flip_flag:</span>
 </span><span id="template_00pt_align-324"><a href="#template_00pt_align-324"><span class="linenos">324</span></a><span class="sd">    :param rot90_flag:</span>
@@ -1222,9 +1222,9 @@
             <div class="docstring"><h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>moving_image</strong>:  待配准图，通常是染色图（如ssDNA、HE）</li>
-<li><strong>ref</strong>:  模板周期，仅在模板相关配准方法下用到</li>
-<li><strong>dst_shape</strong>:  配准图理论尺寸
+<li><strong>moving_image</strong>: The image to be registered, usually a staining image (such as ssDNA, HE)</li>
+<li><strong>ref</strong>: Template cycle, only used under template-related registration methods</li>
+<li><strong>dst_shape</strong>: Theoretical size of registration diagram
 :param from_stitched</li>
 <li><strong>flip_flag</strong>: </li>
 <li><strong>rot90_flag</strong>: </li>

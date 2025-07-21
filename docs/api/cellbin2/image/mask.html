@@ -71,7 +71,7 @@
 </span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="sd">    :param mask_in: np.array np.uint8</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="sd">    :return: np.array np.uint8</span>
 </span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a><span class="w">    </span><span class="sd">&#39;&#39;&#39; 对二值图像进行孔洞填充 &#39;&#39;&#39;</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a><span class="w"> </span><span class="sd">&#39;&#39;&#39;&#39;&#39;&#39;&#39;&#39;&#39;&#39;&#39;
 </span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>    <span class="n">im_floodfill</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">copyMakeBorder</span><span class="p">(</span><span class="n">mask_in</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">BORDER_CONSTANT</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>    <span class="c1"># im_floodfill = im_in.copy()</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>    <span class="c1"># Mask used to flood filling.</span>
@@ -119,19 +119,19 @@
 </span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a><span class="sd">    Returns:</span>
 </span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a>
 </span><span id="L-59"><a href="#L-59"><span class="linenos">59</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a>    <span class="c1"># 首先将a和b按照0/1的方式量化</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a> <span class="c1"># First quantify a and b in the form of 0/1</span>
 </span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a>    <span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
 </span><span id="L-62"><a href="#L-62"><span class="linenos">62</span></a>    <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
 </span><span id="L-63"><a href="#L-63"><span class="linenos">63</span></a>
-</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a>    <span class="c1"># 计算交集(intersection)</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a> <span class="c1"># Compute intersection(intersection)</span>
 </span><span id="L-65"><a href="#L-65"><span class="linenos">65</span></a>    <span class="n">intersection</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
 </span><span id="L-66"><a href="#L-66"><span class="linenos">66</span></a>    <span class="n">intersection</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">intersection</span><span class="p">)</span>
 </span><span id="L-67"><a href="#L-67"><span class="linenos">67</span></a>
-</span><span id="L-68"><a href="#L-68"><span class="linenos">68</span></a>    <span class="c1"># 计算并集(union)</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos">68</span></a> <span class="c1"># Calculate union</span>
 </span><span id="L-69"><a href="#L-69"><span class="linenos">69</span></a>    <span class="n">union</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
 </span><span id="L-70"><a href="#L-70"><span class="linenos">70</span></a>    <span class="n">union</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">union</span><span class="p">)</span>
 </span><span id="L-71"><a href="#L-71"><span class="linenos">71</span></a>
-</span><span id="L-72"><a href="#L-72"><span class="linenos">72</span></a>    <span class="c1"># 计算IoU</span>
+</span><span id="L-72"><a href="#L-72"><span class="linenos">72</span></a> <span class="c1"># Calculate IoU</span>
 </span><span id="L-73"><a href="#L-73"><span class="linenos">73</span></a>    <span class="n">iou</span> <span class="o">=</span> <span class="n">intersection</span> <span class="o">/</span> <span class="p">(</span><span class="n">union</span> <span class="o">+</span> <span class="n">epsilon</span><span class="p">)</span>
 </span><span id="L-74"><a href="#L-74"><span class="linenos">74</span></a>
 </span><span id="L-75"><a href="#L-75"><span class="linenos">75</span></a>    <span class="k">return</span> <span class="n">iou</span>
@@ -157,7 +157,7 @@
 </span><span id="f_fill_all_hole-10"><a href="#f_fill_all_hole-10"><span class="linenos">10</span></a><span class="sd">    :param mask_in: np.array np.uint8</span>
 </span><span id="f_fill_all_hole-11"><a href="#f_fill_all_hole-11"><span class="linenos">11</span></a><span class="sd">    :return: np.array np.uint8</span>
 </span><span id="f_fill_all_hole-12"><a href="#f_fill_all_hole-12"><span class="linenos">12</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="f_fill_all_hole-13"><a href="#f_fill_all_hole-13"><span class="linenos">13</span></a><span class="w">    </span><span class="sd">&#39;&#39;&#39; 对二值图像进行孔洞填充 &#39;&#39;&#39;</span>
+</span><span id="f_fill_all_hole-13"><a href="#f_fill_all_hole-13"><span class="linenos">13</span></a><span class="w"> </span><span class="sd">&#39;&#39;&#39;&#39;&#39;&#39;&#39;&#39;&#39;&#39;&#39;&#39;
 </span><span id="f_fill_all_hole-14"><a href="#f_fill_all_hole-14"><span class="linenos">14</span></a>    <span class="n">im_floodfill</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">copyMakeBorder</span><span class="p">(</span><span class="n">mask_in</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">BORDER_CONSTANT</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 </span><span id="f_fill_all_hole-15"><a href="#f_fill_all_hole-15"><span class="linenos">15</span></a>    <span class="c1"># im_floodfill = im_in.copy()</span>
 </span><span id="f_fill_all_hole-16"><a href="#f_fill_all_hole-16"><span class="linenos">16</span></a>    <span class="c1"># Mask used to flood filling.</span>
@@ -259,19 +259,19 @@
 </span><span id="iou-58"><a href="#iou-58"><span class="linenos">58</span></a><span class="sd">    Returns:</span>
 </span><span id="iou-59"><a href="#iou-59"><span class="linenos">59</span></a>
 </span><span id="iou-60"><a href="#iou-60"><span class="linenos">60</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="iou-61"><a href="#iou-61"><span class="linenos">61</span></a>    <span class="c1"># 首先将a和b按照0/1的方式量化</span>
+</span><span id="iou-61"><a href="#iou-61"><span class="linenos">61</span></a> <span class="c1"># First quantify a and b in the form of 0/1</span>
 </span><span id="iou-62"><a href="#iou-62"><span class="linenos">62</span></a>    <span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
 </span><span id="iou-63"><a href="#iou-63"><span class="linenos">63</span></a>    <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
 </span><span id="iou-64"><a href="#iou-64"><span class="linenos">64</span></a>
-</span><span id="iou-65"><a href="#iou-65"><span class="linenos">65</span></a>    <span class="c1"># 计算交集(intersection)</span>
+</span><span id="iou-65"><a href="#iou-65"><span class="linenos">65</span></a> <span class="c1"># Compute intersection(intersection)</span>
 </span><span id="iou-66"><a href="#iou-66"><span class="linenos">66</span></a>    <span class="n">intersection</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
 </span><span id="iou-67"><a href="#iou-67"><span class="linenos">67</span></a>    <span class="n">intersection</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">intersection</span><span class="p">)</span>
 </span><span id="iou-68"><a href="#iou-68"><span class="linenos">68</span></a>
-</span><span id="iou-69"><a href="#iou-69"><span class="linenos">69</span></a>    <span class="c1"># 计算并集(union)</span>
+</span><span id="iou-69"><a href="#iou-69"><span class="linenos">69</span></a> <span class="c1"># Calculate union</span>
 </span><span id="iou-70"><a href="#iou-70"><span class="linenos">70</span></a>    <span class="n">union</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
 </span><span id="iou-71"><a href="#iou-71"><span class="linenos">71</span></a>    <span class="n">union</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">union</span><span class="p">)</span>
 </span><span id="iou-72"><a href="#iou-72"><span class="linenos">72</span></a>
-</span><span id="iou-73"><a href="#iou-73"><span class="linenos">73</span></a>    <span class="c1"># 计算IoU</span>
+</span><span id="iou-73"><a href="#iou-73"><span class="linenos">73</span></a> <span class="c1"># Calculate IoU</span>
 </span><span id="iou-74"><a href="#iou-74"><span class="linenos">74</span></a>    <span class="n">iou</span> <span class="o">=</span> <span class="n">intersection</span> <span class="o">/</span> <span class="p">(</span><span class="n">union</span> <span class="o">+</span> <span class="n">epsilon</span><span class="p">)</span>
 </span><span id="iou-75"><a href="#iou-75"><span class="linenos">75</span></a>
 </span><span id="iou-76"><a href="#iou-76"><span class="linenos">76</span></a>    <span class="k">return</span> <span class="n">iou</span>

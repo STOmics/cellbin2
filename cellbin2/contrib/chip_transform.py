@@ -52,7 +52,7 @@ def chip_transform(
         color_space: "HSV" or "HLS"
         scale: [fixed_image microscope magnification, moving_image microscope magnification], usually [2, 1]
         method: int
-            0: 原图配准
+            0: Original image registration
             1:
 
     Returns:
@@ -89,6 +89,6 @@ def chip_transform(
 if __name__ == "__main__":
     chip_transform(
         fixed_image = r"D:\02.data\temp\temp\src_image\LXX_2_HE_d2.tif",
-        moving_image = r"D:\02.data\temp\temp\src_image\lxx_宫颈癌2\test_v3.tif",
-        output_path = r"D:\02.data\temp\temp\src_image\lxx_宫颈癌2\regis_v3.tif",
+        moving_image = r"D:\02.data\temp\temp\src_image\lxx_cervical cancer2\test_v3.tif",
+        output_path = r"D:\02.data\temp\temp\src_image\lxx_cervical cancer2\regis_v3.tif",
     )

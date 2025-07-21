@@ -121,7 +121,7 @@
                     <h1 class="modulename">
 <a href="./../cellbin2.html">cellbin2</a><wbr>.image    </h1>
 
-                        <div class="docstring"><p>图像读取基类</p>
+                        <div class="docstring"><p>Image reading base class</p>
 </div>
 
                         <input id="mod-image-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
@@ -129,7 +129,7 @@
                         <label class="view-source-button" for="mod-image-view-source"><span>View Source</span></label>
 
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="sd">图像读取基类</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="sd">Image reading base class</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span> <span class="nn">os</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">import</span> <span class="nn">tifffile</span>
@@ -142,7 +142,7 @@
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="k">class</span> <span class="nc">CBImage</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; channel image: 单通道图 &quot;&quot;&quot;</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="w"> </span><span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;</span>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>    <span class="n">_SUFFIX_LIST</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;.tif&#39;</span><span class="p">,</span> <span class="s1">&#39;.tiff&#39;</span><span class="p">,</span> <span class="s1">&#39;.TIF&#39;</span><span class="p">,</span> <span class="s1">&#39;.TIFF&#39;</span><span class="p">]</span>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>    <span class="n">_SECOND_SUFFIX_LIST</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;.png&#39;</span><span class="p">,</span> <span class="s1">&#39;.jpg&#39;</span><span class="p">,</span> <span class="s1">&#39;.jpeg&#39;</span><span class="p">]</span>
@@ -247,7 +247,7 @@
 </span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>            <span class="n">flip_ud</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 </span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>            <span class="n">trans_mat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;CBImage&#39;</span><span class="p">:</span>
-</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; 调用pyvips进行图像操作</span>
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a><span class="w"> </span><span class="sd">&quot;&quot;&quot;&quot; Call pyvips for image operation</span>
 </span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>
 </span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a><span class="sd">        Args:</span>
 </span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="sd">            scale:</span>
@@ -507,7 +507,7 @@
     </div>
     <a class="headerlink" href="#CBImage"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="CBImage-15"><a href="#CBImage-15"><span class="linenos"> 15</span></a><span class="k">class</span> <span class="nc">CBImage</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="CBImage-16"><a href="#CBImage-16"><span class="linenos"> 16</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; channel image: 单通道图 &quot;&quot;&quot;</span>
+</span><span id="CBImage-16"><a href="#CBImage-16"><span class="linenos"> 16</span></a><span class="w"> </span><span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;</span>
 </span><span id="CBImage-17"><a href="#CBImage-17"><span class="linenos"> 17</span></a>
 </span><span id="CBImage-18"><a href="#CBImage-18"><span class="linenos"> 18</span></a>    <span class="n">_SUFFIX_LIST</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;.tif&#39;</span><span class="p">,</span> <span class="s1">&#39;.tiff&#39;</span><span class="p">,</span> <span class="s1">&#39;.TIF&#39;</span><span class="p">,</span> <span class="s1">&#39;.TIFF&#39;</span><span class="p">]</span>
 </span><span id="CBImage-19"><a href="#CBImage-19"><span class="linenos"> 19</span></a>    <span class="n">_SECOND_SUFFIX_LIST</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;.png&#39;</span><span class="p">,</span> <span class="s1">&#39;.jpg&#39;</span><span class="p">,</span> <span class="s1">&#39;.jpeg&#39;</span><span class="p">]</span>
@@ -612,7 +612,7 @@
 </span><span id="CBImage-118"><a href="#CBImage-118"><span class="linenos">118</span></a>            <span class="n">flip_ud</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 </span><span id="CBImage-119"><a href="#CBImage-119"><span class="linenos">119</span></a>            <span class="n">trans_mat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="CBImage-120"><a href="#CBImage-120"><span class="linenos">120</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;CBImage&#39;</span><span class="p">:</span>
-</span><span id="CBImage-121"><a href="#CBImage-121"><span class="linenos">121</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; 调用pyvips进行图像操作</span>
+</span><span id="CBImage-121"><a href="#CBImage-121"><span class="linenos">121</span></a><span class="w"> </span><span class="sd">&quot;&quot;&quot;&quot; Call pyvips for image operation</span>
 </span><span id="CBImage-122"><a href="#CBImage-122"><span class="linenos">122</span></a>
 </span><span id="CBImage-123"><a href="#CBImage-123"><span class="linenos">123</span></a><span class="sd">        Args:</span>
 </span><span id="CBImage-124"><a href="#CBImage-124"><span class="linenos">124</span></a><span class="sd">            scale:</span>
@@ -800,7 +800,7 @@
 </span></pre></div>
 
 
-            <div class="docstring"><p>channel image: 单通道图</p>
+            <div class="docstring"><p>channel image: single channel image</p>
 </div>
 
 
@@ -1011,7 +1011,7 @@
 </span><span id="CBImage.trans_image-118"><a href="#CBImage.trans_image-118"><span class="linenos">118</span></a>            <span class="n">flip_ud</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 </span><span id="CBImage.trans_image-119"><a href="#CBImage.trans_image-119"><span class="linenos">119</span></a>            <span class="n">trans_mat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="CBImage.trans_image-120"><a href="#CBImage.trans_image-120"><span class="linenos">120</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;CBImage&#39;</span><span class="p">:</span>
-</span><span id="CBImage.trans_image-121"><a href="#CBImage.trans_image-121"><span class="linenos">121</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; 调用pyvips进行图像操作</span>
+</span><span id="CBImage.trans_image-121"><a href="#CBImage.trans_image-121"><span class="linenos">121</span></a><span class="w"> </span><span class="sd">&quot;&quot;&quot;&quot; Call pyvips for image operation</span>
 </span><span id="CBImage.trans_image-122"><a href="#CBImage.trans_image-122"><span class="linenos">122</span></a>
 </span><span id="CBImage.trans_image-123"><a href="#CBImage.trans_image-123"><span class="linenos">123</span></a><span class="sd">        Args:</span>
 </span><span id="CBImage.trans_image-124"><a href="#CBImage.trans_image-124"><span class="linenos">124</span></a><span class="sd">            scale:</span>
@@ -1072,7 +1072,7 @@
 </span></pre></div>
 
 
-            <div class="docstring"><p>调用pyvips进行图像操作</p>
+            <div class="docstring"><p>Call pyvips for image operation</p>
 
 <h6 id="arguments">Arguments:</h6>
 

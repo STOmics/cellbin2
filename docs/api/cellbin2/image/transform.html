@@ -109,7 +109,7 @@
                     <h1 class="modulename">
 <a href="./../../cellbin2.html">cellbin2</a><wbr>.<a href="./../image.html">image</a><wbr>.transform    </h1>
 
-                        <div class="docstring"><p>图像变换类</p>
+                        <div class="docstring"><p>Image transformation class</p>
 </div>
 
                         <input id="mod-transform-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
@@ -117,7 +117,7 @@
                         <label class="view-source-button" for="mod-transform-view-source"><span>View Source</span></label>
 
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="sd">图像变换类</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="sd">Image transformation class</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span> <span class="nn">os</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">import</span> <span class="nn">platform</span>
@@ -242,7 +242,7 @@
 </span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>
 </span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>    <span class="k">def</span> <span class="nf">rot90</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rot90_type</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">ret_dst</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a><span class="sd">        2023/09/21 @fxzhao 增加参数ret_dst,默认为True返回数据,否则返回None</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a><span class="sd"> 2023/09/21 @fxzhao Add parameter ret_dst, default to True to return data, otherwise return None</span>
 </span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">__rigid_transform</span><span class="p">(</span><span class="n">rot_type</span><span class="o">=</span><span class="n">rot90_type</span><span class="p">)</span>
 </span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>        <span class="k">if</span> <span class="n">ret_dst</span><span class="p">:</span>
@@ -264,7 +264,7 @@
 </span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 </span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a><span class="sd">        :param flip_type: &#39;ver&#39; | &#39;hor&#39;</span>
 </span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a><span class="sd">        </span>
-</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a><span class="sd">        2023/09/21 @fxzhao 增加参数ret_dst,默认为True返回数据,否则返回None</span>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a><span class="sd"> 2023/09/21 @fxzhao Add parameter ret_dst, default to True to return data, otherwise return None</span>
 </span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a><span class="sd">        &#39;&#39;&#39;</span>
 </span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">__rigid_transform</span><span class="p">(</span><span class="n">flip</span><span class="o">=</span><span class="n">flip_type</span><span class="p">)</span>
 </span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>        <span class="k">if</span> <span class="n">ret_dst</span><span class="p">:</span>
@@ -297,7 +297,7 @@
 </span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a>
 </span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a>    <span class="k">def</span> <span class="nf">__get_padding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rotate</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
 </span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a><span class="sd">        用于pyvips旋转角度 补齐量</span>
+</span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a><span class="sd"> Used for pyvips rotation angle to make up for the amount</span>
 </span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a>        <span class="k">if</span> <span class="mi">360</span> <span class="o">-</span> <span class="n">rotate</span> <span class="o">%</span> <span class="mi">360</span> <span class="o">&gt;</span> <span class="mi">180</span><span class="p">:</span>
 </span><span id="L-185"><a href="#L-185"><span class="linenos">185</span></a>            <span class="n">k_x</span> <span class="o">=</span> <span class="mi">1</span>
@@ -312,11 +312,11 @@
 </span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a>
 </span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a>    <span class="k">def</span> <span class="nf">__rigid_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rot_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dst_shape</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-196"><a href="#L-196"><span class="linenos">196</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-197"><a href="#L-197"><span class="linenos">197</span></a><span class="sd">        2023/4/6 @dengzhonghan 将扩展画布优先于offset挪动</span>
-</span><span id="L-198"><a href="#L-198"><span class="linenos">198</span></a><span class="sd">        2023/5/6 @dengzhonghan 画布扩展与offset挪动合并，不然需要判断两幅图尺寸大小的关系</span>
-</span><span id="L-199"><a href="#L-199"><span class="linenos">199</span></a><span class="sd">        2023/9/19 @fxzhao 修复用affine做旋转的问题,替换为pyvips自带的rot方法</span>
-</span><span id="L-200"><a href="#L-200"><span class="linenos">200</span></a><span class="sd">        2023/9/20 @lizepeng1 修复了pyvips所有旋转问题</span>
-</span><span id="L-201"><a href="#L-201"><span class="linenos">201</span></a><span class="sd">        刚性</span>
+</span><span id="L-197"><a href="#L-197"><span class="linenos">197</span></a><span class="sd"> 2023/4/6 @dengzhonghan Prefers the extension canvas over the offset move</span>
+</span><span id="L-198"><a href="#L-198"><span class="linenos">198</span></a><span class="sd"> 2023/5/6 @dengzhonghan Canvas expansion and offset move merge, otherwise you need to judge the relationship between the size of the two pictures</span>
+</span><span id="L-199"><a href="#L-199"><span class="linenos">199</span></a><span class="sd"> 2023/9/19 @fxzhao Fixed the problem of using affine to rotate, replace it with the rot method that comes with pyvips</span>
+</span><span id="L-200"><a href="#L-200"><span class="linenos">200</span></a><span class="sd"> 2023/9/20 @lizepeng1 Fixed all rotation issues of pyvips</span>
+</span><span id="L-201"><a href="#L-201"><span class="linenos">201</span></a><span class="sd"> Rigid</span>
 </span><span id="L-202"><a href="#L-202"><span class="linenos">202</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-203"><a href="#L-203"><span class="linenos">203</span></a>        <span class="k">if</span> <span class="n">flip</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="L-204"><a href="#L-204"><span class="linenos">204</span></a>            <span class="k">if</span> <span class="n">flip</span> <span class="o">==</span> <span class="s1">&#39;ver&#39;</span><span class="p">:</span>
@@ -356,7 +356,7 @@
 </span><span id="L-238"><a href="#L-238"><span class="linenos">238</span></a>
 </span><span id="L-239"><a href="#L-239"><span class="linenos">239</span></a>    <span class="k">def</span> <span class="nf">__affine_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scale_x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scale_y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-240"><a href="#L-240"><span class="linenos">240</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-241"><a href="#L-241"><span class="linenos">241</span></a><span class="sd">        仿射</span>
+</span><span id="L-241"><a href="#L-241"><span class="linenos">241</span></a><span class="sd"> Affine</span>
 </span><span id="L-242"><a href="#L-242"><span class="linenos">242</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-243"><a href="#L-243"><span class="linenos">243</span></a>        <span class="k">if</span> <span class="n">scale_x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">scale_x</span> <span class="o">=</span> <span class="mi">1</span>
 </span><span id="L-244"><a href="#L-244"><span class="linenos">244</span></a>        <span class="k">if</span> <span class="n">scale_y</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">scale_y</span> <span class="o">=</span> <span class="mi">1</span>
@@ -574,7 +574,7 @@ axis-aligned rectangle (maximal area) within the rotated rectangle.</p>
 </span><span id="ImageTransform-125"><a href="#ImageTransform-125"><span class="linenos">125</span></a>
 </span><span id="ImageTransform-126"><a href="#ImageTransform-126"><span class="linenos">126</span></a>    <span class="k">def</span> <span class="nf">rot90</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rot90_type</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">ret_dst</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="ImageTransform-127"><a href="#ImageTransform-127"><span class="linenos">127</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="ImageTransform-128"><a href="#ImageTransform-128"><span class="linenos">128</span></a><span class="sd">        2023/09/21 @fxzhao 增加参数ret_dst,默认为True返回数据,否则返回None</span>
+</span><span id="ImageTransform-128"><a href="#ImageTransform-128"><span class="linenos">128</span></a><span class="sd"> 2023/09/21 @fxzhao Add parameter ret_dst, default to True to return data, otherwise return None</span>
 </span><span id="ImageTransform-129"><a href="#ImageTransform-129"><span class="linenos">129</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="ImageTransform-130"><a href="#ImageTransform-130"><span class="linenos">130</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">__rigid_transform</span><span class="p">(</span><span class="n">rot_type</span><span class="o">=</span><span class="n">rot90_type</span><span class="p">)</span>
 </span><span id="ImageTransform-131"><a href="#ImageTransform-131"><span class="linenos">131</span></a>        <span class="k">if</span> <span class="n">ret_dst</span><span class="p">:</span>
@@ -596,7 +596,7 @@ axis-aligned rectangle (maximal area) within the rotated rectangle.</p>
 </span><span id="ImageTransform-147"><a href="#ImageTransform-147"><span class="linenos">147</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 </span><span id="ImageTransform-148"><a href="#ImageTransform-148"><span class="linenos">148</span></a><span class="sd">        :param flip_type: &#39;ver&#39; | &#39;hor&#39;</span>
 </span><span id="ImageTransform-149"><a href="#ImageTransform-149"><span class="linenos">149</span></a><span class="sd">        </span>
-</span><span id="ImageTransform-150"><a href="#ImageTransform-150"><span class="linenos">150</span></a><span class="sd">        2023/09/21 @fxzhao 增加参数ret_dst,默认为True返回数据,否则返回None</span>
+</span><span id="ImageTransform-150"><a href="#ImageTransform-150"><span class="linenos">150</span></a><span class="sd"> 2023/09/21 @fxzhao Add parameter ret_dst, default to True to return data, otherwise return None</span>
 </span><span id="ImageTransform-151"><a href="#ImageTransform-151"><span class="linenos">151</span></a><span class="sd">        &#39;&#39;&#39;</span>
 </span><span id="ImageTransform-152"><a href="#ImageTransform-152"><span class="linenos">152</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">__rigid_transform</span><span class="p">(</span><span class="n">flip</span><span class="o">=</span><span class="n">flip_type</span><span class="p">)</span>
 </span><span id="ImageTransform-153"><a href="#ImageTransform-153"><span class="linenos">153</span></a>        <span class="k">if</span> <span class="n">ret_dst</span><span class="p">:</span>
@@ -629,7 +629,7 @@ axis-aligned rectangle (maximal area) within the rotated rectangle.</p>
 </span><span id="ImageTransform-180"><a href="#ImageTransform-180"><span class="linenos">180</span></a>
 </span><span id="ImageTransform-181"><a href="#ImageTransform-181"><span class="linenos">181</span></a>    <span class="k">def</span> <span class="nf">__get_padding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rotate</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
 </span><span id="ImageTransform-182"><a href="#ImageTransform-182"><span class="linenos">182</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="ImageTransform-183"><a href="#ImageTransform-183"><span class="linenos">183</span></a><span class="sd">        用于pyvips旋转角度 补齐量</span>
+</span><span id="ImageTransform-183"><a href="#ImageTransform-183"><span class="linenos">183</span></a><span class="sd"> Used for pyvips rotation angle to make up for the amount</span>
 </span><span id="ImageTransform-184"><a href="#ImageTransform-184"><span class="linenos">184</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="ImageTransform-185"><a href="#ImageTransform-185"><span class="linenos">185</span></a>        <span class="k">if</span> <span class="mi">360</span> <span class="o">-</span> <span class="n">rotate</span> <span class="o">%</span> <span class="mi">360</span> <span class="o">&gt;</span> <span class="mi">180</span><span class="p">:</span>
 </span><span id="ImageTransform-186"><a href="#ImageTransform-186"><span class="linenos">186</span></a>            <span class="n">k_x</span> <span class="o">=</span> <span class="mi">1</span>
@@ -644,11 +644,11 @@ axis-aligned rectangle (maximal area) within the rotated rectangle.</p>
 </span><span id="ImageTransform-195"><a href="#ImageTransform-195"><span class="linenos">195</span></a>
 </span><span id="ImageTransform-196"><a href="#ImageTransform-196"><span class="linenos">196</span></a>    <span class="k">def</span> <span class="nf">__rigid_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rot_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dst_shape</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="ImageTransform-197"><a href="#ImageTransform-197"><span class="linenos">197</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="ImageTransform-198"><a href="#ImageTransform-198"><span class="linenos">198</span></a><span class="sd">        2023/4/6 @dengzhonghan 将扩展画布优先于offset挪动</span>
-</span><span id="ImageTransform-199"><a href="#ImageTransform-199"><span class="linenos">199</span></a><span class="sd">        2023/5/6 @dengzhonghan 画布扩展与offset挪动合并，不然需要判断两幅图尺寸大小的关系</span>
-</span><span id="ImageTransform-200"><a href="#ImageTransform-200"><span class="linenos">200</span></a><span class="sd">        2023/9/19 @fxzhao 修复用affine做旋转的问题,替换为pyvips自带的rot方法</span>
-</span><span id="ImageTransform-201"><a href="#ImageTransform-201"><span class="linenos">201</span></a><span class="sd">        2023/9/20 @lizepeng1 修复了pyvips所有旋转问题</span>
-</span><span id="ImageTransform-202"><a href="#ImageTransform-202"><span class="linenos">202</span></a><span class="sd">        刚性</span>
+</span><span id="ImageTransform-198"><a href="#ImageTransform-198"><span class="linenos">198</span></a><span class="sd"> 2023/4/6 @dengzhonghan Prioritizes the extension canvas over offset move</span>
+</span><span id="ImageTransform-199"><a href="#ImageTransform-199"><span class="linenos">199</span></a><span class="sd"> 2023/5/6 @dengzhonghan Canvas expansion and offset move merge, otherwise you need to judge the relationship between the size of the two pictures</span>
+</span><span id="ImageTransform-200"><a href="#ImageTransform-200"><span class="linenos">200</span></a><span class="sd"> 2023/9/19 @fxzhao Fixed the problem of using affine to rotate, replace it with the rot method that comes with pyvips</span>
+</span><span id="ImageTransform-201"><a href="#ImageTransform-201"><span class="linenos">201</span></a><span class="sd"> 2023/9/20 @lizepeng1 Fixed all rotation issues of pyvips</span>
+</span><span id="ImageTransform-202"><a href="#ImageTransform-202"><span class="linenos">202</span></a><span class="sd"> Rigid</span>
 </span><span id="ImageTransform-203"><a href="#ImageTransform-203"><span class="linenos">203</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="ImageTransform-204"><a href="#ImageTransform-204"><span class="linenos">204</span></a>        <span class="k">if</span> <span class="n">flip</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="ImageTransform-205"><a href="#ImageTransform-205"><span class="linenos">205</span></a>            <span class="k">if</span> <span class="n">flip</span> <span class="o">==</span> <span class="s1">&#39;ver&#39;</span><span class="p">:</span>
@@ -688,7 +688,7 @@ axis-aligned rectangle (maximal area) within the rotated rectangle.</p>
 </span><span id="ImageTransform-239"><a href="#ImageTransform-239"><span class="linenos">239</span></a>
 </span><span id="ImageTransform-240"><a href="#ImageTransform-240"><span class="linenos">240</span></a>    <span class="k">def</span> <span class="nf">__affine_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scale_x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scale_y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="ImageTransform-241"><a href="#ImageTransform-241"><span class="linenos">241</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="ImageTransform-242"><a href="#ImageTransform-242"><span class="linenos">242</span></a><span class="sd">        仿射</span>
+</span><span id="ImageTransform-242"><a href="#ImageTransform-242"><span class="linenos">242</span></a><span class="sd"> Affine</span>
 </span><span id="ImageTransform-243"><a href="#ImageTransform-243"><span class="linenos">243</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="ImageTransform-244"><a href="#ImageTransform-244"><span class="linenos">244</span></a>        <span class="k">if</span> <span class="n">scale_x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">scale_x</span> <span class="o">=</span> <span class="mi">1</span>
 </span><span id="ImageTransform-245"><a href="#ImageTransform-245"><span class="linenos">245</span></a>        <span class="k">if</span> <span class="n">scale_y</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">scale_y</span> <span class="o">=</span> <span class="mi">1</span>
@@ -955,7 +955,7 @@ instance is garbage-collected, the underlying object is unreferenced.</p>
     <a class="headerlink" href="#ImageTransform.rot90"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="ImageTransform.rot90-126"><a href="#ImageTransform.rot90-126"><span class="linenos">126</span></a>    <span class="k">def</span> <span class="nf">rot90</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rot90_type</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">ret_dst</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="ImageTransform.rot90-127"><a href="#ImageTransform.rot90-127"><span class="linenos">127</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="ImageTransform.rot90-128"><a href="#ImageTransform.rot90-128"><span class="linenos">128</span></a><span class="sd">        2023/09/21 @fxzhao 增加参数ret_dst,默认为True返回数据,否则返回None</span>
+</span><span id="ImageTransform.rot90-128"><a href="#ImageTransform.rot90-128"><span class="linenos">128</span></a><span class="sd"> 2023/09/21 @fxzhao Add parameter ret_dst, default to True to return data, otherwise return None</span>
 </span><span id="ImageTransform.rot90-129"><a href="#ImageTransform.rot90-129"><span class="linenos">129</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="ImageTransform.rot90-130"><a href="#ImageTransform.rot90-130"><span class="linenos">130</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">__rigid_transform</span><span class="p">(</span><span class="n">rot_type</span><span class="o">=</span><span class="n">rot90_type</span><span class="p">)</span>
 </span><span id="ImageTransform.rot90-131"><a href="#ImageTransform.rot90-131"><span class="linenos">131</span></a>        <span class="k">if</span> <span class="n">ret_dst</span><span class="p">:</span>
@@ -965,7 +965,7 @@ instance is garbage-collected, the underlying object is unreferenced.</p>
 </span></pre></div>
 
 
-            <div class="docstring"><p>2023/09/21 @fxzhao 增加参数ret_dst,默认为True返回数据,否则返回None</p>
+            <div class="docstring"><p>2023/09/21 @fxzhao Add parameter ret_dst, default to True to return data, otherwise return None</p>
 </div>
 
 
@@ -1054,7 +1054,7 @@ instance is garbage-collected, the underlying object is unreferenced.</p>
 </span><span id="ImageTransform.flip-147"><a href="#ImageTransform.flip-147"><span class="linenos">147</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 </span><span id="ImageTransform.flip-148"><a href="#ImageTransform.flip-148"><span class="linenos">148</span></a><span class="sd">        :param flip_type: &#39;ver&#39; | &#39;hor&#39;</span>
 </span><span id="ImageTransform.flip-149"><a href="#ImageTransform.flip-149"><span class="linenos">149</span></a><span class="sd">        </span>
-</span><span id="ImageTransform.flip-150"><a href="#ImageTransform.flip-150"><span class="linenos">150</span></a><span class="sd">        2023/09/21 @fxzhao 增加参数ret_dst,默认为True返回数据,否则返回None</span>
+</span><span id="ImageTransform.flip-150"><a href="#ImageTransform.flip-150"><span class="linenos">150</span></a><span class="sd"> 2023/09/21 @fxzhao Add parameter ret_dst, default to True to return data, otherwise return None</span>
 </span><span id="ImageTransform.flip-151"><a href="#ImageTransform.flip-151"><span class="linenos">151</span></a><span class="sd">        &#39;&#39;&#39;</span>
 </span><span id="ImageTransform.flip-152"><a href="#ImageTransform.flip-152"><span class="linenos">152</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">__rigid_transform</span><span class="p">(</span><span class="n">flip</span><span class="o">=</span><span class="n">flip_type</span><span class="p">)</span>
 </span><span id="ImageTransform.flip-153"><a href="#ImageTransform.flip-153"><span class="linenos">153</span></a>        <span class="k">if</span> <span class="n">ret_dst</span><span class="p">:</span>
@@ -1070,7 +1070,7 @@ instance is garbage-collected, the underlying object is unreferenced.</p>
 <li><strong>flip_type</strong>:  'ver' | 'hor'</li>
 </ul>
 
-<p>2023/09/21 @fxzhao 增加参数ret_dst,默认为True返回数据,否则返回None</p>
+<p>2023/09/21 @fxzhao Add parameter ret_dst, default to True to return data, otherwise return None</p>
 </div>
 
 

@@ -204,16 +204,16 @@
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">from</span> <span class="nn">cellbin2.modules.metadata</span> <span class="kn">import</span> <span class="n">TechType</span>
 </span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="k">class</span> <span class="nc">cbMatrix</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; 单个矩阵管理，是 cellbin 生成的矩阵，保存的时候，会转成gef的方式供后续读写 &quot;&quot;&quot;</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="w"> </span><span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>
 </span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span><span class="n">matrix_type</span><span class="o">=</span><span class="n">TechType</span><span class="o">.</span><span class="n">Transcriptomics</span><span class="p">):</span>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="sd">        :param file_path: cellbin gef 的文件路径</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="sd"> :param file_path: file path of cellbin gef</span>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">file_path</span> <span class="o">=</span> <span class="n">file_path</span>
 </span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_sn</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_matrix_type</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_path</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>        <span class="c1">### class 类内部部访问数据</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a> <span class="c1">#### class class internal access data</span>
 </span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_stereo_exp</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1">### raw stereo_exp</span>
 </span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_cluster_exp</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">matrix_type</span><span class="o">=</span><span class="n">matrix_type</span>
@@ -315,7 +315,7 @@
 </span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>
 </span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a><span class="sd">        释放内存</span>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a><span class="sd"> Free memory</span>
 </span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stereo_exp</span>  <span class="c1">### raw stereo_exp</span>
 </span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cluster_exp</span>
@@ -374,7 +374,7 @@
 </span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a>        <span class="c1"># fig = plt.figure()</span>
 </span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a>        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
 </span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a>        <span class="n">q1</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="mf">0.25</span><span class="p">)</span>
-</span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a>        <span class="n">q2</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="mf">0.50</span><span class="p">)</span>  <span class="c1"># 中位数</span>
+</span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a> <span class="n">q2</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="mf">0.50</span><span class="p">)</span> <span class="c1"># Median</span>
 </span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a>        <span class="n">q3</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="mf">0.75</span><span class="p">)</span>
 </span><span id="L-185"><a href="#L-185"><span class="linenos">185</span></a>        <span class="n">iqr</span> <span class="o">=</span> <span class="n">q3</span> <span class="o">-</span> <span class="n">q1</span>
 </span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a>        <span class="n">data_no_outliers</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">data</span> <span class="o">&lt;=</span> <span class="n">q3</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">iqr</span><span class="p">]</span>
@@ -559,7 +559,7 @@
 </span><span id="L-365"><a href="#L-365"><span class="linenos">365</span></a>
 </span><span id="L-366"><a href="#L-366"><span class="linenos">366</span></a>
 </span><span id="L-367"><a href="#L-367"><span class="linenos">367</span></a><span class="k">class</span> <span class="nc">MultiMatrix</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="L-368"><a href="#L-368"><span class="linenos">368</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; 联合管理多个矩阵：可能需要 &quot;&quot;&quot;</span>
+</span><span id="L-368"><a href="#L-368"><span class="linenos">368</span></a><span class="w"> </span><span class="sd">&quot;&quot;&quot;&quot;&quot; Joint management of multiple matrices: May be required
 </span><span id="L-369"><a href="#L-369"><span class="linenos">369</span></a>
 </span><span id="L-370"><a href="#L-370"><span class="linenos">370</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cellbin_path</span><span class="p">,</span> <span class="n">adjusted_path</span><span class="p">,</span> <span class="n">tissuegef_path</span><span class="p">,</span> <span class="n">raw_path</span><span class="p">,</span> <span class="n">matrix_type</span><span class="p">:</span> <span class="n">TechType</span><span class="p">):</span>
 </span><span id="L-371"><a href="#L-371"><span class="linenos">371</span></a>
@@ -613,16 +613,16 @@
     </div>
     <a class="headerlink" href="#cbMatrix"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="cbMatrix-13"><a href="#cbMatrix-13"><span class="linenos"> 13</span></a><span class="k">class</span> <span class="nc">cbMatrix</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="cbMatrix-14"><a href="#cbMatrix-14"><span class="linenos"> 14</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; 单个矩阵管理，是 cellbin 生成的矩阵，保存的时候，会转成gef的方式供后续读写 &quot;&quot;&quot;</span>
+</span><span id="cbMatrix-14"><a href="#cbMatrix-14"><span class="linenos"> 14</span></a><span class="w"> </span><span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;
 </span><span id="cbMatrix-15"><a href="#cbMatrix-15"><span class="linenos"> 15</span></a>
 </span><span id="cbMatrix-16"><a href="#cbMatrix-16"><span class="linenos"> 16</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span><span class="n">matrix_type</span><span class="o">=</span><span class="n">TechType</span><span class="o">.</span><span class="n">Transcriptomics</span><span class="p">):</span>
 </span><span id="cbMatrix-17"><a href="#cbMatrix-17"><span class="linenos"> 17</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="cbMatrix-18"><a href="#cbMatrix-18"><span class="linenos"> 18</span></a><span class="sd">        :param file_path: cellbin gef 的文件路径</span>
+</span><span id="cbMatrix-18"><a href="#cbMatrix-18"><span class="linenos"> 18</span></a><span class="sd"> :param file_path: file path of cellbin gef</span>
 </span><span id="cbMatrix-19"><a href="#cbMatrix-19"><span class="linenos"> 19</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="cbMatrix-20"><a href="#cbMatrix-20"><span class="linenos"> 20</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">file_path</span> <span class="o">=</span> <span class="n">file_path</span>
 </span><span id="cbMatrix-21"><a href="#cbMatrix-21"><span class="linenos"> 21</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_sn</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="cbMatrix-22"><a href="#cbMatrix-22"><span class="linenos"> 22</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_matrix_type</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_path</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-</span><span id="cbMatrix-23"><a href="#cbMatrix-23"><span class="linenos"> 23</span></a>        <span class="c1">### class 类内部部访问数据</span>
+</span><span id="cbMatrix-23"><a href="#cbMatrix-23"><span class="linenos"> 23</span></a> <span class="c1">#### class class internal access data</span>
 </span><span id="cbMatrix-24"><a href="#cbMatrix-24"><span class="linenos"> 24</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_stereo_exp</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1">### raw stereo_exp</span>
 </span><span id="cbMatrix-25"><a href="#cbMatrix-25"><span class="linenos"> 25</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_cluster_exp</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="cbMatrix-26"><a href="#cbMatrix-26"><span class="linenos"> 26</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">matrix_type</span><span class="o">=</span><span class="n">matrix_type</span>
@@ -724,7 +724,7 @@
 </span><span id="cbMatrix-122"><a href="#cbMatrix-122"><span class="linenos">122</span></a>
 </span><span id="cbMatrix-123"><a href="#cbMatrix-123"><span class="linenos">123</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="cbMatrix-124"><a href="#cbMatrix-124"><span class="linenos">124</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="cbMatrix-125"><a href="#cbMatrix-125"><span class="linenos">125</span></a><span class="sd">        释放内存</span>
+</span><span id="cbMatrix-125"><a href="#cbMatrix-125"><span class="linenos">125</span></a><span class="sd"> Free memory</span>
 </span><span id="cbMatrix-126"><a href="#cbMatrix-126"><span class="linenos">126</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="cbMatrix-127"><a href="#cbMatrix-127"><span class="linenos">127</span></a>        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stereo_exp</span>  <span class="c1">### raw stereo_exp</span>
 </span><span id="cbMatrix-128"><a href="#cbMatrix-128"><span class="linenos">128</span></a>        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cluster_exp</span>
@@ -783,7 +783,7 @@
 </span><span id="cbMatrix-181"><a href="#cbMatrix-181"><span class="linenos">181</span></a>        <span class="c1"># fig = plt.figure()</span>
 </span><span id="cbMatrix-182"><a href="#cbMatrix-182"><span class="linenos">182</span></a>        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
 </span><span id="cbMatrix-183"><a href="#cbMatrix-183"><span class="linenos">183</span></a>        <span class="n">q1</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="mf">0.25</span><span class="p">)</span>
-</span><span id="cbMatrix-184"><a href="#cbMatrix-184"><span class="linenos">184</span></a>        <span class="n">q2</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="mf">0.50</span><span class="p">)</span>  <span class="c1"># 中位数</span>
+</span><span id="cbMatrix-184"><a href="#cbMatrix-184"><span class="linenos">184</span></a> <span class="n">q2</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="mf">0.50</span><span class="p">)</span> <span class="c1"># Median</span>
 </span><span id="cbMatrix-185"><a href="#cbMatrix-185"><span class="linenos">185</span></a>        <span class="n">q3</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="mf">0.75</span><span class="p">)</span>
 </span><span id="cbMatrix-186"><a href="#cbMatrix-186"><span class="linenos">186</span></a>        <span class="n">iqr</span> <span class="o">=</span> <span class="n">q3</span> <span class="o">-</span> <span class="n">q1</span>
 </span><span id="cbMatrix-187"><a href="#cbMatrix-187"><span class="linenos">187</span></a>        <span class="n">data_no_outliers</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">data</span> <span class="o">&lt;=</span> <span class="n">q3</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">iqr</span><span class="p">]</span>
@@ -884,7 +884,7 @@
 </span></pre></div>
 
 
-            <div class="docstring"><p>单个矩阵管理，是 cellbin 生成的矩阵，保存的时候，会转成gef的方式供后续读写</p>
+            <div class="docstring"><p>Single matrix management is a matrix generated by cellbin. When saved, it will be converted into a gef for subsequent reading and writing.</p>
 </div>
 
 
@@ -900,12 +900,12 @@
     <a class="headerlink" href="#cbMatrix.__init__"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="cbMatrix.__init__-16"><a href="#cbMatrix.__init__-16"><span class="linenos">16</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span><span class="n">matrix_type</span><span class="o">=</span><span class="n">TechType</span><span class="o">.</span><span class="n">Transcriptomics</span><span class="p">):</span>
 </span><span id="cbMatrix.__init__-17"><a href="#cbMatrix.__init__-17"><span class="linenos">17</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="cbMatrix.__init__-18"><a href="#cbMatrix.__init__-18"><span class="linenos">18</span></a><span class="sd">        :param file_path: cellbin gef 的文件路径</span>
+</span><span id="cbMatrix.__init__-18"><a href="#cbMatrix.__init__-18"><span class="linenos">18</span></a><span class="sd"> :param file_path: file path of cellbin gef</span>
 </span><span id="cbMatrix.__init__-19"><a href="#cbMatrix.__init__-19"><span class="linenos">19</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="cbMatrix.__init__-20"><a href="#cbMatrix.__init__-20"><span class="linenos">20</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">file_path</span> <span class="o">=</span> <span class="n">file_path</span>
 </span><span id="cbMatrix.__init__-21"><a href="#cbMatrix.__init__-21"><span class="linenos">21</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_sn</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="cbMatrix.__init__-22"><a href="#cbMatrix.__init__-22"><span class="linenos">22</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_matrix_type</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_path</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-</span><span id="cbMatrix.__init__-23"><a href="#cbMatrix.__init__-23"><span class="linenos">23</span></a>        <span class="c1">### class 类内部部访问数据</span>
+</span><span id="cbMatrix.__init__-23"><a href="#cbMatrix.__init__-23"><span class="linenos">23</span></a> <span class="c1">#### class class internal access data</span>
 </span><span id="cbMatrix.__init__-24"><a href="#cbMatrix.__init__-24"><span class="linenos">24</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_stereo_exp</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1">### raw stereo_exp</span>
 </span><span id="cbMatrix.__init__-25"><a href="#cbMatrix.__init__-25"><span class="linenos">25</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_cluster_exp</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="cbMatrix.__init__-26"><a href="#cbMatrix.__init__-26"><span class="linenos">26</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">matrix_type</span><span class="o">=</span><span class="n">matrix_type</span>
@@ -915,7 +915,7 @@
             <div class="docstring"><h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>file_path</strong>:  cellbin gef 的文件路径</li>
+<li><strong>file_path</strong>: file path of cellbin gef</li>
 </ul>
 </div>
 
@@ -1135,14 +1135,14 @@
     <a class="headerlink" href="#cbMatrix.reset"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="cbMatrix.reset-123"><a href="#cbMatrix.reset-123"><span class="linenos">123</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="cbMatrix.reset-124"><a href="#cbMatrix.reset-124"><span class="linenos">124</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="cbMatrix.reset-125"><a href="#cbMatrix.reset-125"><span class="linenos">125</span></a><span class="sd">        释放内存</span>
+</span><span id="cbMatrix.reset-125"><a href="#cbMatrix.reset-125"><span class="linenos">125</span></a><span class="sd"> Free memory</span>
 </span><span id="cbMatrix.reset-126"><a href="#cbMatrix.reset-126"><span class="linenos">126</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="cbMatrix.reset-127"><a href="#cbMatrix.reset-127"><span class="linenos">127</span></a>        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stereo_exp</span>  <span class="c1">### raw stereo_exp</span>
 </span><span id="cbMatrix.reset-128"><a href="#cbMatrix.reset-128"><span class="linenos">128</span></a>        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cluster_exp</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>释放内存</p>
+            <div class="docstring"><p>Free memory</p>
 </div>
 
 
@@ -1794,7 +1794,7 @@
     </div>
     <a class="headerlink" href="#MultiMatrix"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="MultiMatrix-368"><a href="#MultiMatrix-368"><span class="linenos">368</span></a><span class="k">class</span> <span class="nc">MultiMatrix</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="MultiMatrix-369"><a href="#MultiMatrix-369"><span class="linenos">369</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; 联合管理多个矩阵：可能需要 &quot;&quot;&quot;</span>
+</span><span id="MultiMatrix-369"><a href="#MultiMatrix-369"><span class="linenos">369</span></a><span class="w"> </span><span class="sd">&quot;&quot;&quot;&quot;&quot;&quot; Joint management of multiple matrices: May be required
 </span><span id="MultiMatrix-370"><a href="#MultiMatrix-370"><span class="linenos">370</span></a>
 </span><span id="MultiMatrix-371"><a href="#MultiMatrix-371"><span class="linenos">371</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cellbin_path</span><span class="p">,</span> <span class="n">adjusted_path</span><span class="p">,</span> <span class="n">tissuegef_path</span><span class="p">,</span> <span class="n">raw_path</span><span class="p">,</span> <span class="n">matrix_type</span><span class="p">:</span> <span class="n">TechType</span><span class="p">):</span>
 </span><span id="MultiMatrix-372"><a href="#MultiMatrix-372"><span class="linenos">372</span></a>
@@ -1824,7 +1824,7 @@
 </span></pre></div>
 
 
-            <div class="docstring"><p>联合管理多个矩阵：可能需要</p>
+            <div class="docstring"><p>Jointly manage multiple matrices: May be required</p>
 </div>
 
 

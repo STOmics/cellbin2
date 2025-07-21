@@ -218,7 +218,7 @@ def f_percentile_threshold(img, percentile=99.9):
     :param percentile: cutoff used to threshold image
     :return: np.array: thresholded version of input image
 
-    2023/09/20 @fxzhao 增加overwrite_input参数,可省去percentile的临时内存开销
+    2023/09/20 @fxzhao Add overwrite_input parameter to save the temporary memory overhead of percentile
     """
 
     # non_zero_vals = img[np.nonzero(img)]
@@ -287,7 +287,7 @@ def f_histogram_normalization(img):
     :param img: (CHANGE) (numpy.array): numpy array of phase image data.
     :return: numpy.array:image data with dtype float32.
 
-    2023/09/20 @fxzhao 使用numba加速rescale_intensity方法
+    2023/09/20 @fxzhao Using numba to speed up rescale_intensity method
     """
 
     img = img.astype('float32')

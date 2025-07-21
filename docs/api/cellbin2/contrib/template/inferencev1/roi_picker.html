@@ -92,9 +92,9 @@
 </span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="k">class</span> <span class="nc">TrackROIPicker</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="sd">    20x或40x返回可用于做模板推导的图像</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="sd">    20x -- 返回三张FOV图</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="sd">    40x -- 返回七张FOV图</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="sd"> 20x or 40x returns an image that can be used for template derivation</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="sd"> 20x -- Return to three FOV pictures</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="sd"> 40x -- Return to seven FOV pictures</span>
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">images_path</span><span class="p">,</span>
@@ -151,9 +151,9 @@
 </span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>
 </span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>    <span class="k">def</span> <span class="nf">getRoiImages</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">threold</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="sd">        :param k: 取前K对</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a><span class="sd">        :param threold: track点阈值</span>
-</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="sd">        返回局部拼接好的图像对</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="sd"> :param k: Take the previous K pair</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a><span class="sd"> :param threshold: track point threshold</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="sd"> Return to the locally spliced image pair</span>
 </span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>        <span class="n">all_dst_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
 </span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">):</span>
@@ -303,9 +303,9 @@
     <a class="headerlink" href="#TrackROIPicker"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="TrackROIPicker-8"><a href="#TrackROIPicker-8"><span class="linenos">  8</span></a><span class="k">class</span> <span class="nc">TrackROIPicker</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 </span><span id="TrackROIPicker-9"><a href="#TrackROIPicker-9"><span class="linenos">  9</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="TrackROIPicker-10"><a href="#TrackROIPicker-10"><span class="linenos"> 10</span></a><span class="sd">    20x或40x返回可用于做模板推导的图像</span>
-</span><span id="TrackROIPicker-11"><a href="#TrackROIPicker-11"><span class="linenos"> 11</span></a><span class="sd">    20x -- 返回三张FOV图</span>
-</span><span id="TrackROIPicker-12"><a href="#TrackROIPicker-12"><span class="linenos"> 12</span></a><span class="sd">    40x -- 返回七张FOV图</span>
+</span><span id="TrackROIPicker-10"><a href="#TrackROIPicker-10"><span class="linenos"> 10</span></a><span class="sd"> 20x or 40x returns an image that can be used for template derivation</span>
+</span><span id="TrackROIPicker-11"><a href="#TrackROIPicker-11"><span class="linenos"> 11</span></a><span class="sd"> 20x -- Return to three FOV pictures</span>
+</span><span id="TrackROIPicker-12"><a href="#TrackROIPicker-12"><span class="linenos"> 12</span></a><span class="sd"> 40x -- Return to seven FOV pictures</span>
 </span><span id="TrackROIPicker-13"><a href="#TrackROIPicker-13"><span class="linenos"> 13</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="TrackROIPicker-14"><a href="#TrackROIPicker-14"><span class="linenos"> 14</span></a>
 </span><span id="TrackROIPicker-15"><a href="#TrackROIPicker-15"><span class="linenos"> 15</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">images_path</span><span class="p">,</span>
@@ -362,9 +362,9 @@
 </span><span id="TrackROIPicker-66"><a href="#TrackROIPicker-66"><span class="linenos"> 66</span></a>
 </span><span id="TrackROIPicker-67"><a href="#TrackROIPicker-67"><span class="linenos"> 67</span></a>    <span class="k">def</span> <span class="nf">getRoiImages</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">threold</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="TrackROIPicker-68"><a href="#TrackROIPicker-68"><span class="linenos"> 68</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="TrackROIPicker-69"><a href="#TrackROIPicker-69"><span class="linenos"> 69</span></a><span class="sd">        :param k: 取前K对</span>
-</span><span id="TrackROIPicker-70"><a href="#TrackROIPicker-70"><span class="linenos"> 70</span></a><span class="sd">        :param threold: track点阈值</span>
-</span><span id="TrackROIPicker-71"><a href="#TrackROIPicker-71"><span class="linenos"> 71</span></a><span class="sd">        返回局部拼接好的图像对</span>
+</span><span id="TrackROIPicker-69"><a href="#TrackROIPicker-69"><span class="linenos"> 69</span></a><span class="sd"> :param k: Take the previous K pair</span>
+</span><span id="TrackROIPicker-70"><a href="#TrackROIPicker-70"><span class="linenos"> 70</span></a><span class="sd"> :param threshold: track point threshold</span>
+</span><span id="TrackROIPicker-71"><a href="#TrackROIPicker-71"><span class="linenos"> 71</span></a><span class="sd"> Return to the locally spliced image pair</span>
 </span><span id="TrackROIPicker-72"><a href="#TrackROIPicker-72"><span class="linenos"> 72</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="TrackROIPicker-73"><a href="#TrackROIPicker-73"><span class="linenos"> 73</span></a>        <span class="n">all_dst_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
 </span><span id="TrackROIPicker-74"><a href="#TrackROIPicker-74"><span class="linenos"> 74</span></a>        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">):</span>
@@ -478,9 +478,9 @@
 </span></pre></div>
 
 
-            <div class="docstring"><p>20x或40x返回可用于做模板推导的图像
-20x -- 返回三张FOV图
-40x -- 返回七张FOV图</p>
+            <div class="docstring"><p>20x or 40x returns an image that can be used for template derivation
+20x -- Return to three FOV pictures
+40x -- Return to seven FOV pictures</p>
 </div>
 
 
@@ -685,9 +685,9 @@
     <a class="headerlink" href="#TrackROIPicker.getRoiImages"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="TrackROIPicker.getRoiImages-67"><a href="#TrackROIPicker.getRoiImages-67"><span class="linenos"> 67</span></a>    <span class="k">def</span> <span class="nf">getRoiImages</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">threold</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="TrackROIPicker.getRoiImages-68"><a href="#TrackROIPicker.getRoiImages-68"><span class="linenos"> 68</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="TrackROIPicker.getRoiImages-69"><a href="#TrackROIPicker.getRoiImages-69"><span class="linenos"> 69</span></a><span class="sd">        :param k: 取前K对</span>
-</span><span id="TrackROIPicker.getRoiImages-70"><a href="#TrackROIPicker.getRoiImages-70"><span class="linenos"> 70</span></a><span class="sd">        :param threold: track点阈值</span>
-</span><span id="TrackROIPicker.getRoiImages-71"><a href="#TrackROIPicker.getRoiImages-71"><span class="linenos"> 71</span></a><span class="sd">        返回局部拼接好的图像对</span>
+</span><span id="TrackROIPicker.getRoiImages-69"><a href="#TrackROIPicker.getRoiImages-69"><span class="linenos"> 69</span></a><span class="sd"> :param k: Take the previous K pair</span>
+</span><span id="TrackROIPicker.getRoiImages-70"><a href="#TrackROIPicker.getRoiImages-70"><span class="linenos"> 70</span></a><span class="sd"> :param threshold: track point threshold</span>
+</span><span id="TrackROIPicker.getRoiImages-71"><a href="#TrackROIPicker.getRoiImages-71"><span class="linenos"> 71</span></a><span class="sd"> Return to the locally spliced image pair</span>
 </span><span id="TrackROIPicker.getRoiImages-72"><a href="#TrackROIPicker.getRoiImages-72"><span class="linenos"> 72</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="TrackROIPicker.getRoiImages-73"><a href="#TrackROIPicker.getRoiImages-73"><span class="linenos"> 73</span></a>        <span class="n">all_dst_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
 </span><span id="TrackROIPicker.getRoiImages-74"><a href="#TrackROIPicker.getRoiImages-74"><span class="linenos"> 74</span></a>        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">):</span>
@@ -738,9 +738,9 @@
             <div class="docstring"><h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>k</strong>:  取前K对</li>
-<li><strong>threold</strong>:  track点阈值
-返回局部拼接好的图像对</li>
+<li><strong>k</strong>: Take the previous K pair</li>
+<li><strong>threold</strong>: track point threshold
+Return to the locally spliced image pair </li>
 </ul>
 </div>
 

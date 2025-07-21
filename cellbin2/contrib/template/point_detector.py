@@ -248,7 +248,7 @@ class TrackPointQC(object):
                 img_obj: CBImage = self.img_read(val, buffer)
                 cp, angle = self.ci.predict(img_obj)
                 if save_dir is not None:
-                    # debug 模式
+                    # debug mode
                     save_result_on_image(enhance_func, img_obj, cp, save_dir, key)
                 if angle is None or len(cp) == 0:
                     continue
@@ -510,7 +510,7 @@ if __name__ == '__main__':
     h, w = 2000, 2000
     overlap = 0.0
 
-    # 大图
+    # Large picture
     weight_path = r"E:\03.users\liuhuanlin\01.data\cellbin2\weights\points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx"
     img_file = r"E:\03.users\liuhuanlin\01.data\cellbin2\stitch/SS200000789TL_C6_S_DAPI.tif"
     show_result = r"E:\03.users\liuhuanlin\01.data\cellbin2\output"
@@ -527,5 +527,5 @@ if __name__ == '__main__':
         h=h,
         w=w,
         overlap=overlap,
-        save_dir=show_result,  # 非必须
+        save_dir=show_result,  # No need
     )

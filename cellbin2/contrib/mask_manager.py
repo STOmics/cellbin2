@@ -189,8 +189,8 @@ class BestTissueCellMask:
 
 def instance2semantics(ins: np.ndarray) -> np.ndarray:
     """
-    :param ins: 实例mask（0-N）
-    :return: 语义mask（0-1）
+    :param ins: instance mask (0-N)
+    :return: semantic mask (0-1)
     """
     ins_ = ins.copy()
     h, w = ins_.shape[:2]

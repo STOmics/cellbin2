@@ -19,7 +19,7 @@ from jsmin import jsmin
 
 def minify_html(html_string):
   # html_string = re.sub(r'\/\/.*', '', html_string) # space, newline
-  html_string = re.sub(r'\s+', ' ', html_string) # space, newline 空格、换行
+  html_string = re.sub(r'\s+', ' ', html_string) # space, newline space, line break
   html_string = re.sub(r'>\s+<', '><', html_string) #between labels
   html_string = re.sub(r'=\s*"(.*?)"', '="\g<1>"', html_string) #space between attributes 
   html_string = re.sub(r'<!--(.*?)-->', '', html_string) #comment  
@@ -65,7 +65,7 @@ def image_to_base64(image_path):
     return 'data:image/png;base64,' + encoded_string
   
 def operat_html(html_path,outfile):
-    # read HTML file 读取HTML文件
+    # read HTML file Read HTML file
     with open(html_path, 'r', encoding = 'utf-8') as file:
         html_content = file.read()
     html_content = minify_html(html_content)

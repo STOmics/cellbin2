@@ -78,7 +78,7 @@
 </span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="k">class</span> <span class="nc">TemplateCentroid</span><span class="p">(</span><span class="n">Alignment</span><span class="p">):</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="sd">    满足CellBin需求，利用模板周期性及组织形态，通过遍历实现变换参数的获取。实现配准，误差约10pix</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="sd"> Meet CellBin needs, use the periodicity and organizational form of the template to obtain transform parameters through traversal. Recognition is achieved, with an error of about 10pix</span>
 </span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>            <span class="bp">self</span><span class="p">,</span>
@@ -193,10 +193,10 @@
 </span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>             <span class="n">rot90_flag</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>             <span class="p">):</span>
 </span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="sd">    :param moving_image: 待配准图，通常是染色图（如ssDNA、HE）</span>
-</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a><span class="sd">    :param fixed_image: 固定图，通常是矩阵，支持TIF/GEM/GEF及数组</span>
-</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a><span class="sd">    :param ref: 模板周期，仅在模板相关配准方法下用到</span>
-</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a><span class="sd">    :param from_stitched: 从拼接图开始</span>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="sd"> :param moving_image: The image to be registered, usually a staining image (such as ssDNA, HE)</span>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a><span class="sd"> :param fixed_image: Fixed graph, usually a matrix, supports TIF/GEM/GEF and arrays</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a><span class="sd"> :param ref: Template cycle, only used under template-related registration methods</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a><span class="sd"> :param from_stitched: Start with the stitching diagram</span>
 </span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a><span class="sd">    :param flip_flag:</span>
 </span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a><span class="sd">    :param rot90_flag:</span>
 </span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a><span class="sd">    :return: RegistrationInfo</span>
@@ -229,7 +229,7 @@
 </span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>    <span class="n">template_ref</span> <span class="o">=</span> <span class="p">([</span><span class="mi">240</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">330</span><span class="p">,</span> <span class="mi">390</span><span class="p">,</span> <span class="mi">390</span><span class="p">,</span> <span class="mi">330</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">420</span><span class="p">],</span>
 </span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>                    <span class="p">[</span><span class="mi">240</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">330</span><span class="p">,</span> <span class="mi">390</span><span class="p">,</span> <span class="mi">390</span><span class="p">,</span> <span class="mi">330</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">420</span><span class="p">])</span>
 </span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a>
-</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>    <span class="c1"># 移动图像信息</span>
+</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a> <span class="c1"># Mobile image information</span>
 </span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a>    <span class="n">moving_image</span> <span class="o">=</span> <span class="n">ChipFeature</span><span class="p">()</span>
 </span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a>    <span class="n">moving_image</span><span class="o">.</span><span class="n">tech_type</span> <span class="o">=</span> <span class="n">TechType</span><span class="o">.</span><span class="n">DAPI</span>
 </span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a>    <span class="n">moving_mat</span> <span class="o">=</span> <span class="n">cbimread</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;E:\03.users\liuhuanlin\01.data\cellbin2\stitch\A03599D1_DAPI.tif&#39;</span><span class="p">)</span>
@@ -241,7 +241,7 @@
 </span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a>                           <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;E:/03.users/liuhuanlin/01.data/cellbin2/stitch/DAPI_matrix_template.txt&quot;</span><span class="p">))</span>
 </span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a>    <span class="n">moving_image</span><span class="o">.</span><span class="n">set_template</span><span class="p">(</span><span class="n">img_tpl</span><span class="p">)</span>
 </span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a>
-</span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a>    <span class="c1"># 固定对象信息</span>
+</span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a> <span class="c1"># Fixed object information</span>
 </span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a>    <span class="n">fixed_image</span> <span class="o">=</span> <span class="n">ChipFeature</span><span class="p">()</span>
 </span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a>    <span class="n">fixed_image</span><span class="o">.</span><span class="n">tech_type</span> <span class="o">=</span> <span class="n">TechType</span><span class="o">.</span><span class="n">Transcriptomics</span>
 </span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a>    <span class="n">fixed_image</span><span class="o">.</span><span class="n">set_mat</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;E:\03.users\liuhuanlin\01.data\cellbin2\stitch\A03599D1_gene.tif&#39;</span><span class="p">)</span>
@@ -272,7 +272,7 @@
     <a class="headerlink" href="#TemplateCentroid"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="TemplateCentroid-9"><a href="#TemplateCentroid-9"><span class="linenos">  9</span></a><span class="k">class</span> <span class="nc">TemplateCentroid</span><span class="p">(</span><span class="n">Alignment</span><span class="p">):</span>
 </span><span id="TemplateCentroid-10"><a href="#TemplateCentroid-10"><span class="linenos"> 10</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="TemplateCentroid-11"><a href="#TemplateCentroid-11"><span class="linenos"> 11</span></a><span class="sd">    满足CellBin需求，利用模板周期性及组织形态，通过遍历实现变换参数的获取。实现配准，误差约10pix</span>
+</span><span id="TemplateCentroid-11"><a href="#TemplateCentroid-11"><span class="linenos"> 11</span></a><span class="sd"> Meets the needs of CellBin, uses the periodicity and organizational form of templates to obtain transform parameters through traversal. Recognition is achieved, with an error of about 10pix</span>
 </span><span id="TemplateCentroid-12"><a href="#TemplateCentroid-12"><span class="linenos"> 12</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="TemplateCentroid-13"><a href="#TemplateCentroid-13"><span class="linenos"> 13</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
 </span><span id="TemplateCentroid-14"><a href="#TemplateCentroid-14"><span class="linenos"> 14</span></a>            <span class="bp">self</span><span class="p">,</span>
@@ -380,7 +380,7 @@
 </span></pre></div>
 
 
-            <div class="docstring"><p>满足CellBin需求，利用模板周期性及组织形态，通过遍历实现变换参数的获取。实现配准，误差约10pix</p>
+            <div class="docstring"><p>Meet CellBin needs, use the periodicity and organizational form of templates to achieve the acquisition of transform parameters through traversal. Implement registration, with an error of about 10pix</p>
 </div>
 
 
@@ -575,10 +575,10 @@
 </span><span id="centroid-123"><a href="#centroid-123"><span class="linenos">123</span></a>             <span class="n">rot90_flag</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="centroid-124"><a href="#centroid-124"><span class="linenos">124</span></a>             <span class="p">):</span>
 </span><span id="centroid-125"><a href="#centroid-125"><span class="linenos">125</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="centroid-126"><a href="#centroid-126"><span class="linenos">126</span></a><span class="sd">    :param moving_image: 待配准图，通常是染色图（如ssDNA、HE）</span>
-</span><span id="centroid-127"><a href="#centroid-127"><span class="linenos">127</span></a><span class="sd">    :param fixed_image: 固定图，通常是矩阵，支持TIF/GEM/GEF及数组</span>
-</span><span id="centroid-128"><a href="#centroid-128"><span class="linenos">128</span></a><span class="sd">    :param ref: 模板周期，仅在模板相关配准方法下用到</span>
-</span><span id="centroid-129"><a href="#centroid-129"><span class="linenos">129</span></a><span class="sd">    :param from_stitched: 从拼接图开始</span>
+</span><span id="centroid-126"><a href="#centroid-126"><span class="linenos">126</span></a><span class="sd"> :param moving_image: The image to be registered, usually a staining image (such as ssDNA, HE)</span>
+</span><span id="centroid-127"><a href="#centroid-127"><span class="linenos">127</span></a><span class="sd"> :param fixed_image: Fixed graph, usually a matrix, supports TIF/GEM/GEF and arrays</span>
+</span><span id="centroid-128"><a href="#centroid-128"><span class="linenos">128</span></a><span class="sd"> :param ref: Template cycle, only used under template-related registration methods</span>
+</span><span id="centroid-129"><a href="#centroid-129"><span class="linenos">129</span></a><span class="sd"> :param from_stitched: Start with the stitching diagram</span>
 </span><span id="centroid-130"><a href="#centroid-130"><span class="linenos">130</span></a><span class="sd">    :param flip_flag:</span>
 </span><span id="centroid-131"><a href="#centroid-131"><span class="linenos">131</span></a><span class="sd">    :param rot90_flag:</span>
 </span><span id="centroid-132"><a href="#centroid-132"><span class="linenos">132</span></a><span class="sd">    :return: RegistrationInfo</span>
@@ -608,10 +608,10 @@
             <div class="docstring"><h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>moving_image</strong>:  待配准图，通常是染色图（如ssDNA、HE）</li>
-<li><strong>fixed_image</strong>:  固定图，通常是矩阵，支持TIF/GEM/GEF及数组</li>
-<li><strong>ref</strong>:  模板周期，仅在模板相关配准方法下用到</li>
-<li><strong>from_stitched</strong>:  从拼接图开始</li>
+<li><strong>moving_image</strong>: The image to be registered, usually a staining image (such as ssDNA, HE)</li>
+<li><strong>fixed_image</strong>: Fixed graph, usually a matrix, supports TIF/GEM/GEF and arrays</li>
+<li><strong>ref</strong>: Template cycle, only used under template-related registration methods</li>
+<li><strong>from_stitched</strong>: Start with a stitching diagram</li>
 <li><strong>flip_flag</strong>: </li>
 <li><strong>rot90_flag</strong>: </li>
 </ul>
