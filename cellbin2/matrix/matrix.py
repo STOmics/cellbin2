@@ -16,26 +16,6 @@ from cellbin2.image import cbimread, cbimwrite
 from cellbin2.modules import naming
 from pydantic import BaseModel, Field
 
-# @njit(parallel=True)
-# def _uint8_parse_gef_line(data, img):
-#     for i in prange(len(data)):
-#         y, x, c = data[i]["y"], data[i]["x"], data[i]["count"]
-#         img[y, x] = min(255, c + img[y, x])
-#
-# @njit(parallel=True)
-# def _uint16_parse_gef_line(data, img):
-#     for i in prange(len(data)):
-#         y, x, c = data[i]["y"], data[i]["x"], data[i]["count"]
-#         img[y, x] = min(65535, c + img[y, x])
-#
-# @njit(parallel=True)
-# def _uint32_parse_gef_line(data, img):
-#     for i in prange(len(data)):
-#         y, x, c = data[i]["y"], data[i]["x"], data[i]["count"]
-#         img[y, x] = min(4294967295, c + img[y, x])
-
-
-
 def parse_gef_line(data, img, _dtype):
     """
     Speedup parse lines with numba
@@ -377,7 +357,7 @@ class cMatrix(object):
 
 
 def adjust_mask_shape(gef_path, mask_path):
-    ##! 需要补充bin_size参数
+    #TODO: add bin size param
     bin_size = 100
     m_width, m_height = cMatrix.gef_gef_shape(gef_path, bin_size)
     mask = cbimread(mask_path)

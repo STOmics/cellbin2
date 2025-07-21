@@ -42,7 +42,6 @@ def extract4stitched(
     cm.check_standards(config.genetic_standards)
 
     if binx != 1:
-        ##理论track线检测方法##
         sc = StereoChip()
         sc.parse_info(chip_no=m_naming.sn)
         track_points = sc.template_points
