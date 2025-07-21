@@ -437,34 +437,34 @@ const resultJson = {"sampleId": "SS200000135",
           "title": "Counter Clockwise Rotation",
           "content": "Counter clockwise rotation angle"
         },
-        {
-          "title": "Manual ScaleX",
-          "content": "The lateral scaling based on image center (manual-registration)"
-        },
-        {
-          "title": "Manual ScaleY",
-          "content": "The longitudinal scaling based on image center (manual-registration)"
-        },
-        {
-          "title": "Manual Rotation",
-          "content": "The rotation angle based on image center (manual-registration)"
-        },
-        {
-          "title": "Matrix X Offset",
-          "content": "Gene expression matrix offset in x direction by DNB numbers"
-        },
-        {
-          "title": "Matrix Y Offset",
-          "content": "Gene expression matrix offset in y direction by DNB numbers"
-        },
-        {
-          "title": "Matrix Height",
-          "content": "Gene expression matrix height"
-        },
-        {
-          "title": "Matrix Width",
-          "content": "Gene expression matrix width"
-        }
+        // {
+        //   "title": "Manual ScaleX",
+        //   "content": "The lateral scaling based on image center (manual-registration)"
+        // },
+        // {
+        //   "title": "Manual ScaleY",
+        //   "content": "The longitudinal scaling based on image center (manual-registration)"
+        // },
+        // {
+        //   "title": "Manual Rotation",
+        //   "content": "The rotation angle based on image center (manual-registration)"
+        // },
+        // {
+        //   "title": "Matrix X Offset",
+        //   "content": "Gene expression matrix offset in x direction by DNB numbers"
+        // },
+        // {
+        //   "title": "Matrix Y Offset",
+        //   "content": "Gene expression matrix offset in y direction by DNB numbers"
+        // },
+        // {
+        //   "title": "Matrix Height",
+        //   "content": "Gene expression matrix height"
+        // },
+        // {
+        //   "title": "Matrix Width",
+        //   "content": "Gene expression matrix width"
+        // }
       ],
       "data": [
         {
@@ -493,34 +493,34 @@ const resultJson = {"sampleId": "SS200000135",
 	"image1_matrix": {
       "title": "Image 1 Manual and Matrix",
       "msg": [
-        {
-          "title": "ScaleX",
-          "content": "The lateral scaling between image and template"
-        },
-        {
-          "title": "ScaleY",
-          "content": "The longitudinal scaling between image and template"
-        },
-        {
-          "title": "Rotation",
-          "content": "The rotation angle of the image relative to the template"
-        },
-        {
-          "title": "Flip",
-          "content": "Whether the image is flipped horizontally"
-        },
-        {
-          "title": "Image X Offset",
-          "content": "Offset between image and matrix in x direction"
-        },
-        {
-          "title": "Image Y Offset",
-          "content": "Offset between image and matrix in y direction"
-        },
-        {
-          "title": "Counter Clockwise Rotation",
-          "content": "Counter clockwise rotation angle"
-        },
+        // {
+        //   "title": "ScaleX",
+        //   "content": "The lateral scaling between image and template"
+        // },
+        // {
+        //   "title": "ScaleY",
+        //   "content": "The longitudinal scaling between image and template"
+        // },
+        // {
+        //   "title": "Rotation",
+        //   "content": "The rotation angle of the image relative to the template"
+        // },
+        // {
+        //   "title": "Flip",
+        //   "content": "Whether the image is flipped horizontally"
+        // },
+        // {
+        //   "title": "Image X Offset",
+        //   "content": "Offset between image and matrix in x direction"
+        // },
+        // {
+        //   "title": "Image Y Offset",
+        //   "content": "Offset between image and matrix in y direction"
+        // },
+        // {
+        //   "title": "Counter Clockwise Rotation",
+        //   "content": "Counter clockwise rotation angle"
+        // },
         {
           "title": "Manual ScaleX",
           "content": "The lateral scaling based on image center (manual-registration)"
@@ -533,14 +533,14 @@ const resultJson = {"sampleId": "SS200000135",
           "title": "Manual Rotation",
           "content": "The rotation angle based on image center (manual-registration)"
         },
-        {
-          "title": "Matrix X Offset",
-          "content": "Gene expression matrix offset in x direction by DNB numbers"
-        },
-        {
-          "title": "Matrix Y Offset",
-          "content": "Gene expression matrix offset in y direction by DNB numbers"
-        },
+        // {
+        //   "title": "Matrix X Offset",
+        //   "content": "Gene expression matrix offset in x direction by DNB numbers"
+        // },
+        // {
+        //   "title": "Matrix Y Offset",
+        //   "content": "Gene expression matrix offset in y direction by DNB numbers"
+        // },
         {
           "title": "Matrix Height",
           "content": "Gene expression matrix height"
@@ -577,62 +577,62 @@ const resultJson = {"sampleId": "SS200000135",
 	"image1_cellseg": {
       "title": "Image 1 Cell Segmentation",
       "msg": [
-        {
-          "title": "ScaleX",
-          "content": "The lateral scaling between image and template"
-        },
-        {
-          "title": "ScaleY",
-          "content": "The longitudinal scaling between image and template"
-        },
-        {
-          "title": "Rotation",
-          "content": "The rotation angle of the image relative to the template"
-        },
-        {
-          "title": "Flip",
-          "content": "Whether the image is flipped horizontally"
-        },
-        {
-          "title": "Image X Offset",
-          "content": "Offset between image and matrix in x direction"
-        },
-        {
-          "title": "Image Y Offset",
-          "content": "Offset between image and matrix in y direction"
-        },
-        {
-          "title": "Counter Clockwise Rotation",
-          "content": "Counter clockwise rotation angle"
-        },
-        {
-          "title": "Manual ScaleX",
-          "content": "The lateral scaling based on image center (manual-registration)"
-        },
-        {
-          "title": "Manual ScaleY",
-          "content": "The longitudinal scaling based on image center (manual-registration)"
-        },
-        {
-          "title": "Manual Rotation",
-          "content": "The rotation angle based on image center (manual-registration)"
-        },
-        {
-          "title": "Matrix X Offset",
-          "content": "Gene expression matrix offset in x direction by DNB numbers"
-        },
-        {
-          "title": "Matrix Y Offset",
-          "content": "Gene expression matrix offset in y direction by DNB numbers"
-        },
-        {
-          "title": "Matrix Height",
-          "content": "Gene expression matrix height"
-        },
-        {
-          "title": "Matrix Width",
-          "content": "Gene expression matrix width"
-        }
+        // {
+        //   "title": "ScaleX",
+        //   "content": "The lateral scaling between image and template"
+        // },
+        // {
+        //   "title": "ScaleY",
+        //   "content": "The longitudinal scaling between image and template"
+        // },
+        // {
+        //   "title": "Rotation",
+        //   "content": "The rotation angle of the image relative to the template"
+        // },
+        // {
+        //   "title": "Flip",
+        //   "content": "Whether the image is flipped horizontally"
+        // },
+        // {
+        //   "title": "Image X Offset",
+        //   "content": "Offset between image and matrix in x direction"
+        // },
+        // {
+        //   "title": "Image Y Offset",
+        //   "content": "Offset between image and matrix in y direction"
+        // },
+        // {
+        //   "title": "Counter Clockwise Rotation",
+        //   "content": "Counter clockwise rotation angle"
+        // },
+        // {
+        //   "title": "Manual ScaleX",
+        //   "content": "The lateral scaling based on image center (manual-registration)"
+        // },
+        // {
+        //   "title": "Manual ScaleY",
+        //   "content": "The longitudinal scaling based on image center (manual-registration)"
+        // },
+        // {
+        //   "title": "Manual Rotation",
+        //   "content": "The rotation angle based on image center (manual-registration)"
+        // },
+        // {
+        //   "title": "Matrix X Offset",
+        //   "content": "Gene expression matrix offset in x direction by DNB numbers"
+        // },
+        // {
+        //   "title": "Matrix Y Offset",
+        //   "content": "Gene expression matrix offset in y direction by DNB numbers"
+        // },
+        // {
+        //   "title": "Matrix Height",
+        //   "content": "Gene expression matrix height"
+        // },
+        // {
+        //   "title": "Matrix Width",
+        //   "content": "Gene expression matrix width"
+        // }
       ],
       "data": [
         {

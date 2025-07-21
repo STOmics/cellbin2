@@ -358,8 +358,9 @@ class Metrics(object):
                 self.output_data["image_ipr"][layer] = {}
                 self.output_data["image_ipr"][layer]["image_info"] = {key.lower(): value for key, value in
                                                                       c_info.ImageInfo.get_attrs().items()}
+                #Save image size (retain only integers)
                 self.output_data["image_ipr"][layer]["image_info"]["image_size"] = \
-                    os.path.getsize(self.filesource.image_dict[layer].stitch_image) * 8 / 1000000
+                    round(os.path.getsize(self.filesource.image_dict[layer].stitch_image) * 8 / 1000000)
                 self.output_data["image_ipr"][layer]["QC_info"] = {key.lower(): value for key, value in
                                                                    c_info.QCInfo.get_attrs().items()}
                 self.output_data["image_ipr"][layer]["register_info"] = {key.lower(): value for key, value in
