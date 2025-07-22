@@ -90,7 +90,7 @@ python cellbin2/cellbin_pipeline.py -h
 | `-m`      | △         | Gene expression matrix                                                                                        | `SN.raw.gef`                                              |
 | `-mi`     | △         | Multi-channel images                                                                                          | `IF=SN_IF.tif`                                            |
 | `-pr`     | △         | Protein expression matrix                                                                                     | `SN_IF.protein.gef`                                       |
-| `-k`      | ✓△        | Kit type (required for kit-based mode,See kit list below)                                                     | `"Stereo-CITE T FF V1.1 R"`                               |
+| `-k`      | ✓△        | Kit type (required for kit-based mode,See kit list below)                                                     | `"Stereo-CITE_T_FF V1.1 R"`                               |
 
 > *✓ = Always required, ✓△ = Required for kit-based mode, △ = Optional
 
@@ -98,28 +98,30 @@ python cellbin2/cellbin_pipeline.py -h
 ```python
 KIT_VERSIONS = (
     # Standard product versions
-    'Stereo-seq T FF V1.2',       
-    'Stereo-seq T FF V1.3',
-    'Stereo-CITE T FF V1.0',   
-    'Stereo-CITE T FF V1.1',
-    'Stereo-seq N FFPE V1.0', 
+    'Stereo-seq_T_FF_V1.2',       
+    'Stereo-seq_T_FF_V1.3',
+    'Stereo-CITE_T_FF_V1.0',   
+    'Stereo-CITE_T_FF_V1.1',
+    'Stereo-seq_N_FFPE_V1.0', 
     
     # Research versions
-    'Stereo-seq T FF V1.2 R',
-    'Stereo-seq T FF V1.3 R',
-    'Stereo-CITE T FF V1.0 R',
-    'Stereo-CITE T FF V1.1 R',
-    'Stereo-seq N FFPE V1.0 R',     
+    'Stereo-seq_T_FF_V1.2_R',
+    'Stereo-seq_T_FF_V1.3_R',
+    'Stereo-CITE_T_FF_V1.0_R',
+    'Stereo-CITE_T_FF_V1.1_R',
+    'Stereo-seq_N_FFPE_V1.0_R',     
 )
 ```
-
+> The Cellbin-v2 pipeline **requires stitched images** as input. If your data consists of unstitched microscope images (multiple FOVs/fields of view in a folder), you must first stitch them using our provided tool: <br>
+[**Image Stitching Method**](cellbin2/contrib/stitch/README.md) <br>
+> <br>
 > The kit controls the module switches and parameters in the JSON configuration to customize the analysis workflow. <br>
 > Detailed configurations per kit: [config.md](docs/v2/config.md). <br>
 > More introduction about kits type, you can view [STOmics official website](https://en.stomics.tech/products/stereo-seq-transcriptomics-solution/list.html).
 
 ### Common Use Cases
 
-#### Case 1:Stereo-seq T FF <br>
+#### Case 1:Stereo-seq_T_FF <br>
 ssDNA
 ```shell
 CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
@@ -128,7 +130,7 @@ CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
 -s ssDNA \
 -m SN.raw.gef \
 -o test/SN \
--k "Stereo-seq T FF V1.2"
+-k "Stereo-seq_T_FF_V1.2"
 ```
 
 #### Case 2:Stereo-CITE <br>
@@ -141,7 +143,7 @@ CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
 -mi IF=SN_IF.tif \
 -m SN.raw.gef \
 -o test/SN \
--k "Stereo-CITE T FF V1.1 R"
+-k "Stereo-CITE_T_FF_V1.1_R"
 ```
 
 #### Case 3:Stereo-CITE
@@ -153,7 +155,7 @@ CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
 -s DAPI \
 -pr IF=SN.protein.tissue.gef \
 -o /test/SN \
--k "Stereo-CITE T FF V1.1 R"
+-k "Stereo-CITE_T_FF_V1.1_R"
 ```
 
 #### Case 4:Stereo-CITE
@@ -167,7 +169,7 @@ CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
 -m SN.raw.gef \  # Transcriptomics gef path
 -pr SN.protein.raw.gef \  # protein gef path
 -o test/SN \ # output dir
--k "Stereo-CITE T FF V1.1 R"
+-k "Stereo-CITE_T_FF_V1.1_R"
 ```
 
 #### Case 5:Stereo-cell <br>
@@ -202,7 +204,7 @@ ssDNA + HE + trans gef
  -s ssDNA \  # stain type (ssDNA, DAPI)
  -m SN.raw.gef \  # Transcriptomics gef path
  -o test/SN \ # output dir
- -k "Stereo-CITE T FF V1.1 R"
+ -k "Stereo-CITE_T_FF_V1.1_R"
  ```
 
 > more examples, please visit [example.md](docs/v2/example.md)

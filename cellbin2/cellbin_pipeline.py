@@ -252,17 +252,21 @@ class CellBinPipeline(object):
         Returns:
             None
         """
-        if self._kit.endswith("R"):
+        if self._kit.endswith("_R"):
             self.research = True
         self.config = Config(self._config_file, self._weights_root)
         if self._param_file is None:
             if self._input_image is None:
                 raise Exception(f"the input image can not be empty if param file is not provided")
-            tech, version = self._kit.split("V")
-            if self._kit.endswith("R"):
-                param_file = os.path.join(CONFIG_PATH, tech.strip(" ") + " R" + ".json")
+            # Remove _R suffix before splitting if it exists
+            tech = self._kit.split("V")[0]
+            tech = tech.strip().replace(" ", "_").rstrip("_")
+
+            # Remove any trailing underscore from tech
+            if self._kit.endswith("_R"):
+                param_file = os.path.join(CONFIG_PATH, tech + "_R.json")
             else:
-                param_file = os.path.join(CONFIG_PATH, tech.strip(" ") + ".json")
+                param_file = os.path.join(CONFIG_PATH, tech + ".json")
             pp = read_param_file(file_path=param_file, cfg=self.config)
             new_pp = ProcParam(run=pp.run)
             # track image (ssDNA, HE, DAPI)
@@ -524,7 +528,7 @@ if __name__ == '__main__':  # main()
                 f"-pr A03599D1.protein.raw.gef \\ \n" \
                 f"-w  /cellbin2/weights \\ \n" \
                 f"-o  /cellbin2/test/A03599D1_demo1_1 \\ \n" \
-                f"-k  \"Stereo-CITE T FF V1.0 R\" \\ \n" \
+                f"-k  \"Stereo-CITE_T_FF V1.0 R\" \\ \n" \
                 f"-r"
 
     # responsible for receiving dictionary class parameters
@@ -566,7 +570,7 @@ if __name__ == '__main__':  # main()
                         help="The path of transcriptomics matrix file.")
     parser.add_argument("-pr", action="store", type=str, metavar="PROTEIN_MATRIX_FILE", dest="protein_matrix_file",
                         help="The path of protein matrix file.")
-    parser.add_argument("-k", action="store", type=str, default="Stereo-CITE T FF V1.0 R", metavar="KIT_VERSION",
+    parser.add_argument("-k", action="store", type=str, default="Stereo-CITE_T_FF V1.0 R", metavar="KIT_VERSION",
                         dest="kit", choices=KIT_VERSIONS + KIT_VERSIONS_R, help="Kit version")
     parser.add_argument("-p", action="store", type=str, help="The path of input param file.",
                         metavar="PARAM_FILE", dest="param_file")

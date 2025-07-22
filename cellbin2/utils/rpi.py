@@ -121,9 +121,9 @@ class RecordPyramidImage(HDF5):
                 getattr(channel_data, im_name).pyramid(im)
             setattr(self, channel_name, channel_data)
 
-            self.metaInfo.sizex = width
-            self.metaInfo.sizey = height
-
+            if width > 0 and height > 0:
+                self.metaInfo.sizex = width
+                self.metaInfo.sizey = height
 
 def read(h5_path: Union[str, Path]) -> Tuple[Type[RecordPyramidImage], Dict[Any, Type[ChannelImage]]]:
     """

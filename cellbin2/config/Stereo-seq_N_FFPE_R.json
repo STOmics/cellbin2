@@ -24,7 +24,7 @@
         "trackline": true,
         "reuse": -1
       },
-      "tissue_segmentation": false,
+      "tissue_segmentation": true,
       "cell_segmentation": false,
       "channel_align": -1
     },
@@ -84,8 +84,8 @@
   "run": {
     "qc": true,
     "alignment": true,
-    "matrix_extract": false,
-    "report": false,
+    "matrix_extract": true,
+    "report": true,
     "annotation": false
   }
 }

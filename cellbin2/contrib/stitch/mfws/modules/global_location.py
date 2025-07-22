@@ -1,5 +1,5 @@
 """
-求解拼接坐标
+Solve splicing coordinates
 """
 import os
 import glog
@@ -640,7 +640,8 @@ class CenterLrDiffuseStitch:
             row, col = item
             self.stitch_masked[row, col] = 1
             if np.max(stitch_mask) == 0:
-                # get the closest FOV to the stitched connected domain in current domain  寻找当前domain中, 与已经拼接的连通域 最近的fov
+                # get the closest FOV to the stitched connected domain in current domain
+                # get the closest FOV to the stitched connected domain in current domain Find the connected domain that has been spliced with the recent fov
                 stitched_loc = np.where(self.stitch_masked == 1)
                 stitched_loc = np.vstack(stitched_loc).T
                 nearest_domain_fov, _ = self.get_nearest_domain_fov(stitch_list, stitched_loc)
