@@ -1,0 +1,50 @@
+{
+  "image_process": {
+    "0": {
+      "file_path": "/Path/to/SN.tif",
+      "tech_type": "DAPI",
+      "chip_detect": true,
+      "quality_control": true,
+      "registration": {
+        "fixed_image": -1,
+        "trackline": true,
+        "reuse": -1
+      },
+      "tissue_segmentation": true,
+      "cell_segmentation": true,
+      "channel_align": -1
+    },
+    "1": {
+      "file_path": "/Path/to/SN.raw.gef",
+      "tech_type": "Transcriptomics",
+      "chip_detect": false,
+      "quality_control": false,
+      "registration": {
+        "fixed_image": -1,
+        "trackline": true,
+        "reuse": -1
+      },
+      "tissue_segmentation": false,
+      "cell_segmentation": true,
+      "channel_align": -1
+    }
+    }
+  },
+  "molecular_classify": {
+      "0": {
+        "exp_matrix": 1,
+        "cell_mask": [
+          0
+        ],
+        "correct_r": 10,
+        "extra_method": ""
+      }
+    },
+  "run": {
+      "qc": false,
+      "alignment": true,
+      "matrix_extract": true,
+      "report": false,
+      "annotation": false
+  }
+}
