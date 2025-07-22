@@ -261,7 +261,8 @@ class ProcParam(BaseModel):
                    (image.chip_detect or
                     image.quality_control or
                     image.channel_align != -1 or
-                    image.registration.trackline)
+                    image.registration.trackline or
+                    image.chip_matching != -1)
             }
 
         if do_scheduler:
@@ -270,7 +271,8 @@ class ProcParam(BaseModel):
                 if image.tissue_segmentation or
                    image.cell_segmentation or
                    image.registration.trackline or
-                   image.channel_align != -1
+                   image.channel_align != -1 or
+                   image.chip_matching != -1
             }
             # add matrix
             for idx, matrix in self.molecular_classify.items():

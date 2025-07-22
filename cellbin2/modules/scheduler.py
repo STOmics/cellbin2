@@ -442,10 +442,12 @@ class Scheduler(object):
                         scale = [1, float(f.magnification) / 10]
 
                         chip_transform(
-                            fixed_image = fixed_path,
-                            moving_image = f.file_path,
-                            scale = scale,
-                            output_path = os.path.join(self._output_path, 'chip_matching.tif')
+                            fixed_image=fixed_path,
+                            moving_image=f.file_path,
+                            scale=scale,
+                            output_path=os.path.join(
+                                self._output_path,
+                                f'{self.param_chip.chip_name}_{f.tech_type}_regist.tif')
                         )
 
     def run_merge_masks(self):
@@ -567,7 +569,7 @@ class Scheduler(object):
         if flag2 != 0:
             sys.exit(1)
 
-        # self.run_single_image()  # Process a single image (transform -> tissue seg -> cellseg)
+        self.run_single_image()  # Process a single image (transform -> tissue seg -> cellseg)
         self.run_mul_image()  # Register images
 
         if flag1 == 0 and self._channel_images is not None and self._ipr is not None:

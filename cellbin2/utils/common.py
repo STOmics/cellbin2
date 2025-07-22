@@ -20,6 +20,7 @@ KIT_VERSIONS = (
     'Stereo-CITE T FF V1.0',
     'Stereo-CITE T FF V1.1',
     'Stereo-seq N FFPE V1.0',
+    'Chip-Matching T FF V1.0',
 )
 
 KIT_VERSIONS_R = tuple(i + " R" for i in KIT_VERSIONS)

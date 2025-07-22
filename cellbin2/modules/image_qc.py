@@ -287,13 +287,13 @@ class ImageQC(object):
                 files.append(
                     (f.file_path, f"{f.tech.name}/{f.get_group_name(sn=self.param_chip.chip_name)}/{f.tag}.tif")
                 )
-            elif f.chip_matching != -1:
-                channel_image = ipr.IFChannel()
-                self._channel_images[f.get_group_name(sn=self.param_chip.chip_name)] = channel_image
-                self._match_channels(f, output_path)
-                files.append(
-                    (f.file_path, f"{f.tech.name}/{f.get_group_name(sn=self.param_chip.chip_name)}/{f.tag}.tif")
-                )
+            # elif f.chip_matching != -1:
+            #     channel_image = ipr.IFChannel()
+            #     self._channel_images[f.get_group_name(sn=self.param_chip.chip_name)] = channel_image
+            #     self._match_channels(f, output_path)
+            #     files.append(
+            #         (f.file_path, f"{f.tech.name}/{f.get_group_name(sn=self.param_chip.chip_name)}/{f.tag}.tif")
+            #     )
             else:
                 channel_image = ipr.ImageChannel()
                 self._channel_images[f.get_group_name(sn=self.param_chip.chip_name)] = channel_image

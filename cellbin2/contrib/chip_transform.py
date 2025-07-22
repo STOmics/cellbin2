@@ -62,16 +62,17 @@ def chip_transform(
 
     fixed_image = cbimread(fixed_image)
     moving_image = cbimread(moving_image)
-    moving_image = moving_image.trans_image(flip_lr = True)
+    # moving_image = moving_image.trans_image(flip_lr = True)
 
     fi, mi = map(
         lambda x: _to_color(x, color_space),
         [fixed_image.image, moving_image.image]
     )
 
-    fi, mi = map(
+    scale.append(scale[1])
+    fi, mi, moving_image = map(
         lambda x: x[0].resize_image(1 / x[1]),
-        zip([fi, mi], scale)
+        zip([fi, mi, moving_image], scale)
     )
 
     clog.info("Chip transform start.")
@@ -83,7 +84,11 @@ def chip_transform(
     ).calibration()
 
     clog.info("Chip transform -- write image...")
+    _new_mi = cbimread(new_mi)
+    _new_mi = _new_mi.resize_image(2)
+
     cbimwrite(output_path, new_mi)
+    cbimwrite(output_path.replace("_regist", "_20X_regist"), _new_mi)
 
 
 if __name__ == "__main__":
