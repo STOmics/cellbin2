@@ -249,3 +249,21 @@ def run_register(
         cur_c_image=param1,
         binx=binx
     )
+
+    # create 20X original image
+    if image_file.magnification != 10:
+        clog.info(f'Create  register image')
+        height, weight = info.dst_shape
+        offx, offy = info.offset
+        scale = int(image_file.magnification / 10)
+        dst_image = cbimread(image_file.file_path).trans_image(
+            flip_lr=info.flip,
+            rot90=info.counter_rot90,
+            offset=(offx * scale, offy * scale),
+            dst_size=(height * scale, weight * scale),
+            rotate=-param1.Register.Rotation,
+            scale=[scale / param1.Register.ScaleX, scale / param1.Register.ScaleX])
+
+        cbimwrite(os.path.join(output_path, f"{image_file.magnification}X_regist.tif"), dst_image)
+        clog.info(f'{image_file.magnification}X register image has been created')
+

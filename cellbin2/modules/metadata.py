@@ -62,6 +62,7 @@ class ProcFile(BaseModel):
     cell_segmentation: bool
     channel_align: int
     registration: ProcRegistration
+    magnification: int
     _supported_matrix = ['.gef', '.gz', '.gem']
     _supported_image = ['.tif', '.tiff', '.TIF', '.TIFF']
 
