@@ -189,8 +189,8 @@ class BestTissueCellMask:
 
 def instance2semantics(ins: np.ndarray) -> np.ndarray:
     """
-    :param ins: 实例mask（0-N）
-    :return: 语义mask（0-1）
+    :param ins: instance mask (0-N)
+    :return: semantics mask (0-1)
     """
     ins_ = ins.copy()
     h, w = ins_.shape[:2]
@@ -259,9 +259,8 @@ def merge_cell_mask(
         nuclear_mask_sem = instance2semantics(nuclear_mask_ins)
         del nuclear_mask_ins
 
-    _ = membrane_mask_sem * 2 + nuclear_mask_sem * 1 #0背景，1核，2膜
-    return _
-    return CBImage(_)
+    _ = membrane_mask_sem * 2 + nuclear_mask_sem * 1 #0 background，1 nuclei，2 cell
+    return CBImage(membrane_mask_sem)
 
 
 if __name__ == '__main__':
