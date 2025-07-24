@@ -72,9 +72,9 @@ class GlobalLocation(object):
             self.fov_loc_array = coord_model.global_loc
         elif 'LS' in mode:
             if mode == 'LS-H':
-                lsh = LineScanStitch(self.rows, self.cols, ls = 0)
+                lsv = LineScanStitch(self.rows, self.cols, ls=0)
             elif mode == 'LS-V':
-                lsv = LineScanStitch(self.rows, self.cols, ls = 1)
+                lsv = LineScanStitch(self.rows, self.cols, ls=1)
             else:
                 raise ValueError("Stitch method name error.")
 
@@ -94,12 +94,10 @@ class GlobalLocation(object):
 
 
 class LineScanStitch:
-    """
-    Line scanning splicing, with no overlap or a constant overlap in a certain direction
-    """
+    """ Line scanning splicing, with no overlap or a constant overlap in a certain direction """
 
     def __init__(self, rows, cols, ls = 0):
-        # line-scaning orientation: 0 for horizontal, 1 for vertical
+        # Line scan direction 0 means horizontal 1 means vertical
         self.line_scan = ls
 
         self.overlap_x = self.overlap_y = 0.1
@@ -115,31 +113,32 @@ class LineScanStitch:
         self._placeholder = 999
 
     def set_jitter(self, h_j, v_j):
-        '''set jitter matrix'''
+        """ set jitter matrix """
         assert h_j.shape == v_j.shape, "jitter ndim is diffient."
         self.horizontal_jitter = h_j
         self.vertical_jitter = v_j
 
     def set_fov_size(self, fov_height, fov_width):
-        """set fov size"""
+        """ set fov size """
+
         self.fov_height = fov_height
         self.fov_width = fov_width
 
     def set_overlap(self, overlap_x, overlap_y):
         """
-
         Args:
             overlap_x:
             overlap_y:
 
         Returns:
-
         """
+
         self.overlap_x = overlap_x
         self.overlap_y = overlap_y
 
     def set_scope_loc_by_overlap(self, h, w):
-        """Calculate the original stitching coordinates of the microscope"""
+        """ Calculate the original stitching coordinates of the microscope """
+
         scope_global_loc = np.zeros(shape=(self.rows, self.cols, 2), dtype=np.int32)
         self.fov_height = h
         self.fov_width = w
@@ -168,30 +167,31 @@ class LineScanStitch:
                 offset[c] = [int(np.median(jit_x)), int(np.median(jit_y))]
 
             offset_odd = np.round(np.mean(
-                [i for i in list(offset[1::2, :]) if i[0] != self._placeholder], axis = 0)
+                [i for i in list(offset[1::2, :]) if i[0] != self._placeholder], axis=0)
             )
             offset_even = np.round(np.mean(
-                [i for i in list(offset[::2, :]) if i[0] != self._placeholder], axis = 0)
+                [i for i in list(offset[::2, :]) if i[0] != self._placeholder], axis=0)
             )
-            try: len(offset_even)
-            except TypeError: offset_even = [offset_odd[0], -offset_odd[1]]
-            try: len(offset_odd)
-            except TypeError: offset_odd = [offset_even[0], -offset_even[1]]
+            try:
+                len(offset_even)
+            except TypeError:
+                offset_even = [offset_odd[0], -offset_odd[1]]
+            try:
+                len(offset_odd)
+            except TypeError:
+                offset_odd = [offset_even[0], -offset_even[1]]
 
             for c in range(1, offset.shape[0]):
                 if offset[c][0] == self._placeholder or \
                         offset[c][1] == self._placeholder:
-                    if c % 2 == 0: offset[c] = offset_even
-                    else: offset[c] = offset_odd
+                    if c % 2 == 0:
+                        offset[c] = offset_even
+                    else:
+                        offset[c] = offset_odd
 
         return offset
 
     def get_location(self):
-        """
-
-        Returns:
-
-        """
         new_location = self.scope_global_loc.copy()
         if self.line_scan == 0:
             pass
@@ -211,19 +211,17 @@ class LineScanStitch:
 
 
 class CenterLrDiffuseStitch:
-    '''
-        Derive the corresponding splicing sequence from the central position of the organizational connected domain
+    """ Derive the corresponding splicing sequence from the central position of the organizational connected domain
         * * *    * # *    # # #
         * # * -> # # # -> # # #
         * * *    * # *    # # #
-    '''
+    """
 
     def __init__(self, rows, cols):
-        '''
-        rows, cols:
-        cumulate_thread: int: cumulative departure by centerLrDiffuseStitch
-        src: (row, col)
-        '''
+        """ rows, cols:
+            cumulate_thread: int: cumulative departure by centerLrDiffuseStitch
+            src: (row, col)
+        """
         self.scope_global_loc = None
         self.rows = rows
         self.cols = cols
@@ -250,13 +248,14 @@ class CenterLrDiffuseStitch:
         self.cumulate_offset: int = 999
 
     def set_jitter(self, h_j, v_j):
-        '''set jitter matrix'''
+        """ set jitter matrix """
+
         assert h_j.shape == v_j.shape, "jitter ndim is diffient"
         self.horizontal_jitter = h_j
         self.vertical_jitter = v_j
 
     def set_scope_loc(self, scope_loc: np.ndarray):
-        """set scope location"""
+        """ set scope loction """
         self.scope_global_loc = scope_loc
 
     def set_fov_size(self, fov_height, fov_width):
@@ -279,6 +278,7 @@ class CenterLrDiffuseStitch:
         """
         Gets the unstitching FOV of the specified column position attachment
         """
+
         if (col - 1) < 0:
             left = None
         else:
@@ -335,19 +335,21 @@ class CenterLrDiffuseStitch:
 
     def _getFirstPosition(self, r=True):
         '''get the first position of connect domain
-        r: a parameter controls wheather add name for connect domain 
+        r: a parameter controls wheather add name for connect domain
         '''
         for i in range(self.rows):
             for j in range(self.cols):
                 if self.horizontal_jitter[i, j, 0] != 999 or \
                         self.vertical_jitter[i, j, 0] != 999:
                     if (i, j) not in self.connect_domains.keys():
-                        if r: self.domains += 1
+                        if r:
+                            self.domains += 1
                         return (i, j)
         return None
 
     def _indexIsLegal(self, index):
-        ''' determine whether the row and column indexes are valid'''
+        """ Determine whether the row and column numbers are legal """
+
         row, col = index
         if 0 <= row < self.rows and \
                 0 <= col < self.cols:
@@ -355,7 +357,7 @@ class CenterLrDiffuseStitch:
         return False
 
     def caculateCenter(self, dst=None):
-        ''' recursion for searching connect domain '''
+        """ Recursively find connected regions """
         h_flag = False
         new_dst = list()
         if dst is None:
@@ -407,16 +409,16 @@ class CenterLrDiffuseStitch:
 
     @staticmethod
     def _get_nearest_pts(src_pt, dst_pts: np.ndarray):
-        '''
-        find nearst pts
-        Args:
-            scr_pts:
-            dst_pts:
-        Returns:
-            nearst pts
-        '''
+        """ find nearst pts
+            Args:
+                scr_pts:
+                dst_pts:
+            Returns:
+                nearst pts
+        """
+
         tree = spt.cKDTree(data=dst_pts[:, :2])
-        distance, index = tree.query(src_pt, k=1)  # find the closest point to template point 
+        distance, index = tree.query(src_pt, k=1)  # find the closest point to template point
         template_point = dst_pts[index]
         return distance, template_point
 
@@ -478,9 +480,9 @@ class CenterLrDiffuseStitch:
         return stitch_list
 
     def centerToGlobal(self, row=None, col=None):
-        '''find the stitch order from center 
+        '''find the stitch order from center
         support key input: row, col
-        otherwise calculate the central of max connected domain  
+        otherwise calculate the central of max connected domain
         '''
         if row is None and col is None:
             self.caculateDomains()
@@ -519,11 +521,10 @@ class CenterLrDiffuseStitch:
         return domain_list
 
     def multi_connect_domain_center(self):
-        '''find the stitch order from central 
+        '''find the stitch order from central
         support key input: row, col
-        otherwise calculate the central of max connected domain  
+        otherwise calculate the central of max connected domain
         '''
-
         # if row is None and col is None:
         self.caculateDomains()
         max_domain = max(self.connect_domains.values(), key=list(self.connect_domains.values()).count)
@@ -546,11 +547,11 @@ class CenterLrDiffuseStitch:
             stitch_list = self._getStitchOrder_by_domain(stitch_order)
             self.get_domain_Loc(self.fov_height, self.fov_width, stitch_list)
 
-            # train the linear model 
+            # train the linear model
             self.lr.fit(self.scope_global_loc[np.where(self.stitch_masked == 1)],
                         self.global_loc[np.where(self.stitch_masked == 1)])
 
-        # predict the fov coordinate of non-connect domain with trained linear area 
+        # predict the fov coordinate of non-connect domain with trained linear area
         # for row,col in np.vstack(np.where(self.stitch_masked!=1)).T:
         #     self.global_loc[row,col] = self.lr.predict([self.scope_global_loc[row,col]])
         #     self.stitch_masked[row,col] = 1
@@ -611,7 +612,7 @@ class CenterLrDiffuseStitch:
                             self.vertical_jitter[i, j] = [round(v_x), round(v_y)]
 
     def get_nearest_points(self, input_point, template_points):
-        # get the 2 nearest points from the input point 
+        # get the 2 nearest points from the input point
         tree = spt.cKDTree(data=template_points)
         distance, index = tree.query(input_point, k=2)
         neighbor_point = template_points[index[0]]
@@ -735,10 +736,9 @@ class CenterLrDiffuseStitch:
         self.global_loc[:, :, 1] -= np.min(self.global_loc[:, :, 1])
 
     def check_feature_matrix(self, feature_mask):
-        '''
-        check feature mask to get neighbor
-        :return:
-        '''
+        """ check feature mask to get neighbor
+            :return:
+        """
         rows, cols = feature_mask.shape
         fix_list = []
         for row in range(rows):
@@ -750,12 +750,12 @@ class CenterLrDiffuseStitch:
         return fix_list
 
     def check_up_stitch(self, row, col):
-        '''
-        检查指定FOV的否可以基于以及算法出来的offset进行拼接
+        """ Check whether the specified FOV can be stitched based on the offset obtained by the algorithm
         :param row:
         :param col:
         :return:
-        '''
+        """
+
         flag = False
         if self.stitch_masked[row, col] != 1 and row >= 0 and col >= 0:
             loc = []
@@ -782,13 +782,12 @@ class CenterLrDiffuseStitch:
             if len(loc) != 0:
                 self.global_loc[row, col] = np.mean(loc, axis=0)
                 self.stitch_masked[row, col] = 1
-                flag = True  # stitch succcess 
+                flag = True  # successful stitching
         return flag
 
     def fix_unstitch_loc(self):
-        """
-        The unstitching FOV is estimated to be stitched
-        :return:
+        """ The unstitching FOV is estimated to be stitching
+            :return:
         """
         fix_list = self.check_feature_matrix(self.stitch_masked)
         h_mean_all = np.mean(
@@ -800,14 +799,16 @@ class CenterLrDiffuseStitch:
             for dst, src in fix_list:
                 flag = self.check_up_stitch(dst[0], dst[1])
                 if flag is False:
+                    # Get all the offsets in this column
                     h_mean_list = [self.horizontal_jitter[row, dst[1], :] for row in range(self.rows)
-                                   if self.horizontal_jitter[row, dst[1], 0] != 999]  # extract all the offset from this row
+                                   if self.horizontal_jitter[row, dst[1], 0] != 999]
                     h_mean = np.mean(h_mean_list, axis=0) if len(h_mean_list) > 0 else h_mean_all
+                    # Get all the offsets in this row
                     v_mean_list = [self.vertical_jitter[dst[0], col, :] for col in range(self.cols)
-                                   if self.vertical_jitter[dst[0], col, 0] != 999]  # extract all the offset from this column 
+                                   if self.vertical_jitter[dst[0], col, 0] != 999]
                     v_mean = np.mean(v_mean_list, axis=0) if len(v_mean_list) > 0 else v_mean_all
 
-                    # find the stitched neighbors surround the current dst 
+                    # Find the neighbors around the current dst
                     neighbor = self.neighbor(dst[0], dst[1], self.stitch_masked)
                     tem_loc = []
                     for src in neighbor:

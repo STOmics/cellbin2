@@ -1,399 +1,293 @@
-import numpy as np
-import os
+# -*- coding: utf-8 -*-
 import time
-import tifffile
-import cv2
 import glog
+
+import numpy as np
+import tifffile as tif
+
+from typing import Union
 
 from .wsi_stitch import StitchingWSI
 from .fov_aligner import FOVAligner
 from .global_location import GlobalLocation
-from .image import Image
+from .scan_method import ImageBase
 
 
-class Stitching:
-    """
-    The splicing module class includes splicing coordinate calculation and template derivation
-    """
-    def __init__(self, is_stitched=False):
-        """
-        Args:
-            is_stitched: True | False Used to determine whether it is a spliced large image
-
-        Returns:
-
-        """
-        self.fov_location = None
-        self.fov_x_jitter = None
-        self.fov_y_jitter = None
-        self.rows = self.cols = None
-        self._fov_height = self._fov_width = self._fov_channel = None
-        self._fov_dtype = None
-        self.height = self.width = None
-        self._overlap_x = self._overlap_y = 0.1
-
-        self.stitch_method = 'cd'
-        self.debug = False
-        self.output_path = ''
-
-        self.__jitter_diff = None
-        self.__jitter_x_diff = None
-        self.__jitter_y_diff = None
-        self.__offset_diff = None
-        self.__template_max_value = -1
-        self.__template_mean_value = -1
-        self.__template_std_value = -1
-        self.__template_qc_conf = -1
-        self.__template_re_conf = -1
-        self.__template_global_diff = -1  # @lizepeng update on 2023/05/17
-        self.__image = None
-        self._set_location_flag = False
-        self._is_stitched = is_stitched
-        self._template = None
-
-    def _init_parm(self, src_image: dict):
-        test_image_path = list(src_image.values())[0]
-        test_image_path = test_image_path.image
-
-        if isinstance(test_image_path, str) or \
-                (isinstance(test_image_path, np.ndarray) and len(test_image_path) != 4):
-            img = Image()
-            img.read(test_image_path)
-
-            self._fov_height = img.height
-            self._fov_width = img.width
-            self._fov_channel = img.channel
-            self._fov_dtype = img.dtype
-        else:
-            self._fov_height = test_image_path[1]
-            self._fov_width = test_image_path[3]
-
-    def set_overlap(self, overlap):
-        if isinstance(overlap, float):
-            self._overlap_x = self._overlap_y = overlap
-        elif isinstance(overlap, (list, tuple)):
-            self._overlap_x, self._overlap_y = overlap
-        else:
-            raise ValueError("Overlap setting error.")
-
-    def set_size(self, rows, cols):
-        """
-
-        Args:
-            rows:
-            cols:
-
-        Returns:
-
-        """
-        try:
-            rows = int(rows)
-        except ValueError:
-            glog.error("Rows type error.")
-
-        try:
-            cols = int(cols)
-        except ValueError:
-            glog.error("Cols type error.")
-
-        self.rows = rows
-        self.cols = cols
-
-    def set_global_location(self, loc):
-        """
-
-        Args:
-            loc:Splicing coordinate information
-
-        Returns:
-
-        """
-        assert type(loc) == np.ndarray, "Location type error."
-        self.fov_location = loc
-        self._set_location_flag = True
-
-    def set_jitter(self, h_j, v_j):
-        """
-
-        Args:
-            h_j: Horizontal offset matrix
-            v_j: Vertical offset matrix
-
-        Returns:
-
-        """
-        if h_j is not None and v_j is not None:
-            assert h_j.shape == v_j.shape, "Jitter ndim is diffient"
-            self.fov_x_jitter = h_j
-            self.fov_y_jitter = v_j
-
-    def _get_jitter(self, src_fovs, fft_channel=0, process=5):
-        """
-        Calculate FFT feature offset
-        Args:
-            src_fovs: {'row_col':'image_path'}
-            fft_channel: Calculate FFT feature offset
-        """
-        jitter_model = FOVAligner(src_fovs,
-                                  self.rows, self.cols,
-                                  multi=True, channel=fft_channel,
-                                  overlap=[self._overlap_x, self._overlap_y],
-                                  i_shape=[self._fov_height, self._fov_width]
-                                  )
-        jitter_model.set_process(process)
-        if self.fov_x_jitter is None or self.fov_y_jitter is None:
-            start_time = time.time()
-            glog.info('Start jitter mode.')
-            jitter_model.create_jitter()
-            self.fov_x_jitter = jitter_model.horizontal_jitter
-            self.fov_y_jitter = jitter_model.vertical_jitter
-
-            if np.max(self.fov_x_jitter) == np.min(self.fov_x_jitter):
-                self.fov_x_jitter = np.zeros_like(self.fov_x_jitter) - 999
-                self.fov_x_jitter[:, 1:, 0] = - int(self._fov_width * self._overlap_x)
-                self.fov_x_jitter[:, 1:, 1] = 0
-            if np.max(self.fov_y_jitter) == np.min(self.fov_y_jitter):
-                self.fov_y_jitter = np.zeros_like(self.fov_y_jitter) - 999
-                self.fov_y_jitter[1:, :, 0] = 0
-                self.fov_y_jitter[1:, :, 1] = - int(self._fov_height * self._overlap_y)
-
-            self.__jitter_diff, self.__jitter_x_diff, self.__jitter_y_diff = \
-                jitter_model.offset_eval(self._fov_height, self._fov_width, [self._overlap_x, self._overlap_y])
-            end_time = time.time()
-            glog.info("Caculate jitter time -- {}s".format(end_time - start_time))
-        else:
-            jitter_model.horizontal_jitter = self.fov_x_jitter
-            jitter_model.vertical_jitter = self.fov_y_jitter
-            self.__jitter_diff, self.__jitter_x_diff, self.__jitter_y_diff = \
-                jitter_model.offset_eval(self._fov_height, self._fov_width, [self._overlap_x, self._overlap_y])
-            glog.info("Have jitter matrixs, skip this mode.")
-
-        if self.debug and os.path.isdir(self.output_path):
-            np.save(os.path.join(self.output_path, 'fov_x_jitter.npy'), self.fov_x_jitter)
-            np.save(os.path.join(self.output_path, 'fov_y_jitter.npy'), self.fov_y_jitter)
-
-    def _get_location(self, ):
-        """
-        Returns:
-        """
-        if self.fov_location is None:
-            start_time = time.time()
-            glog.info('Start location mode.')
-            location_model = GlobalLocation()
-            location_model.set_size(self.rows, self.cols)
-            location_model.set_image_shape(self._fov_height, self._fov_width)
-            location_model.set_jitter(self.fov_x_jitter, self.fov_y_jitter)
-            # 'cd' 'LS-H' 'LS-V'
-            location_model.set_overlap(self._overlap_x, self._overlap_y)
-            location_model.create_location(self.stitch_method)
-            self.fov_location = location_model.fov_loc_array
-            self.__offset_diff = location_model.offset_diff
-            end_time = time.time()
-            glog.info("Caculate location time -- {}s".format(end_time - start_time))
-        else:
-            glog.info("Have location coord, skip this mode.")
-
-        if self.debug and os.path.isdir(self.output_path):
-            np.save(os.path.join(self.output_path, 'fov_location.npy'), self.fov_location)
-
-    @staticmethod
-    def _get_fovs_by_rule(
-            src_fovs: dict,
-            stitch_rule: dict = None,
-    ) -> dict:
-        """
-
-        Args:
-            src_fovs:
-            stitch_rule:
-                -- {'0000_0001': {'flip': 0, 'rot': 0}, ...}
-
-        Returns:
-
-        """
-        if isinstance(list(src_fovs.items())[0][1], ImageBase):
-            return src_fovs
-
-        new_src_fovs = dict()
-        if stitch_rule is None:
-            for k, v in src_fovs.items():
-                img = ImageBase(v)
-                new_src_fovs[k] = img
-        else:
-            assert isinstance(stitch_rule, dict), "'stitch_rule' must be a dict."
-            for k, v in stitch_rule.items():
-                flip = v.get('flip', 0)
-                rot = v.get('rot', 0)
-                fov = src_fovs[k]
-                if flip == 1: img = ImageBase(fov, flip_lr = True, rot=rot)
-                elif flip == 2: img = ImageBase(fov, flip_ud = True, rot=rot)
-                else: img = ImageBase(fov, rot=rot)
-                new_src_fovs[k] = img
-
-        return new_src_fovs
-
-    def stitch(
+class Stitching(object):
+    def __init__(
             self,
-            src_fovs: dict,
-            stitch=True,
-            process_rule: dict = None,
-            fft_channel=0,
-            fuse_flag=True,
-            down_size=1.0,
-            stitch_method='cd',
-            debug: bool = False,
-            output_path: str = ''
+            rows,
+            cols,
+            start_row: int = 1,
+            start_col: int = 1,
+            end_row: int = -1,
+            end_col: int = -1,
+            overlap_x: float = 0.1,
+            overlap_y: float = 0.1,
+            channel: int = 0,
+            proc_count: int = 1,
+            fusion: int = 0,
+            flip_x: bool = False,
+            flip_y: bool = False,
+            down_sample: int = 1,
+            stitch_method: str = 'cd',
+            **kwargs
     ):
         """
         Args:
-            src_fovs: {'row_col':'image_path'}
-            stitch: Do you want to stitch the images together
-            process_rule: Splicing rules
-            fft_channel: Select FFT feature channel
-            fuse_flag:
-            down_size:
-            stitch_method: 'cd' | 'LS-V' | 'LS-H'
-            debug:
-            output_path:
+            start_row:
+            start_col:
+            end_row:
+            end_col:
+            channel:
+            overlap_x:
+            overlap_y:
+            proc_count:
+            flip_x:
+            flip_y:
+            fusion:
+            stitch_mode:
         """
+        # input parameters
+        self.start_ind = [start_row, start_col]
+        self.end_ind = [end_row, end_col]
+
+        self.overlap = [overlap_x, overlap_y]
+
+        self.channel = channel
+        self.proc_count = proc_count
+
+        self.fusion = fusion
+
+        self.flip_x = flip_x
+        self.flip_y = flip_y
+
+        self.down_sample = down_sample
+
         self.stitch_method = stitch_method
-        self.debug = debug
-        self.output_path = output_path
 
-        src_fovs = self._get_fovs_by_rule(src_fovs, process_rule)
+        # internal parameters
+        self._fov_location: Union[None, np.ndarray] = None
+        self._fov_x_jitter: Union[None, np.ndarray] = None
+        self._fov_y_jitter: Union[None, np.ndarray] = None
 
-        self._init_parm(src_fovs)
+        self._rows = rows
+        self._cols = cols
 
-        if not self._is_stitched:
-            if not self._set_location_flag:
+        self._slice_rows, self._slice_cols = self._rows, self._cols
 
-                self._get_jitter(src_fovs=src_fovs, fft_channel=fft_channel)
+        self._fov_height = self._fov_width = self._fov_channel = None
+        self._fov_dtype = None
 
-                self._get_location()
+        self._mosaic_height = self._mosaic_width = None
 
-            # stitch
-            if stitch:
-                start_time = time.time()
-                glog.info('Start stitch mode.')
-                wsi = StitchingWSI()
-                wsi.set_overlap([self._overlap_x, self._overlap_y])
-                wsi.mosaic(
-                    src_fovs,
-                    self.fov_location,
-                    multi=False,
-                    fuse_flag=fuse_flag,
-                    down_sample=down_size
-                )
-                end_time = time.time()
-                glog.info("Stitch image time -- {}s".format(end_time - start_time))
+        # control parameters
 
-                self.__image = wsi.buffer
-        else:
-            glog.info("Image is stitched, skip all stitch operations.")
-
-    def get_image(self):
-        return self.__image
-
-    def get_all_eval(self):
+    def set_location(self, loc: np.ndarray):
         """
-
-        Returns: Dict Various evaluation indicators
-
-        """
-        eval = dict()
-
-        if not self._is_stitched:
-            eval['stitch_diff'] = self.__offset_diff
-            eval['jitter_diff'] = self.__jitter_diff
-
-            eval['stitch_diff_max'] = np.max(self.__offset_diff)
-            eval['jitter_diff_max'] = np.max(self.__jitter_diff)
-
-        eval['template_max'] = self.__template_max_value
-        eval['template_mean'] = self.__template_mean_value
-        eval['template_std'] = self.__template_std_value
-        eval['template_qc_conf'] = self.__template_qc_conf
-        eval['template_re_conf'] = self.__template_re_conf
-
-        return eval
-
-    def get_jitter(self):
-        """
+        Args:
+            loc:
 
         Returns:
-
         """
-        return self.fov_x_jitter, self.fov_y_jitter
+        self._fov_location = loc
 
-    def get_template_global_eval(self):
+    def set_jitter(self, x_jitter: np.ndarray, y_jitter: np.ndarray):
         """
+        Args:
+            x_jitter:
+            y_jitter:
 
-        Returns: Array Matrix for template evaluation
-
+        Returns:
         """
-        return self.__template_global_diff
+        self._fov_x_jitter = x_jitter
+        self._fov_y_jitter = y_jitter
 
-    def get_jitter_eval(self):
+    def _init_param(self, image_dict: dict):
         """
-        Returns: Splicing offset heatmap display, microscope splicing
+        Args:
+            image_dict:
+
+        Returns:
         """
-        if not self._is_stitched:
-            return self.__jitter_x_diff, self.__jitter_y_diff
-        return -1, -1
+        _image_path = list(image_dict.values())[0]
 
-    def get_stitch_eval(self, ):
+        # TODO 可调用其他解析方式
+        if isinstance(_image_path, str):
+            img = tif.imread(_image_path)
+        elif isinstance(_image_path, ImageBase):
+            img = _image_path.get_image()
+
+        self._fov_dtype = img.dtype
+        self._fov_height, self._fov_width = img.shape[:2]
+        self._fov_channel = img.shape[2] if len(img.shape) > 2 else 1
+
+    def _get_loc_by_mfws(self, image_dict: dict):
         """
-        Returns: Splicing offset heatmap display, self-developed splicing
+        Returns:
         """
-        jitter_x_diff = np.zeros([self.rows, self.cols]) - 1
-        jitter_y_diff = np.zeros([self.rows, self.cols]) - 1
+        if self._fov_x_jitter is None and self._fov_y_jitter is None:
+            glog.info('No jitter information, calculate using algorithms.')
+            self._get_jitter(
+                image_dict,
+                fft_channel=int(self.channel),
+                multi=self.proc_count
+            )
 
-        for row in range(self.rows):
-            for col in range(self.cols):
-                if row > 0 and self.fov_y_jitter[row, col, 0] != 999:
-                    _jit = self.fov_location[row, col] - self.fov_location[row - 1, col] - [0, self._fov_height]
-                    _dif = _jit - self.fov_y_jitter[row, col]
-                    jitter_y_diff[row, col] = (_dif[0] ** 2 + _dif[1] ** 2) ** 0.5
+        start_time = time.time()
+        glog.info('Start location mode')
 
-                if col > 0 and self.fov_x_jitter[row, col, 0] != 999:
-                    _jit = self.fov_location[row, col] - self.fov_location[row, col - 1] - [self._fov_width, 0]
-                    _dif = _jit - self.fov_x_jitter[row, col]
-                    jitter_x_diff[row, col] = (_dif[0] ** 2 + _dif[1] ** 2) ** 0.5
+        lm = GlobalLocation()
+        lm.set_size(self._slice_rows, self._slice_cols)
+        lm.set_image_shape(self._fov_height, self._fov_width)
+        lm.set_jitter(self._fov_x_jitter, self._fov_y_jitter)
+        lm.set_overlap(self.overlap[0], self.overlap[1])
 
-        return jitter_x_diff, jitter_y_diff
+        lm.create_location(self.stitch_method)
 
-    def mosaic(self, ):
+        self._fov_location = lm.fov_loc_array
+
+        glog.info("location calculation time, {}s".format(round(time.time() - start_time, 2)))
+
+    def _get_jitter(self, image_dict: dict,  fft_channel: int = 0, multi=5):
+        """
+        Args:
+            image_dict:
+            fft_channel:
+            multi:
+
+        Returns:
+        """
+        jm = FOVAligner(
+            image_dict,
+            self._slice_rows, self._slice_cols,
+            multi=True if multi > 1 else False, channel=fft_channel,
+            overlap=self.overlap,
+            i_shape=[self._fov_height, self._fov_width]
+        )
+        # TODO
+        jm.set_process(multi)
+        start_time = time.time()
+        glog.info("Start jitter mode.")
+        jm.create_jitter()
+        self._fov_x_jitter = jm.horizontal_jitter
+        self._fov_y_jitter = jm.vertical_jitter
+
+        if np.max(self._fov_x_jitter) == np.min(self._fov_x_jitter):
+            self._fov_x_jitter = np.zeros_like(self._fov_x_jitter) - 999
+            self._fov_x_jitter[:, 1:, 0] = - int(self._fov_width * self.overlap[0])
+            self._fov_x_jitter[:, 1:, 1] = 0
+        if np.max(self._fov_y_jitter) == np.min(self._fov_y_jitter):
+            self._fov_y_jitter = np.zeros_like(self._fov_y_jitter) - 999
+            self._fov_y_jitter[1:, :, 0] = 0
+            self._fov_y_jitter[1:, :, 1] = - int(self._fov_height * self.overlap[1])
+
+        glog.info("Jitter calculation time, {}s".format(round(time.time() - start_time), 2))
+
+    def _slice_images(self, image_dict: dict):
+        """
+        Args:
+            image_dict:
+
+        Returns:
+        """
+        if self.end_ind[0] == -1:
+            self.end_ind[0] = self._rows
+        if self.end_ind[1] == -1:
+            self.end_ind[1] = self._cols
+
+        assert self.start_ind[0] <= self.end_ind[0] and self.start_ind[1] <= self.end_ind[1], \
+            "Invalid slice index."
+
+        new_image_dict = dict()
+        for k, v in image_dict.items():
+            r, c = map(int, k.split('_'))
+            if self.start_ind[0] - 1 <= r <= self.end_ind[0] - 1 \
+                    and self.start_ind[1] - 1 <= c <= self.end_ind[1] - 1:
+                _r = r - self.start_ind[0] + 1
+                _c = c - self.start_ind[1] + 1
+                new_image_dict[f"{_r:04}_{_c:04}"] = v
+
+        self._slice_rows = self.end_ind[0] - self.start_ind[0] + 1
+        self._slice_cols = self.end_ind[1] - self.start_ind[1] + 1
+
+        return new_image_dict
+
+    def stitch_by_rule(self, image_dict: dict):
+        """ stitching based on hardware information """
+        self._init_param(image_dict)
+        image_dict = self._slice_images(image_dict)
+
+        loc = self.create_loc(
+            self._slice_rows,
+            self._slice_cols,
+            (self._fov_height, self._fov_width),
+            self.overlap
+        )
+
+        self._fov_location = loc
+
+        img = self.stitch_by_location(image_dict, loc)
+        return img
+
+    def stitch_by_mfws(self, image_dict: dict):
+        """ stitching by algorithm """
+        self._init_param(image_dict)
+        image_dict = self._slice_images(image_dict)
+
+        self._get_loc_by_mfws(image_dict)
+        img = self.stitch_by_location(image_dict, self._fov_location)
+
+        return img
+
+    def stitch_by_location(self, image_dict: dict, loc: np.ndarray):
+        """ stitching based on coordinates, channel multiplexing in multi-channel scenarios """
+        self._init_param(image_dict)
+
+        wsi = StitchingWSI()
+        wsi.set_overlap(self.overlap)
+        wsi.mosaic(
+            image_dict,
+            loc,
+            multi=False,
+            fuse_flag=True if self.fusion else False,
+            down_sample=self.down_sample
+        )
+
+        return wsi.buffer
+
+    def export_mosaic(self, output: str):
+        """ Save mosaic/thumbnail (adaptive magnification) """
         pass
 
+    @staticmethod
+    def create_loc(rows, cols, shape, overlap):
+        height, width = shape
+        overlap_x, overlap_y = overlap
+        fov_loc = np.zeros((rows, cols, 2), dtype=int)
+        for i in range(rows):
+            for j in range(cols):
+                fov_loc[i, j, 0] = j * (width - int(width * overlap_x))
+                fov_loc[i, j, 1] = i * (height - int(height * overlap_y))
 
-class ImageBase:
-    """
+        return fov_loc
 
-    """
-    def __init__(self, image, **kwargs):
-        self.image = image
+    @property
+    def fov_location(self,):
+        """ Global stitching coordinates """
+        return self._fov_location
 
-        self.flip_ud = kwargs.get('flip_ud', False)
-        self.flip_lr = kwargs.get('flip_lr', False)
-        self.rot = kwargs.get('rot', 0)
+    @property
+    def x_jitter(self,):
+        """ Jitter results in the horizontal scanning direction """
+        return self._fov_x_jitter
 
-        self.to_gray = kwargs.get('to_gray', False)
+    @property
+    def y_jitter(self,):
+        """ Jitter results in the vertical scanning direction """
+        return self._fov_y_jitter
 
-    def get_image(self):
-        if isinstance(self.image, str):
-            _image = cv2.imread(self.image, -1)
-        else: _image = self.image.copy()
-
-        if self.flip_ud:
-            _image = _image[::-1, :]
-
-        if self.flip_lr:
-            _image = _image[:, ::-1]
-
-        if self.rot != 0:
-            pass
-
-        if self.to_gray:
-            pass
-
-        return _image
+    @property
+    def mosaic_size(self,):
+        """ Original resolution mosaic size """
+        return self._mosaic_height, self._mosaic_width
