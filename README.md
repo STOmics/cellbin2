@@ -198,11 +198,11 @@ ssDNA + HE + trans gef
  CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
  -c SN \ # chip number
  -i SN_ssDNA_fov_stitched.tif \  # ssDNA,DAPI data path
- -mi HE=SN_HE_fov_stitched.tif \ # HE data path. This image has been registered with ssDNA(DAPI) image
+ -mi HE=SN_HE_fov_stitched.tif \ # HE data path. 
  -s ssDNA \  # stain type (ssDNA, DAPI)
  -m SN.raw.gef \  # Transcriptomics gef path
  -o test/SN \ # output dir
- -k "Stereo-CITE T FF V1.1 R"
+ -k "Chip-Matching T FF V1.0 R"
  ```
 
 > more examples, please visit [example.md](docs/v2/example.md)
