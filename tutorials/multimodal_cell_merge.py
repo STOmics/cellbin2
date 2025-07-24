@@ -1,7 +1,7 @@
 import os
 from os.path import join
 from typing import Final, NamedTuple, TypedDict, Tuple
-
+import argparse
 from skimage.measure import label
 import numpy as np
 from scipy import ndimage
@@ -251,7 +251,12 @@ def count_2mask_overlap(nuclei_mask_path, cell_mask_path,save_path):
     
 
 if __name__ == '__main__':
-    save_path = r"D:\temp\yuxuan"
-    nuclei_mask_path = r"D:\temp\yuxuan\Q00327K8_ssDNA_mask_raw.tif"
-    cell_mask_path = r"D:\temp\yuxuan\Q00327K8_Transcriptomics_mask.tif"
-    count_2mask_overlap(nuclei_mask_path, cell_mask_path, save_path)
+    #main
+    parser = argparse.ArgumentParser(description="Count overlap between two masks")
+    
+    parser.add_argument('-n', required=True, help='Path to nuclei mask image')
+    parser.add_argument('-c', required=True, help='Path to cell mask image')
+    parser.add_argument('-o', required=True, help='Directory to save output')
+
+    args = parser.parse_args()
+    count_2mask_overlap(args.n, args.c, args.o)
