@@ -14,8 +14,8 @@ from .onnx_yolo8 import Yolo8Detector
 class OBB8Detector(Yolo8Detector):
     """YOLOv8 object detection model class for handling inference and visualization."""
 
-    def __init__(self, onnx_model, input_image, confidence_thres=0.5, iou_thres=0.5, gpu="-1", num_threads=0):
-        super().__init__(onnx_model, input_image, confidence_thres, iou_thres, gpu, num_threads)
+    def __init__(self, onnx_model, confidence_thres=0.5, iou_thres=0.5, gpu="-1", num_threads=0):
+        super().__init__(onnx_model, confidence_thres, iou_thres, gpu, num_threads)
 
     def postprocess(self, output, x_factor, y_factor):
         """
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Create an instance of the YOLOv8 class with the specified arguments
-    detection = OBB8Detector(args.model, args.img, args.conf_thres, args.iou_thres)
+    detection = OBB8Detector(args.model, args.conf_thres, args.iou_thres)
 
     # Perform object detection and obtain the output image
-    output_image = detection.run()
+    output_image = detection.run(args.img)

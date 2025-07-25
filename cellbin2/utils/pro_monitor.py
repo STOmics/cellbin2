@@ -9,9 +9,9 @@ ALL_UNITS = {i: 1 if i == 'B' else 1 / (CONSTANT ** UNITS.index(i)) for i in UNI
 DEFAULT_UNIT = 'MiB'
 DECIMAL = 3
 
-# 全局状态管理
+# Global state management
 _TRACEMALLOC_STARTED = False
-_GLOBAL_PEAK_MEMORY = 0  # 记录全局内存峰值（字节）
+_GLOBAL_PEAK_MEMORY = 0  # Record the global memory peak (bytes)
 
 
 def process_decorator(unit=DEFAULT_UNIT):

@@ -80,6 +80,7 @@ tissueSegmentation:
   Protein_weights_path: tissueseg_bcdu_rna_220909_tf.onnx
   GPU: 0
   num_threads: 0
+  best_tissue_mask_method: 0
 
 cellSegmentation:
   ssDNA_weights_path: cellseg_bcdu_SHDI_221008_tf.onnx
@@ -99,7 +100,6 @@ Registration:
   flag_chip_registration: false
 
 cellCorrect:
-  expand_r: 10 # Expansion radius for cell correction (pixels)
   process: 30 # Number of parallel processes for cell correction
 
 calibration:

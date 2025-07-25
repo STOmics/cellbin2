@@ -15,7 +15,6 @@ Configures parallel processing tasks for different stained image or gene. Keys `
 |                  | `quality_control`     | `true`/`false`             | Enable image clarity control (execute in qc)                                                                             |
 |                  | `tissue_segmentation` | `true`/`false`             | Perform tissue segmentation (execute in alignment)                                                                       |
 |                  | `cell_segmentation`   | `true`/`false`             | Perform cell segmentation (execute in alignment)                                                                         |
-|                  | `correct_r`           | `10`/`0`                   | Cell mask correction radius (pixels). `0` = disable correction (execute in alignment)                                    |
 |                  | `channel_align`       | `-1`/slot ID               | Channel calibration reference (`-1`=disable, `0`=use "0" channel;execute in qc)                                          |
 | **Registration** |                       |                            | Configuration for image alignment and transformation                                                                     |
 |                  | `fixed_image`         | `-1`                       | `-1`= fixed image; Slot number (e.g., 0)=registration with slot "0";execute in alignment)                                |

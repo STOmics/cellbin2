@@ -25,6 +25,13 @@ pyvips
 cellpose==3.0.11
 patchify==0.2.3
 
+[rp]
+mapbox_earcut
+fastcluster==1.2.6
+stereopy==1.6.0
+beautifulsoup4
+csscompressor
+jsmin
+
 [rs]
 gefpy==1.2.3
-mapbox_earcut

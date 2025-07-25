@@ -121,7 +121,7 @@ class cbMatrix(object):
 
     def reset(self):
         """
-        释放内存
+        Release memory
         """
         del self._stereo_exp  ### raw stereo_exp
         del self._cluster_exp
@@ -365,7 +365,7 @@ class BinMatrix(object):
 
 
 class MultiMatrix(object):
-    """ 联合管理多个矩阵：可能需要 """
+    """ Jointly manage multiple matrices: may be required """
 
     def __init__(self, cellbin_path, adjusted_path, tissuegef_path, raw_path, matrix_type: TechType):
 

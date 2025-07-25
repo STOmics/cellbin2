@@ -1,0 +1,93 @@
+{
+  "image_process": {
+    "DAPI": {
+      "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000045_M5/SS200000045_M5_fov_stitched.tif",
+      "tech_type": "DAPI",
+      "chip_detect": false,
+      "quality_control": false,
+      "registration": {
+        "fixed_image": -1,
+        "trackline": true,
+        "reuse": -1
+      },
+      "tissue_segmentation": true,
+      "cell_segmentation": true,
+      "channel_align": -1
+    },
+    "Transcriptomics": {
+      "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000045_M5/SS200000045_M5.raw.gef",
+      "tech_type": "Transcriptomics",
+      "chip_detect": false,
+      "quality_control": false,
+      "registration": {
+        "fixed_image": -1,
+        "trackline": true,
+        "reuse": -1
+      },
+      "tissue_segmentation": true,
+      "cell_segmentation": false,
+      "channel_align": -1
+    },
+    "IF": {
+      "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000045_M5/SS200000045_M5_ATP_IF_fov_stitched.tif",
+      "tech_type": "IF",
+      "chip_detect": false,
+      "quality_control": false,
+      "registration": {
+        "fixed_image": -1,
+        "trackline": false,
+        "reuse": -1
+      },
+      "tissue_segmentation": true,
+      "cell_segmentation": false,
+      "channel_align": 0
+    },
+    "HE": {
+      "file_path": "/media/Data/dzh/data/cellbin2/demo_data/C04042E3/C04042E3_fov_stitched.tif",
+      "tech_type": "HE",
+      "chip_detect": false,
+      "quality_control": false,
+      "registration": {
+        "fixed_image": -1,
+        "trackline": true,
+        "reuse": -1
+      },
+      "tissue_segmentation": true,
+      "cell_segmentation": true,
+      "channel_align": -1
+    },
+    "ssDNA": {
+      "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000135TL_D1/SS200000135TL_D1_fov_stitched_ssDNA.tif",
+      "tech_type": "ssDNA",
+      "chip_detect": false,
+      "quality_control": false,
+      "registration": {
+        "fixed_image": -1,
+        "trackline": true,
+        "reuse": -1
+      },
+      "tissue_segmentation": true,
+      "cell_segmentation": true,
+      "channel_align": -1
+    }
+  },
+  "molecular_classify": {
+    "Transcriptomics": {
+      "exp_matrix": 1,
+      "cell_mask": {
+        "nuclei":[0],
+        "interior": [],
+        "boundary":[]
+      },
+      "correct_r": 10,
+      "extra_method": ""
+    }
+  },
+  "run": {
+    "qc": true,
+    "alignment": true,
+    "matrix_extract": true,
+    "report": true,
+    "annotation": false
+  }
+}

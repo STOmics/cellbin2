@@ -12,31 +12,14 @@ CellBin is an image processing pipeline designed to delineate cell boundaries fo
 1. **Expanded Algorithm Library**: Incorporates additional image processing algorithms to serve broader application scenarios like single-cell RNA-seq, Plant cellbin.
 2. **Configurable Architecture**: Refactored codebase allows users to customize analysis pipelines through [JSON](cellbin2/config/demos/sample.json) and [YAML](cellbin2/config/cellbin.yaml) configuration files.
 
-[CellBin introduction](docs/md/CellBin_1.0/CellBin解决方案技术说明.md) (Chinese) 
 
-***Tweets*** <br>
-[Stereo-seq CellBin introduction](https://mp.weixin.qq.com/s/2-lE5OjPpjitLK_4Z0QI3Q) (Chinese)  <br>
-[Stereo-seq CellBin application intro](https://mp.weixin.qq.com/s/PT3kPvsmrB3oQleEIMPkjQ)  (Chinese)  <br>
-[Stereo-seq CellBin cell segmentation database introduction](https://mp.weixin.qq.com/s/OYJhAH6Bq1X1CQIYwugxkw) (Chinese)  <br>
-[CellBin: The Core Image Processing Pipeline in SAW for Generating Single-cell Gene Expression Data for Stereo-seq](https://en.stomics.tech/news/stomics-blog/1017.html) (English)  <br>
-[A Practical Guide to SAW Output Files for Stereo-seq](https://en.stomics.tech/news/stomics-blog/1108.html) (English)  <br>
-
-***Paper related*** <br>
-[CellBin: a highly accurate single-cell gene expression processing pipeline for high-resolution spatial transcriptomics](https://www.biorxiv.org/content/10.1101/2023.02.28.530414v5) [(GitHub Link)](https://github.com/STOmics) <br>
-[Generating single-cell gene expression profiles for high-resolution spatial transcriptomics based on cell boundary images](https://gigabytejournal.com/articles/110) [(GitHub Link)](https://github.com/STOmics/STCellbin) <br>
-[CellBinDB: A Large-Scale Multimodal Annotated Dataset for Cell Segmentation with Benchmarking of Universal Models](https://www.biorxiv.org/content/10.1101/2024.11.20.619750v2) [(GitHub Link)](https://github.com/STOmics/cs-benchmark) <br>
-
-***Video tutorial*** <br>
-[Cell segmentation tool selection and application](https://www.bilibili.com/video/BV1Ct421H7ST/?spm_id_from=333.337.search-card.all.click) (Chinese) <br>
-[One-stop solution for spatial single-cell data acquisition](https://www.bilibili.com/video/BV1Me4y1T77T/?spm_id_from=333.337.search-card.all.click) (Chinese) <br>
-[Single-cell processing framework for high resolution spatial omics](https://www.bilibili.com/video/BV1M14y1q7YR/?spm_id_from=333.788.recommend_more_video.12) (Chinese) 
 
 ## Installation and Quick Start
 Linux
 ```shell
 # Clone the main repository
 git clone https://github.com/STOmics/cellbin2
-# git clone -b dev https://github.com/STOmics/cellbin2
+# git clone -b <branch> https://github.com/STOmics/cellbin2
 
 # Create and activate a Conda environment
 conda create --name cellbin2 python=3.8
@@ -49,13 +32,26 @@ pip install .[cp,rs]
 # For development mode (optional):
 # pip install -e .[cp,rs]      # Editable install with basic extras
 # pip install -e .[cp,rs,rp]   # Editable install including report module
+# if you pip install packages error, please refer to the pyproject.toml file for more details.
 
 # Execute the demo (takes ~30-40 minutes on GPU hardware)
 python demo.py
 ```
 
-**GPU Troubleshooting:**  
-If the demo runs on CPU instead of GPU, see our [troubleshooting guide]() to verify your GPU setup.
+**Performance Note:**  
+We strongly recommend using GPU acceleration for optimal performance. Below is the runtime comparison of two processing modes for an S1 chip (1cm² chip area):
+
+| Processing Mode | Runtime    |
+|-----------------|------------|
+| **GPU**         | 30-40 mins |
+| **CPU**         | 6-7 hours  |
+
+> **Benchmark hardware**:  
+> GPU: NVIDIA GeForce RTX 3060  
+> CPU: AMD Ryzen 7 5800H   
+> Memory: 16GB
+
+If the pipeline defaults to CPU mode unexpectedly, follow our [GPU troubleshooting guide](docs/v2/Using_GPU_README_EN.md) to verify your hardware setup.
 
 **Output Verification:**  
 After completion, validate the output integrity by comparing your results with the [Outputs](#outputs). 
@@ -94,7 +90,7 @@ python cellbin2/cellbin_pipeline.py -h
 | `-m`      | △         | Gene expression matrix                                                                                        | `SN.raw.gef`                                              |
 | `-mi`     | △         | Multi-channel images                                                                                          | `IF=SN_IF.tif`                                            |
 | `-pr`     | △         | Protein expression matrix                                                                                     | `SN_IF.protein.gef`                                       |
-| `-k`      | ✓△        | Kit type (required for kit-based mode,See kit list below)                                                     | `"Stereo-CITE T FF V1.1 R"`                               |
+| `-k`      | ✓△        | Kit type (required for kit-based mode,See kit list below)                                                     | `"Stereo-CITE_T_FF V1.1 R"`                               |
 
 > *✓ = Always required, ✓△ = Required for kit-based mode, △ = Optional
 
@@ -102,28 +98,30 @@ python cellbin2/cellbin_pipeline.py -h
 ```python
 KIT_VERSIONS = (
     # Standard product versions
-    'Stereo-seq T FF V1.2',       
-    'Stereo-seq T FF V1.3',
-    'Stereo-CITE T FF V1.0',   
-    'Stereo-CITE T FF V1.1',
-    'Stereo-seq N FFPE V1.0', 
+    'Stereo-seq_T_FF_V1.2',       
+    'Stereo-seq_T_FF_V1.3',
+    'Stereo-CITE_T_FF_V1.0',   
+    'Stereo-CITE_T_FF_V1.1',
+    'Stereo-seq_N_FFPE_V1.0', 
     
     # Research versions
-    'Stereo-seq T FF V1.2 R',
-    'Stereo-seq T FF V1.3 R',
-    'Stereo-CITE T FF V1.0 R',
-    'Stereo-CITE T FF V1.1 R',
-    'Stereo-seq N FFPE V1.0 R',     
+    'Stereo-seq_T_FF_V1.2_R',
+    'Stereo-seq_T_FF_V1.3_R',
+    'Stereo-CITE_T_FF_V1.0_R',
+    'Stereo-CITE_T_FF_V1.1_R',
+    'Stereo-seq_N_FFPE_V1.0_R',     
 )
 ```
-
+> The Cellbin-v2 pipeline **requires stitched images** as input. If your data consists of unstitched microscope images (multiple FOVs/fields of view in a folder), you must first stitch them using our provided tool: <br>
+[**Image Stitching Method**](cellbin2/contrib/stitch/README.md) <br>
+> <br>
 > The kit controls the module switches and parameters in the JSON configuration to customize the analysis workflow. <br>
 > Detailed configurations per kit: [config.md](docs/v2/config.md). <br>
 > More introduction about kits type, you can view [STOmics official website](https://en.stomics.tech/products/stereo-seq-transcriptomics-solution/list.html).
 
 ### Common Use Cases
 
-#### Case 1:Stereo-seq T FF <br>
+#### Case 1:Stereo-seq_T_FF <br>
 ssDNA
 ```shell
 CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
@@ -132,7 +130,7 @@ CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
 -s ssDNA \
 -m SN.raw.gef \
 -o test/SN \
--k "Stereo-seq T FF V1.2"
+-k "Stereo-seq_T_FF_V1.2"
 ```
 
 #### Case 2:Stereo-CITE <br>
@@ -145,7 +143,7 @@ CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
 -mi IF=SN_IF.tif \
 -m SN.raw.gef \
 -o test/SN \
--k "Stereo-CITE T FF V1.1 R"
+-k "Stereo-CITE_T_FF_V1.1_R"
 ```
 
 #### Case 3:Stereo-CITE
@@ -157,7 +155,7 @@ CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
 -s DAPI \
 -pr IF=SN.protein.tissue.gef \
 -o /test/SN \
--k "Stereo-CITE T FF V1.1 R"
+-k "Stereo-CITE_T_FF_V1.1_R"
 ```
 
 #### Case 4:Stereo-CITE
@@ -171,10 +169,10 @@ CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
 -m SN.raw.gef \  # Transcriptomics gef path
 -pr SN.protein.raw.gef \  # protein gef path
 -o test/SN \ # output dir
--k "Stereo-CITE T FF V1.1 R"
+-k "Stereo-CITE_T_FF_V1.1_R"
 ```
 
-#### Case 5:Single RNA <br>
+#### Case 5:Stereo-cell <br>
 trans gef
 ```shell
 CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
@@ -206,7 +204,7 @@ ssDNA + HE + trans gef
  -s ssDNA \  # stain type (ssDNA, DAPI)
  -m SN.raw.gef \  # Transcriptomics gef path
  -o test/SN \ # output dir
- -k "Stereo-CITE T FF V1.1 R"
+ -k "Stereo-CITE_T_FF_V1.1_R"
  ```
 
 #### Case 8: Multimodal Cell Segmentation<br>
@@ -251,11 +249,10 @@ refer to [error.md](docs/v2/error.md)
 - **Gene expression file** (generated only when matrix_extract module is enabled): 
   Visualize with [StereoMap v4](https://www.stomics.tech/service/stereoMap_4_1/docs/kuai-su-kai-shi.html#ke-shi-hua-shu-ru-wen-jian).   
 
-
-## Other content
-
-
+  
 ## Reference
+
+[CellBin introduction](docs/md/CellBin_1.0/CellBin解决方案技术说明.md) (Chinese) <br>
 https://github.com/STOmics/CellBin <br>
 https://github.com/MouseLand/cellpose <br>
 https://github.com/matejak/imreg_dft <br>
@@ -263,3 +260,22 @@ https://github.com/rezazad68/BCDU-Net <br>
 https://github.com/libvips/pyvips <br>
 https://github.com/vanvalenlab/deepcell-tf <br>
 https://github.com/ultralytics/ultralytics <br>
+
+
+
+***Tweets*** <br>
+[Stereo-seq CellBin introduction](https://mp.weixin.qq.com/s/2-lE5OjPpjitLK_4Z0QI3Q) (Chinese)  <br>
+[Stereo-seq CellBin application intro](https://mp.weixin.qq.com/s/PT3kPvsmrB3oQleEIMPkjQ)  (Chinese)  <br>
+[Stereo-seq CellBin cell segmentation database introduction](https://mp.weixin.qq.com/s/OYJhAH6Bq1X1CQIYwugxkw) (Chinese)  <br>
+[CellBin: The Core Image Processing Pipeline in SAW for Generating Single-cell Gene Expression Data for Stereo-seq](https://en.stomics.tech/news/stomics-blog/1017.html) (English)  <br>
+[A Practical Guide to SAW Output Files for Stereo-seq](https://en.stomics.tech/news/stomics-blog/1108.html) (English)  <br>
+
+***Paper related*** <br>
+[CellBin: a highly accurate single-cell gene expression processing pipeline for high-resolution spatial transcriptomics](https://www.biorxiv.org/content/10.1101/2023.02.28.530414v5) [(GitHub Link)](https://github.com/STOmics) <br>
+[Generating single-cell gene expression profiles for high-resolution spatial transcriptomics based on cell boundary images](https://gigabytejournal.com/articles/110) [(GitHub Link)](https://github.com/STOmics/STCellbin) <br>
+[CellBinDB: A Large-Scale Multimodal Annotated Dataset for Cell Segmentation with Benchmarking of Universal Models](https://www.biorxiv.org/content/10.1101/2024.11.20.619750v2) [(GitHub Link)](https://github.com/STOmics/cs-benchmark) <br>
+
+***Video tutorial*** <br>
+[Cell segmentation tool selection and application](https://www.bilibili.com/video/BV1Ct421H7ST/?spm_id_from=333.337.search-card.all.click) (Chinese) <br>
+[One-stop solution for spatial single-cell data acquisition](https://www.bilibili.com/video/BV1Me4y1T77T/?spm_id_from=333.337.search-card.all.click) (Chinese) <br>
+[Single-cell processing framework for high resolution spatial omics](https://www.bilibili.com/video/BV1M14y1q7YR/?spm_id_from=333.788.recommend_more_video.12) (Chinese) 

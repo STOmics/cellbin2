@@ -31,7 +31,7 @@ from cellbin2.modules.extract.matrix_extract import extract4stitched
 class Scheduler(object):
     """
     A scheduler class responsible for managing the registration, segmentation, calibration, and matrix extraction processes.
-    
+
     Attributes:
         weights_root (str): The root directory for storing CNN weight files.
         param_chip (StereoChip): An instance of StereoChip for handling chip mask information.
@@ -94,11 +94,11 @@ class Scheduler(object):
         """
         data = {}
         for idx, f in self._files.items():
+            g_name = f.get_group_name(sn=self.param_chip.chip_name)
+            n = naming.DumpImageFileNaming(
+                sn=self.param_chip.chip_name, stain_type=g_name, save_dir=self._output_path)
+                
             if f.is_image:
-                g_name = f.get_group_name(sn=self.param_chip.chip_name)
-                n = naming.DumpImageFileNaming(
-                    sn=self.param_chip.chip_name, stain_type=g_name, save_dir=self._output_path)
-
                 data[g_name] = {}
                 if os.path.exists(n.cell_mask):
                     data[g_name]['CellMask'] = n.cell_mask
@@ -125,6 +125,11 @@ class Scheduler(object):
                         data[g_name]['TissueMaskRaw'] = n.tissue_mask_raw
                     elif os.path.exists(n.transform_tissue_mask_raw):
                         data[g_name]['TissueMaskRawTransform'] = n.transform_tissue_mask_raw
+            else:
+                if g_name == 'Transcriptomics' and not f.is_image and f.cell_segmentation:
+                    data[g_name] = {} 
+                    if os.path.exists(n.cell_mask):
+                        data[g_name]['CellMask'] = n.cell_mask
         data['final'] = {}
         data['final']['CellMask'] = self.p_naming.final_nuclear_mask
         data['final']['TissueMask'] = self.p_naming.final_tissue_mask
@@ -259,7 +264,7 @@ class Scheduler(object):
                 tissue_mask=tissue_mask,
                 cell_mask=cell_mask,
                 chip_box=c_box,
-                method=0,
+                method=self.config.tissue_segmentation.best_tissue_mask_method,
                 stain_type=f.tech
             )
             btcm = BestTissueCellMask.get_best_tissue_cell_mask(input_data=input_data)
@@ -279,7 +284,7 @@ class Scheduler(object):
     def run_single_image(self):
         """
         Process each single image in the pipeline.
-        
+
         This method iterates over each image file, performs necessary transformations,
         and applies segmentation. It handles both cases where IPR data is available and
         where it is not.
@@ -343,12 +348,23 @@ class Scheduler(object):
                         cur_c_image=cur_c_image
                     )
             else:
+                print('Processing matrix file: {}'.format(f.file_path))
+                print('Matrix file tech type: {}'.format(f.tech.name))
+                print('Tissue segmentation enabled: {}'.format(f.tissue_segmentation))
+                print('Cell segmentation enabled: {}'.format(f.cell_segmentation))
+                
                 if f.tissue_segmentation or f.cell_segmentation:
                     cur_m_naming = naming.DumpMatrixFileNaming(
                         sn=self.param_chip.chip_name,
                         m_type=f.tech.name,
                         save_dir=self._output_path,
                     )
+                    print('Matrix file naming configuration:')
+                    print('- Heatmap path: {}'.format(cur_m_naming.heatmap))
+                    print('- Tissue mask path: {}'.format(cur_m_naming.tissue_mask))
+                    print('- Cell mask path: {}'.format(cur_m_naming.cell_mask))
+                    
+                    print('Starting matrix extraction with extract4stitched...')
                     cm = extract4stitched(
                         image_file=f,
                         param_chip=self.param_chip,
@@ -356,7 +372,10 @@ class Scheduler(object):
                         config=self.config,
                         detect_feature=False
                     )
+                    print('Matrix extraction completed')
+
                     if f.tissue_segmentation:
+                        print('Starting tissue segmentation...')
                         run_tissue_seg(
                             image_file=f,
                             image_path=cur_m_naming.heatmap,
@@ -364,13 +383,17 @@ class Scheduler(object):
                             chip_info=self.param_chip,
                             config=self.config,
                         )
+                        print('Tissue segmentation completed')
+
                     if f.cell_segmentation:
+                        print('Starting cell segmentation...')
                         run_cell_seg(
                             image_file=f,
                             image_path=cur_m_naming.heatmap,
                             save_path=cur_m_naming.cell_mask,
                             config=self.config,
                         )
+                        print('Cell segmentation completed')
 
     def run_mul_image(self):
         """
@@ -515,8 +538,13 @@ class Scheduler(object):
                 #merged_cell_mask_path = self._output_path + "/core_cell_merged_mask.tif"
                 # expand nuclei
                 fast_mask = run_fast_correct(
+<<<<<<< HEAD
                     mask_path=output_nuclei_path,
                     distance = distance,
+=======
+                    mask_path=to_fast,
+                    distance=m.correct_r,
+>>>>>>> origin/dev
                     n_jobs=self.config.cell_correct.process
                 )
                 expand_nuclei_path = os.path.join(save_path, "expand_nuclei.tif")
@@ -666,12 +694,12 @@ class Scheduler(object):
         k_ = []
         # List to store file paths that should be removed
         remove_ = []
-        
+
         # Iterate over files in self._files
         for idx, f in self._files.items():
             # Get group name for the file
             g_name = f.get_group_name(sn=self.param_chip.chip_name)
-            
+
             # Check if the file is a matrix
             if f.is_matrix:
                 # Create DumpMatrixFileNaming object for matrix files
@@ -687,41 +715,41 @@ class Scheduler(object):
                     stain_type=g_name,
                     save_dir=self._output_path
                 )
-            
+
             # Iterate over attributes of the file naming object
             for p in dir(f_name):
                 att = getattr(f_name, p)
                 pt = f_name.__class__.__dict__.get(p)
-                
+
                 # Check if the attribute is a property and the file exists
                 if isinstance(pt, property) and att.exists():
                     all_.append(att)
-                    
+
                     # Check if the file should be removed or kept
                     if pt not in f_to_keep:
                         remove_.append(att)
                     else:
                         k_.append(att)
-        
+
         # Iterate over attributes of self.p_naming
         for p_p in dir(self.p_naming):
             p_att = getattr(self.p_naming, p_p)
             p_pt = self.p_naming.__class__.__dict__.get(p_p)
-            
+
             # Check if the attribute is a property and the file exists
             if isinstance(p_pt, property) and p_att.exists():
                 all_.append(p_att)
-                
+
                 # Check if the file should be removed or kept
                 if p_pt not in f_to_keep:
                     remove_.append(p_att)
                 else:
                     k_.append(p_att)
-        
+
         # Iterate over files in the output directory
         for f in os.listdir(self._output_path):
             path = os.path.join(self._output_path, f)
-            
+
             # Remove the file if it is in the remove_ list
             if Path(path) in remove_:
                 os.remove(path)

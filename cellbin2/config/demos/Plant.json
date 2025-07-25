@@ -7,7 +7,6 @@
       "quality_control": false,
       "tissue_segmentation": false,
       "cell_segmentation": false,
-      "correct_r": 10,
       "channel_align": -1,
       "registration": {
         "fixed_image": 1,
@@ -22,7 +21,6 @@
       "quality_control": false,
       "tissue_segmentation": false,
       "cell_segmentation": false,
-      "correct_r": -1,
       "channel_align": -1,
       "registration": {
         "fixed_image": -1,
@@ -37,7 +35,6 @@
       "quality_control": false,
       "tissue_segmentation": false,
       "cell_segmentation": true,
-      "correct_r": -1,
       "channel_align": 0,
       "registration": {
         "fixed_image": -1,
@@ -52,6 +49,7 @@
       "cell_mask": [
         2
       ],
+      "correct_r": 0,
       "extra_method": ""
     }
   },

@@ -12,14 +12,14 @@
             },
             "tissue_segmentation": true,
             "cell_segmentation": true,
-            "correct_r": -1,
             "channel_align": -1
         }
     },
     "molecular_classify": {
         "0": {
-            "exp_matrix": 1,
-            "cell_mask": [1],
+            "exp_matrix": 0,
+            "cell_mask": [0],
+            "correct_r": 0,
             "extra_method": ""
         }
     },

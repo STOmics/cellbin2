@@ -32,4 +32,10 @@ Requires-Dist: cellpose==3.0.11; extra == "cp"
 Requires-Dist: patchify==0.2.3; extra == "cp"
 Provides-Extra: rs
 Requires-Dist: gefpy==1.2.3; extra == "rs"
-Requires-Dist: mapbox_earcut; extra == "rs"
+Provides-Extra: rp
+Requires-Dist: mapbox_earcut; extra == "rp"
+Requires-Dist: fastcluster==1.2.6; extra == "rp"
+Requires-Dist: stereopy==1.6.0; extra == "rp"
+Requires-Dist: beautifulsoup4; extra == "rp"
+Requires-Dist: csscompressor; extra == "rp"
+Requires-Dist: jsmin; extra == "rp"

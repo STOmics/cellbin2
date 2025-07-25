@@ -22,7 +22,7 @@ class Report(object):
 
     def __init__(self, matrics_json, save_path=RESULT_JSON_PARH, json_template=JSON_TEMPLATE):
         """
-        :param json_template:  json template for report generation 生成报告的需要的json文件模板
+        :param json_template:  json template for report generation. The JSON file template required for generating the report
         :param matrics_json:  calculated matrics json file 
         """
         self.json_path = json_template

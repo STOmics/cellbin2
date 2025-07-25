@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en" class="stereo">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="assets/common/favicon.png" rel="icon" type="image/png" />
+  <title>Summary</title>
+</head>
+
+<body>
+  <div id="hover-layer2"></div>
+  <div id="app">
+    <el-container>
+      <el-header class="report-logo-box" height="150px">
+        <div class="main-content-area">
+          <img src="assets/common/logo.png">
+          <span class="report_logo_content ">Analytical Report</span>
+        </div>
+      </el-header>
+      <el-header class="report-sampleId-box" height="110px">
+        <div class="report_sampleId_content main-content-area">{{dataJson && dataJson.sampleId}}</div>
+      </el-header>
+      <el-main class="main-content-box">
+        <div class="main-content-area">
+          <el-collapse v-if="dataJson && dataJson.alertData && dataJson.alertData.length" style="margin-bottom: 24px;"
+            v-model="showAlert">
+            <el-collapse-item name="1">
+              <template #title>
+                <div class="module_title" style="display: flex;align-items: center;padding-left: 24px;">
+                  <span style="border: solid 1px #5F0185;height: 18px;margin-right: 16px;"></span>
+                  <span style="font-size: 28px;font-weight: 500;">Alerts</span>
+                </div>
+              </template>
+              <div style="padding: 0 24px;">
+                <el-table :data="dataJson && dataJson.alertData" style="width: 100%;">
+                  <el-table-column prop="metrics" label="Metrics" width="200"></el-table-column>
+                  <el-table-column prop="value" label="Value" width="160"></el-table-column>
+                  <el-table-column prop="alert" label="Alert" width="150"></el-table-column>
+                  <el-table-column prop="note" label="Note"></el-table-column>
+                </el-table>
+              </div>
+            </el-collapse-item>
+          </el-collapse>
+
+          <el-menu default-active="summary-gene" ref="menuRef" class="el-menu-sticky" mode="horizontal"
+            @select="handleSelect">
+            <template v-if="dataJson.isProteinReport">
+              <el-sub-menu index="summary">
+                <template #title>Summary</template>
+                <el-menu-item index="summary-gene">Gene</el-menu-item>
+                <el-menu-item index="summary-protein">Protein</el-menu-item>
+              </el-sub-menu>
+              <el-sub-menu index="squarebin">
+                <template #title>Square Bin</template>
+                <el-menu-item index="squarebin-gene">Gene</el-menu-item>
+                <el-menu-item index="squarebin-protein">Protein</el-menu-item>
+              </el-sub-menu>
+              <el-sub-menu index="cellbin">
+                <template #title>Cell Bin</template>
+                <el-menu-item index="cellbin-gene">Gene</el-menu-item>
+                <el-menu-item index="cellbin-protein">Protein</el-menu-item>
+              </el-sub-menu>
+            </template>
+            <template v-else>
+              <el-menu-item index="summary-gene">Summary</el-menu-item>
+              <el-menu-item index="squarebin-gene">Square Bin</el-menu-item>
+              <el-menu-item index="cellbin-gene">Cell Bin</el-menu-item>
+            </template>
+            <el-menu-item index="image">Image</el-menu-item>
+            <el-menu-item v-if="dataJson.isProteinReport" index="analysis">Analysis</el-menu-item>
+            <el-menu-item v-if="dataJson.microbiome && Object.keys(dataJson.microbiome).length"
+              index="microbiome">Microorganism</el-menu-item>
+          </el-menu>
+
+
+          <div class="content-area" v-if="curPageType == 'summary-gene'">
+
+            <expression v-if="dataJson.summary.gene.expression" container-id="summary-gene-expression-imagebox"
+              :module-title="dataJson.summary.gene.expression.title" :msg="dataJson.summary.gene.expression.msg"
+              :heatmap-image-obj="dataJson.summary.gene.expression.heatmapImageObj"
+              :base-image-list="dataJson.baseImageList">
+            </expression>
+
+            <expression-right-msg :data="dataJson.summary.gene.expressionRightMsg">
+            </expression-right-msg>
+
+            <key-metrics v-if="dataJson.summary.gene.keyMetrics" :module-title="dataJson.summary.gene.keyMetrics.title"
+              :msg="dataJson.summary.gene.keyMetrics.msg" :data="dataJson.summary.gene.keyMetrics.data"
+              :plot-data="dataJson.summary.gene.keyMetrics.plotData">
+            </key-metrics>
+
+            <div style="margin-right: 24px;">
+              <common :module-title="dataJson.summary.gene.tissue.title" :msg="dataJson.summary.gene.tissue.msg"
+                :data="dataJson.summary.gene.tissue.data">
+              </common>
+              <tissue-seg v-if="dataJson.tissueseg && Object.keys(dataJson.tissueseg).length > 0"
+                :module-title="dataJson.tissueseg.title" :src="dataJson.tissueseg.src" container-id="tissueseg-plot">
+              </tissue-seg>
+              <common v-if="!(dataJson.tissueseg && Object.keys(dataJson.tissueseg).length > 0)"
+                :module-title="dataJson.summary.gene.annotation.title" :msg="dataJson.summary.gene.annotation.msg"
+                :data="dataJson.summary.gene.annotation.data">
+              </common>
+            </div>
+            <div>
+              <common :module-title="dataJson.summary.gene.sequencing.title" :msg="dataJson.summary.gene.sequencing.msg"
+                :data="dataJson.summary.gene.sequencing.data">
+              </common>
+              <common v-if="dataJson.tissueseg && Object.keys(dataJson.tissueseg).length > 0"
+                :module-title="dataJson.summary.gene.annotation.title" :msg="dataJson.summary.gene.annotation.msg"
+                :data="dataJson.summary.gene.annotation.data">
+              </common>
+              <common :module-title="dataJson.summary.gene.information.title"
+                :msg="dataJson.summary.gene.information.msg" :data="dataJson.summary.gene.information.data">
+              </common>
+            </div>
+
+            <saturation :module-title="dataJson.summary.gene.saturation.title"
+              :msg="dataJson.summary.gene.saturation.msg" :data="dataJson.summary.gene.saturation.data">
+            </saturation>
+            <command-line :module-title="dataJson.summary.gene.commandLine.title"
+              :msg="dataJson.summary.gene.commandLine.msg" :data="dataJson.summary.gene.commandLine.data">
+            </command-line>
+
+
+          </div>
+
+          <div class="content-area" v-if="curPageType == 'summary-protein'">
+            <expression v-if="dataJson.summary.protein.expression" container-id="summary-protein-expression-imagebox"
+              :module-title="dataJson.summary.protein.expression.title" :msg="dataJson.summary.protein.expression.msg"
+              :heatmap-image-obj="dataJson.summary.protein.expression.heatmapImageObj"
+              :base-image-list="dataJson.baseImageList">
+            </expression>
+            <expression-right-msg :data="dataJson.summary.protein.expressionRightMsg">
+            </expression-right-msg>
+            <key-metrics v-if="dataJson.summary.protein.sunburst"
+              :module-title="dataJson.summary.protein.sunburst.title" :msg="dataJson.summary.protein.sunburst.msg"
+              :data="dataJson.summary.protein.sunburst.data" :plot-data="dataJson.summary.protein.sunburst.plotData">
+            </key-metrics>
+
+            <div style="margin-right: 24px;">
+              <common :module-title="dataJson.summary.protein.tissue.title" :msg="dataJson.summary.protein.tissue.msg"
+                :data="dataJson.summary.protein.tissue.data">
+              </common>
+              <tissue-seg v-if="dataJson.tissueseg && Object.keys(dataJson.tissueseg).length > 0"
+                :module-title="dataJson.tissueseg.title" :src="dataJson.tissueseg.src" container-id="tissueseg-plot-protein">
+              </tissue-seg>
+              <common v-else :module-title="dataJson.summary.protein.sequencing.title"
+                :msg="dataJson.summary.protein.sequencing.msg" :data="dataJson.summary.protein.sequencing.data">
+              </common>
+            </div>
+            <div>
+              <common v-if="dataJson.tissueseg && Object.keys(dataJson.tissueseg).length > 0"
+                :module-title="dataJson.summary.protein.sequencing.title" :msg="dataJson.summary.protein.sequencing.msg"
+                :data="dataJson.summary.protein.sequencing.data">
+              </common>
+
+              <common :module-title="dataJson.summary.protein.information.title"
+                :msg="dataJson.summary.protein.information.msg" :data="dataJson.summary.protein.information.data">
+              </common>
+            </div>
+
+
+
+            <saturation :module-title="dataJson.summary.protein.saturation.title"
+              :msg="dataJson.summary.protein.saturation.msg" :data="dataJson.summary.protein.saturation.data">
+            </saturation>
+            <correlations :module-title="dataJson.summary.protein.correlations.title"
+              :msg="dataJson.summary.protein.correlations.msg" :data="dataJson.summary.protein.correlations.data"
+              y-axis-title="Protein">
+            </correlations>
+            <counts :module-title="dataJson.summary.protein.counts.title" :msg="dataJson.summary.protein.counts.msg"
+              :data="dataJson.summary.protein.counts.data">
+            </counts>
+            <command-line :module-title="dataJson.summary.protein.commandLine.title"
+              :msg="dataJson.summary.protein.commandLine.msg" :data="dataJson.summary.protein.commandLine.data">
+            </command-line>
+          </div>
+
+          <div class="content-area" v-if="curPageType == 'squarebin-gene'">
+            <square-table :module-title="dataJson.squarebin.gene.statistics.title"
+              :msg="dataJson.squarebin.gene.statistics.msg" :data="dataJson.squarebin.gene.statistics.data">
+            </square-table>
+
+            <div class="binsize-container" style="width: 1200px; background-color: #FFFFFF;">
+              <el-tabs v-model="curBinSize" type="card" class="demo-tabs" stretch>
+                <el-tab-pane key="bin20" label="Bin 20" name="bin20" lazy>
+                  <distribution :msg="dataJson.squarebin.gene.bin20.distribution.msg"
+                    :data="dataJson.squarebin.gene.bin20.distribution.data">
+                  </distribution>
+                  <cluster :module-title="dataJson.squarebin.gene.bin20.clustering.title"
+                    :msg="dataJson.squarebin.gene.bin20.clustering.msg"
+                    :data="dataJson.squarebin.gene.bin20.clustering.data" :base-src="dataJson.baseImageList[0].src"
+                    prefix="squarebin-gene-bin20" bin-size="bin20">
+                  </cluster>
+
+                  <marker-table :msg="dataJson.squarebin.gene.bin20.markers.msg"
+                    :data="dataJson.squarebin.gene.bin20.markers.data" prefix="squarebin-gene-bin20">
+                  </marker-table>
+
+
+
+
+
+
+
+
+
+
+                </el-tab-pane>
+                <el-tab-pane key="bin50" label="Bin 50" name="bin50" lazy>
+                  <distribution :msg="dataJson.squarebin.gene.bin50.distribution.msg"
+                    :data="dataJson.squarebin.gene.bin50.distribution.data">
+                  </distribution>
+                  <cluster :msg="dataJson.squarebin.gene.bin50.clustering.msg"
+                    :module-title="dataJson.squarebin.gene.bin50.clustering.title"
+                    :data="dataJson.squarebin.gene.bin50.clustering.data" :base-src="dataJson.baseImageList[0].src"
+                    prefix="squarebin-gene-bin50" bin-size="bin50">
+                  </cluster>
+                  <marker-table :msg="dataJson.squarebin.gene.bin50.markers.msg"
+                    :data="dataJson.squarebin.gene.bin50.markers.data" prefix="squarebin-gene-bin50">
+                  </marker-table>
+                </el-tab-pane>
+              </el-tabs>
+            </div>
+
+
+          </div>
+          <div class="content-area" v-if="curPageType == 'squarebin-protein'">
+            <square-table :module-title=" dataJson.squarebin.protein.statistics.title"
+              :msg="dataJson.squarebin.protein.statistics.msg" :data="dataJson.squarebin.protein.statistics.data">
+            </square-table>
+
+            <div class="binsize-container" style="width: 1200px; background-color: #FFFFFF;">
+              <el-tabs v-model="curBinSize" type="card" class="demo-tabs" stretch>
+                <el-tab-pane key="bin20" label="Bin 20" name="bin20" lazy>
+                  <distribution :msg="dataJson.squarebin.protein.bin20.distribution.msg"
+                    :data="dataJson.squarebin.protein.bin20.distribution.data">
+                  </distribution>
+                  <cluster :module-title="dataJson.squarebin.protein.bin20.clustering.title"
+                    :msg="dataJson.squarebin.protein.bin20.clustering.msg"
+                    :data="dataJson.squarebin.protein.bin20.clustering.data" :base-src="dataJson.baseImageList[0].src"
+                    prefix="squarebin-protein-bin20" bin-size="bin20">
+                  </cluster>
+
+                </el-tab-pane>
+                <el-tab-pane key="bin50" label="Bin 50" name="bin50" lazy>
+                  <distribution :msg="dataJson.squarebin.protein.bin50.distribution.msg"
+                    :data="dataJson.squarebin.protein.bin50.distribution.data">
+                  </distribution>
+                  <cluster :module-title="dataJson.squarebin.protein.bin50.clustering.title"
+                    :msg="dataJson.squarebin.protein.bin50.clustering.msg"
+                    :data="dataJson.squarebin.protein.bin50.clustering.data" :base-src="dataJson.baseImageList[0].src"
+                    prefix="squarebin-protein-bin50" bin-size="bin50">
+                  </cluster>
+                </el-tab-pane>
+              </el-tabs>
+            </div>
+
+          </div>
+          <div class=" content-area" v-if=" curPageType=='cellbin-gene'">
+		  <expression v-if="dataJson.cellbin.gene.expression" container-id="summary-gene-expression-imagebox"
+              :module-title="dataJson.cellbin.gene.expression.title" :msg="dataJson.cellbin.gene.expression.msg"
+              :heatmap-image-obj="dataJson.cellbin.gene.expression.heatmapImageObj"
+              :base-image-list="dataJson.baseImageList">
+            </expression>
+            <square-table :module-title=" dataJson.cellbin.gene.statistics.title"
+              :msg="dataJson.cellbin.gene.statistics.msg" :data="dataJson.cellbin.gene.statistics.data">
+            </square-table>
+            <distribution :title="dataJson.cellbin.gene.cb_distribution.title" :msg="dataJson.cellbin.gene.cb_distribution.msg" :data="dataJson.cellbin.gene.cb_distribution.data">
+            </distribution>
+			<distribution :title="dataJson.cellbin.gene.ad_distribution.title" :msg="dataJson.cellbin.gene.ad_distribution.msg" :data="dataJson.cellbin.gene.ad_distribution.data">
+            </distribution>
+            <cluster :module-title="dataJson.cellbin.gene.clustering.title" :msg="dataJson.cellbin.gene.clustering.msg"
+              :data="dataJson.cellbin.gene.clustering.data" :base-src="dataJson.baseImageList[0].src"
+              prefix="cellbin-gene" bin-size="cellbin">
+            </cluster>
+			<distribution :title="dataJson.cellbin.gene.cb_scatter_plot.title" :msg="dataJson.cellbin.gene.cb_scatter_plot.msg" :data="dataJson.cellbin.gene.cb_scatter_plot.data">
+            </distribution>
+			<distribution :title="dataJson.cellbin.gene.ad_scatter_plot.title" :msg="dataJson.cellbin.gene.ad_scatter_plot.msg" :data="dataJson.cellbin.gene.ad_scatter_plot.data">
+            </distribution>
+			<!-- <marker-table :msg="dataJson.cellbin.gene.markers.msg" :data="dataJson.cellbin.gene.markers.data"
+              prefix="cellbin-gene">
+            </marker-table>-->
+			
+          </div>
+          <div class="content-area" v-if="curPageType == 'cellbin-protein'">
+		  <expression v-if="dataJson.cellbin.protein.expression" container-id="summary-protein-expression-imagebox"
+              :module-title="dataJson.cellbin.protein.expression.title" :msg="dataJson.cellbin.protein.expression.msg"
+              :heatmap-image-obj="dataJson.cellbin.protein.expression.heatmapImageObj"
+              :base-image-list="dataJson.baseImageList">
+            </expression>
+            <square-table :module-title=" dataJson.cellbin.protein.statistics.title"
+              :msg="dataJson.cellbin.protein.statistics.msg" :data="dataJson.cellbin.protein.statistics.data">
+            </square-table>
+            <distribution :msg="dataJson.cellbin.protein.distribution.msg"
+              :data="dataJson.cellbin.protein.distribution.data">
+            </distribution>
+            <cluster :module-title="dataJson.cellbin.gene.clustering.title" :msg="dataJson.cellbin.gene.clustering.msg"
+              :data="dataJson.cellbin.gene.clustering.data" :base-src="dataJson.baseImageList[0].src"
+              prefix="cellbin-gene" bin-size="cellbin">
+            </cluster>
+          </div>
+          <div class="content-area" v-if="curPageType == 'image'" style="display: flex;">
+		  
+            <div style="margin-right: 30px;" >
+              <commonsummary :module-title="dataJson.image.summary.title" :msg="dataJson.image.summary.msg"
+                :data="dataJson.image.summary.data">
+              </commonsummary>
+            </div>
+			<expression v-if="dataJson.image.tissuecut" container-id="summary-gene-expression-imagebox"
+              :module-title="dataJson.image.tissuecut.title" :msg="dataJson.image.tissuecut.msg"
+              :heatmap-image-obj="dataJson.image.tissuecut.heatmapImageObj"
+              :base-image-list="dataJson.baseImageList">
+            </expression>
+			<!-- display first image information -->
+			<div>
+			<common v-if="dataJson.image.image_num > 0":module-title="dataJson.image.image1_qc.title" :msg="dataJson.image.image1_qc.msg"
+                :data="dataJson.image.image1_qc.data">
+			</div>
+			<div>
+			<common v-if="dataJson.image.image_num > 0" :module-title="dataJson.image.image1_registration.title" :msg="dataJson.image.image1_registration.msg"
+                :data="dataJson.image.image1_registration.data">
+			</div>
+			<div>
+			<common v-if="dataJson.image.image_num > 0" :module-title="dataJson.image.image1_matrix.title" :msg="dataJson.image.image1_matrix.msg"
+                :data="dataJson.image.image1_matrix.data">
+			</div>
+			<div>
+			<common v-if="dataJson.image.image_num > 0" :module-title="dataJson.image.image1_cellseg.title" :msg="dataJson.image.image1_cellseg.msg"
+                :data="dataJson.image.image1_cellseg.data">
+			</div>
+
+			<tissue-seg v-if="dataJson.tissueseg && Object.keys(dataJson.tissueseg).length > 0"
+                :module-title="dataJson.tissueseg.title" :src="dataJson.tissueseg.src" container-id="tissueseg-plot">
+             </tissue-seg>
+			 <tissue-seg v-if="dataJson.tissueseg && Object.keys(dataJson.tissueseg).length > 0"
+                :module-title="dataJson.tissueseg.title" :src="dataJson.tissueseg.src" container-id="tissueseg-plot">
+             </tissue-seg>
+			  <tissue-seg v-if="dataJson.tissueseg && Object.keys(dataJson.tissueseg).length > 0"
+                :module-title="dataJson.image.image1_track.title" :src="dataJson.image.image1_track.src" container-id="tissueseg-plot">
+             </tissue-seg>
+			 <tissue-seg v-if="dataJson.tissueseg && Object.keys(dataJson.tissueseg).length > 0"
+                :module-title="dataJson.image.image1_cellseg.cell_intensity.title" :src="dataJson.image.image1_cellseg.cell_intensity.src" container-id="tissueseg-plot">
+             </tissue-seg>
+			 
+			 <cell-seg v-if="dataJson.tissueseg && Object.keys(dataJson.tissueseg).length > 0"
+                 :src="dataJson.image.image1_cellseg.cellseg1" container-id="tissueseg-plot">
+             </cell-seg>
+			 <cell-seg v-if="dataJson.tissueseg && Object.keys(dataJson.tissueseg).length > 0"
+                 :src="dataJson.image.image1_cellseg.cellseg2" container-id="tissueseg-plot">
+             </cell-seg>
+			 <cell-seg v-if="dataJson.tissueseg && Object.keys(dataJson.tissueseg).length > 0"
+                 :src="dataJson.image.image1_cellseg.cellseg3" container-id="tissueseg-plot">
+             </cell-seg>
+			 <cell-seg v-if="dataJson.tissueseg && Object.keys(dataJson.tissueseg).length > 0"
+                :src="dataJson.image.image1_cellseg.cellseg4" container-id="tissueseg-plot">
+             </cell-seg>
+			 <cell-seg v-if="dataJson.tissueseg && Object.keys(dataJson.tissueseg).length > 0"
+                :src="dataJson.image.image1_cellseg.cellseg5" container-id="tissueseg-plot">
+             </cell-seg>
+			 
+			 <!-- display second image information -->
+			 <div>
+			<common v-if="dataJson.image.image_num > 1":module-title="dataJson.image.image1_qc.title" :msg="dataJson.image.image1_qc.msg"
+                :data="dataJson.image.image1_qc.data">
+			</div>
+			<div>
+			<common v-if="dataJson.image.image_num > 1" :module-title="dataJson.image.image1_registration.title" :msg="dataJson.image.image1_registration.msg"
+                :data="dataJson.image.image1_registration.data">
+			</div>
+			 <!-- display third image information -->
+			 <div>
+			<common v-if="dataJson.image.image_num > 2":module-title="dataJson.image.image1_qc.title" :msg="dataJson.image.image1_qc.msg"
+                :data="dataJson.image.image1_qc.data">
+			</div>
+			<div>
+			<common v-if="dataJson.image.image_num > 2" :module-title="dataJson.image.image1_registration.title" :msg="dataJson.image.image1_registration.msg"
+                :data="dataJson.image.image1_registration.data">
+			</div>
+			<!-- display fourth image information -->
+			 <div>
+			<common v-if="dataJson.image.image_num > 3":module-title="dataJson.image.image1_qc.title" :msg="dataJson.image.image1_qc.msg"
+                :data="dataJson.image.image1_qc.data">
+			</div>
+			<div>
+			<common v-if="dataJson.image.image_num > 3" :module-title="dataJson.image.image1_registration.title" :msg="dataJson.image.image1_registration.msg"
+                :data="dataJson.image.image1_registration.data">
+			</div>
+			
+
+			
+          </div>
+
+          <div class="content-area" v-if="curPageType == 'microbiome'" style="display: flex;flex-wrap: wrap;">
+            <expression v-if="dataJson.microbiome.expression" container-id="microbiome-expression-imagebox"
+              :module-title="dataJson.microbiome.expression.title" :msg="dataJson.microbiome.expression.msg"
+              :heatmap-image-obj="dataJson.microbiome.expression.heatmapImageObj"
+              :base-image-list="dataJson.baseImageList">
+            </expression>
+            <expression-right-msg :data="dataJson.microbiome.expressionRightMsg">
+            </expression-right-msg>
+            <div style="margin-right: 24px;">
+              <common :module-title="dataJson.microbiome.denoising.title" :msg="dataJson.microbiome.denoising.msg"
+                :data="dataJson.microbiome.denoising.data">
+              </common>
+              <common :module-title="dataJson.microbiome.taxonomic.title" :msg="dataJson.microbiome.taxonomic.msg"
+                :data="dataJson.microbiome.taxonomic.data">
+            </div>
+            <div>
+              <sunburst :plot-data="dataJson.microbiome.sunburst.plotData">
+              </sunburst>
+            </div>
+            <microbe :module-title="dataJson.microbiome.phylum.title" :msg="dataJson.microbiome.phylum.msg"
+              :data="dataJson.microbiome.phylum.data" :src="dataJson.microbiome.phylum.src" header="Phylum">
+            </microbe>
+            <microbe :module-title="dataJson.microbiome.class.title" :msg="dataJson.microbiome.class.msg"
+              :data="dataJson.microbiome.class.data" :src="dataJson.microbiome.class.src" header="Class">
+            </microbe>
+            <microbe :module-title="dataJson.microbiome.genus.title" :msg="dataJson.microbiome.genus.msg"
+              :data="dataJson.microbiome.genus.data" :src="dataJson.microbiome.genus.src" header="Genus">
+            </microbe>
+          </div>
+
+
+          <div class="content-area" v-if="curPageType == 'analysis'">
+            <div class="binsize-container" style="width: 1200px; background-color: #FFFFFF; margin-bottom: 24px;">
+              <el-tabs v-model="curBinSize" type="card" class="demo-tabs" stretch>
+                <el-tab-pane key="bin20" label="Bin 20" name="bin20" lazy>
+                  <cluster :module-title="dataJson.analysis.bin20.clustering.title"
+                    :msg="dataJson.analysis.bin20.clustering.msg" :data="dataJson.analysis.bin20.clustering.data"
+                    :base-src="dataJson.baseImageList[0].src" prefix="analysis-bin20" bin-size="bin20">
+                  </cluster>
+                  <marker-cluster :msg="dataJson.analysis.bin20.markers.msg"
+                    :data="dataJson.analysis.bin20.markers.data" prefix="analysis-bin20">
+                  </marker-cluster>
+
+                </el-tab-pane>
+                <el-tab-pane key="bin50" label="Bin 50" name="bin50" lazy>
+                  <cluster :module-title="dataJson.analysis.bin50.clustering.title"
+                    :msg="dataJson.analysis.bin50.clustering.msg" :data="dataJson.analysis.bin50.clustering.data"
+                    :base-src="dataJson.baseImageList[0].src" prefix="analysis-bin50" bin-size="bin50">
+                  </cluster>
+                  <marker-cluster :msg="dataJson.analysis.bin50.markers.msg"
+                    :data="dataJson.analysis.bin50.markers.data" prefix="analysis-bin50">
+                  </marker-cluster>
+                </el-tab-pane>
+              </el-tabs>
+            </div>
+            <correlations :module-title="dataJson.analysis.correlations.title" :msg="dataJson.analysis.correlations.msg"
+              :data="dataJson.analysis.correlations.data" y-axis-title="Gene">
+            </correlations>
+          </div>
+        </div>
+      </el-main>
+      <el-footer>
+        <div class="main-content-area" style="text-align: center;">
+          <div>
+            <span>
+              {{dataJson.pipelineVersion}}
+            </span>
+          </div>
+          <div>
+            <span>
+              <B>services@stomics.tech (Mainland China)</B>
+            </span>
+          </div>
+          <span>
+            <B>info_global@stomics.tech (Global)</B>
+          </span>
+          <div>
+            <span>
+              <span>&#169;</span> 2024 Beijing Genomics Institute
+            </span>
+          </div>
+        </div>
+      </el-footer>
+    </el-container>
+  </div>
+
+</body>
+<link rel="stylesheet" href="css/element-plus.min.css">
+<link rel="stylesheet" href="css/element-plus.stereo.css">
+<link rel="stylesheet" href="css/jquery.dataTables.css">
+<style>
+  .el-menu-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 9;
+    background-color: #fffdff;
+  }
+</style>
+<style scoped>
+  .el-header,
+  .el-main,
+  .el-footer,
+  .center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .el-main {
+    /* for sticky style */
+    overflow: visible;
+  }
+
+  .el-collapse-item__arrow{
+    transform: rotate(180deg);
+  }
+  .el-menu--horizontal>.el-menu-item.is-active,
+  .el-menu--horizontal>.el-sub-menu.is-active .el-sub-menu__title {
+    font-weight: 600;
+  }
+
+  /* .el-menu--horizontal>.el-menu-item {
+    font-weight: 550;
+  } */
+
+  .main-content-box {
+    background-color: #F9FBFC;
+  }
+
+  .main-content-area {
+    width: 1200px;
+  }
+
+  .el-tabs__item.is-top {
+    font-size: 20px;
+    color: #999999;
+    font-weight: 550;
+
+    &.is-active {
+      color: #5F0185;
+    }
+  }
+
+  .report-logo-box {
+    background-color: #5F0185;
+  }
+
+  .report_logo_content {
+    font-size: 40px;
+    font-weight: 500;
+    color: #ffffff;
+    margin-left: 50px;
+  }
+
+  .report_sampleId_content {
+    font-size: 32px;
+    font-weight: 500;
+    color: #333333;
+    text-align: left;
+  }
+
+  .content-area {
+    padding: 0;
+    padding-top: 24px;
+    display: flex;
+    flex-wrap: wrap;
+
+    >div {
+      /* border: solid 1px blue; */
+      border-radius: 5px;
+    }
+  }
+
+  #hover-layer2 {
+    position: absolute;
+    background-color: white;
+    border: solid 0.6px gray;
+    border-radius: 2px;
+    padding: 8px;
+    left: -999px;
+    top: -999px;
+    z-index: 999;
+    display: none;
+  }
+
+  .left_label {
+    width: 30px;
+    display: inline-block;
+  }
+
+  .cluster-container {
+    .clusterImg {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .disabled {
+      color: lightgray !important;
+
+      .cluster_label {
+        background-color: lightgray !important;
+      }
+    }
+
+    .cluster_item {
+      margin-bottom: 2px;
+      margin-right: 4px;
+      cursor: pointer;
+      user-select: none;
+
+      div {
+        display: flex;
+        justify-content: start;
+        align-items: center;
+
+        span {
+          /* width: 68px; */
+          font-size: 14px;
+        }
+
+        .cluster_label {
+          display: inline-block;
+          border-radius: 5px;
+          width: 10px;
+          height: 10px;
+          margin-right: 8px;
+        }
+      }
+    }
+
+
+  }
+
+  /* Marker Table */
+  .marker-container {
+    /*margin-top: 40px;*/
+    background: #FFFFFF;
+    box-shadow: 0px 0px 4px 0px rgba(95, 1, 133, 0.0500);
+    border-radius: 8px;
+    /* padding-left: 32px; */
+  }
+
+  /* #table-container {
+            margin-left: 32px;
+        } */
+
+  th,
+  td {
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  /* table */
+  div.dataTables_wrapper {
+    width: 1136px;
+    padding: 24px 32px;
+    color: #000000;
+    /* margin: 0 auto; */
+  }
+
+  /* table header style */
+  .geneid-header,
+  .cluster-header {
+    height: 34px;
+    font-size: 16px;
+    font-family: PingFangSC, PingFang SC;
+    font-weight: 500;
+    line-height: 26px;
+  }
+
+  .cluster-header {
+    color: #FFFFFF;
+    line-height: 26px;
+    background: #8A4BA4;
+  }
+
+  .geneid-header {
+    background: #F7F7F7;
+  }
+
+  .gray-text {
+    color: gray;
+  }
+
+  .panzoom-box:hover {
+    >button {
+      visibility: visible !important;
+    }
+  }
+</style>
+
+<!-- module style: -->
+<style scoped>
+  .module-box {
+    box-sizing: border-box;
+    background-color: #ffffff;
+    border-radius: 5px;
+    padding: 12px 24px 24px;
+    margin-bottom: 24px;
+
+    /* &:last-child {
+      margin-bottom: 8px;
+    } */
+
+    &.with-margin-right {
+      margin-right: 24px;
+    }
+
+    .module-title-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+
+      .title-box-left {
+        display: flex;
+        align-items: center;
+
+        .title-icon {
+          border: solid 2px #5F0185;
+          height: 18px;
+          margin-right: 16px;
+        }
+
+        .title-label {
+          color: #333333;
+          font-size: 28px;
+          font-weight: 500;
+          margin-right: 8px;
+        }
+      }
+    }
+
+    .module-msg {
+      font-size: 14px;
+      color: #999999;
+      font-weight: 500;
+      padding: 8px 0;
+
+      .text-blue {
+        color: #5F0185;
+        margin-bottom: 2px;
+        font-size: 14px;
+
+        &:first-child {
+          margin-top: 4px;
+        }
+      }
+
+      .collapse-text {
+        font-size: 14px;
+        font-weight: 500;
+        color: #999999;
+      }
+    }
+
+    .custom-tree-node {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+      padding-right: 8px;
+    }
+  }
+</style>
+
+<!-- expression-right-msg-box style -->
+<style scoped>
+  .expression-right-msg-box {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    .sub-box {
+      height: 190px;
+      background-color: #ffffff;
+      box-shadow: 0px 0px 4px 0px rgba(95, 1, 133, 0.0500);
+      border-radius: 8px;
+
+      .box-header-color {
+        height: 6px;
+        border-radius: 8px 8px 0 0;
+      }
+
+      .box-main-content {
+        height: calc(100% - 6px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .main-content-value {
+        color: #333333;
+        font-weight: 600;
+        text-align: center;
+        font-size: 40px;
+      }
+
+      .main-content-title {
+        font-size: 24px;
+        font-weight: 500;
+        color: #666666;
+        text-align: center;
+      }
+
+      &:nth-child(1) {
+        .box-header-color {
+          background-color: #FF614F;
+        }
+      }
+
+      &:nth-child(2) {
+        .box-header-color {
+          background-color: #FFE6D1;
+        }
+      }
+
+      &:nth-child(3) {
+        .box-header-color {
+          background-color: #C6F3AE;
+        }
+      }
+
+      &:nth-child(4) {
+        .box-header-color {
+          background-color: #949ECE;
+        }
+      }
+
+
+    }
+  }
+</style>
+
+<script src="js/dependencies/vue.global.prod.js"></script>
+<script>
+  const { createApp, ref, onMounted, computed, watch, nextTick } = Vue;
+  function mergeObjects(obj1, obj2) {
+    for (let key in obj2) {
+      if (typeof obj2[key] === 'object' && obj1.hasOwnProperty(key) && typeof obj1[key] === 'object') {
+        obj1[key] = mergeObjects(obj1[key], obj2[key]);
+      } else {
+        obj1[key] = obj2[key];
+      };
+    };
+    return obj1;
+  };
+  function deepCopy(obj) {
+    return JSON.parse(JSON.stringify(obj));
+  };
+</script>
+<script src="js/dependencies/element-plus.full.min.js"></script>
+<script src="js/dependencies/icons-vue.js"></script>
+<script src="js/dependencies/jquery-1.10.2.min.js"></script>
+<script src="js/dependencies/jquery.dataTables.min.js"></script>
+
+<!--  -->
+<!-- <script src="./js/Title.js"></script> -->
+<script src="js/module/Commonsummary.js"></script>
+<script src="js/module/Cluster.js"></script>
+<script src="js/module/CommandLine.js"></script>
+<script src="js/module/Common.js"></script>
+<script src="js/module/Correlations.js"></script>
+<script src="js/module/Counts.js"></script>
+<script src="js/module/Distribution.js"></script>
+<script src="js/module/Expression.js"></script>
+<script src="js/module/ExpressionRightMsg.js"></script>
+<script src="js/module/KeyMetrics.js"></script>
+<script src="js/module/MarkerCluster.js"></script>
+<script src="js/module/MarkerTable.js"></script>
+<script src="js/module/Microbe.js"></script>
+
+<script src="js/module/Saturation.js"></script>
+<script src="js/module/SquareTable.js"></script>
+<script src="js/module/Sunburst.js"></script>
+<script src="js/module/TissueSeg.js"></script>
+<script src="js/module/CellSeg.js"></script>
+<!--  End-->
+<script src="js/result.js"></script>
+<script src='js/dependencies/panzoom-4.5.1.min.js'></script>
+<script src="js/dependencies/plot.js"></script>
+<script>
+  const app = createApp({
+    components: {
+      Cluster,
+      CommandLine,
+      Common,
+	  Commonsummary,
+      Correlations,
+      Counts,
+      Distribution,
+      Expression,
+      ExpressionRightMsg,
+      KeyMetrics,
+      MarkerCluster,
+      MarkerTable,
+      Microbe,
+      Saturation,
+      SquareTable,
+      Sunburst,
+      TissueSeg,
+	  CellSeg,
+    },
+    setup() {
+      onMounted(() => {
+        console.log('Dom mounted. ', resultJson);
+        if (resultJson) {
+          resultJson.baseImageList.push(
+            {
+              label: 'No Image',
+              value: 'noimage',
+              src: ''
+            }
+          );
+          dataJson.value = { ...resultJson };
+        };
+
+      });
+      const showAlert = ref(['1']);
+      const curPageType = ref('summary-gene');
+      const curBinSize = ref('bin20');
+      const handleClose = (key, keyPath) => {
+        console.log(key, keyPath);
+      };
+      const handleSelect = (key, keyPath) => {
+        console.log('handleSelect--', 'key: ', key, 'keyPath', keyPath);
+        curPageType.value = key;
+      };
+
+
+      const dataJson = ref({});
+
+
+
+      return {
+        dataJson,
+        showAlert,
+        curPageType,
+        curBinSize,
+        handleSelect,
+        handleClose,
+      };
+    }
+  });
+  for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+    app.component(key, component);
+  };
+  app.use(ElementPlus).mount('#app');
+</script>
+<script>
+
+</script>
+
+</html>

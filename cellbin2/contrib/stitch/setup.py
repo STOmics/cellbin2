@@ -34,7 +34,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'mfws=mfws.image_stitch:arg_parser',
+            'mfws=mfws.mfws:main',
         ]
     },
   )

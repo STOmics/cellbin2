@@ -25,7 +25,7 @@ TEST_DATA = [
         "DAPI",  # stain_type (DAPI, HE, ssDNA)
         "SS200000045_M5/SS200000045_M5.raw.gef",  # transcriptomics gef path
         "",  # protein gef path
-        "Stereo-seq T FF V1.2 R"
+        "Stereo-seq_T_FF_V1.2_R"
     ),
     (
         # FF H&E
@@ -35,7 +35,7 @@ TEST_DATA = [
         "HE",
         "C04042E3/C04042E3.raw.gef",
         "",
-        "Stereo-seq T FF V1.3 R"
+        "Stereo-seq_T_FF_V1.3_R"
      ),
     (
         # ssDNA
@@ -45,7 +45,7 @@ TEST_DATA = [
         "ssDNA",
         "SS200000135TL_D1/SS200000135TL_D1.raw.gef",
         "",
-        "Stereo-seq T FF V1.2 R"
+        "Stereo-seq_T_FF_V1.2_R"
     ),
     (
         # DAPI + IF
@@ -55,7 +55,7 @@ TEST_DATA = [
         "DAPI",
         "A03599D1/A03599D1.raw.gef",
         "A03599D1/A03599D1.protein.raw.gef",
-        "Stereo-CITE T FF V1.0 R"
+        "Stereo-CITE_T_FF_V1.0_R"
     )
 ]
 
@@ -76,8 +76,10 @@ class TestPipelineMain:
         im_path = os.path.join(DEMO_DATA_DIR, im_path)
         if if_path != "":
             pps = if_path.split(",")
-            pps_ = [os.path.join(DEMO_DATA_DIR, i) for i in pps]
-            if_path = ",".join(pps_)
+            pps_name = [os.path.basename(i).strip(sn+"_").split("IF")[0]+"IF" for i in pps]
+            pps_dir = [os.path.join(DEMO_DATA_DIR, i) for i in pps]
+            if_path = dict(zip(pps_name, pps_dir))
+            print(if_path)
         else:
             if_path = None
         trans_gef = os.path.join(DEMO_DATA_DIR, trans_gef)
@@ -89,7 +91,7 @@ class TestPipelineMain:
         pipeline(
             chip_no=sn,
             input_image=im_path,
-            if_image=if_path,
+            more_images=if_path,
             stain_type=s_type,
             param_file=None,
             output_path=cur_out,

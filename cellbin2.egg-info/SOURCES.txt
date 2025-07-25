@@ -25,10 +25,12 @@ cellbin2/contrib/cell_filter.py
 cellbin2/contrib/cell_segmentor.py
 cellbin2/contrib/cellpose_segmentor.py
 cellbin2/contrib/chip_detector.py
+cellbin2/contrib/chip_transform.py
 cellbin2/contrib/clarity.py
 cellbin2/contrib/fast_correct.py
 cellbin2/contrib/gmm_correct.py
 cellbin2/contrib/mask_manager.py
+cellbin2/contrib/multimodal_cell_merge.py
 cellbin2/contrib/param.py
 cellbin2/contrib/tissue_segmentor.py
 cellbin2/contrib/track_align.py
@@ -115,6 +117,8 @@ cellbin2/modules/extract/qc.py
 cellbin2/modules/extract/register.py
 cellbin2/modules/extract/tissue_seg.py
 cellbin2/modules/extract/transform.py
+cellbin2/modules/manual/__init__.py
+cellbin2/modules/manual/manual_registration.py
 cellbin2/modules/report/__init__.py
 cellbin2/modules/report/index.html
 cellbin2/modules/report/index_savecode.html
