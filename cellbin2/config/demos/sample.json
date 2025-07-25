@@ -61,7 +61,7 @@
       "0": {
         "exp_matrix": 1,
         "cell_mask": {
-          "core":[0],
+          "nuclei":[0],
           "interior": [],
           "boundary":[]
         },
@@ -71,7 +71,7 @@
       "1": {
         "exp_matrix": 3,
         "cell_mask": {
-          "core":[0],
+          "nuclei":[0],
           "interior": [],
           "boundary":[]
         },

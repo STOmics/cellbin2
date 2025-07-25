@@ -429,18 +429,18 @@ class Scheduler(object):
         :return: None
         """
         for idx, m in self.molecular_classify_files.items():
-            core_mask = [] #list for core masks
+            core_mask = [] #list for nuclei masks
             interior_mask = [] #list for interior masks
-            cell_mask = [] #list for cell masks
+            cell_mask = [] #list for boundary masks
             clog.info('======>  Extract[{}], {}'.format(idx, m))
             distance =  m.correct_r
             final_nuclear_path = self.p_naming.final_nuclear_mask 
             final_t_mask_path = self.p_naming.final_tissue_mask
             final_cell_mask_path = self.p_naming.final_cell_mask 
             print(final_cell_mask_path)
-            core_mask = m.cell_mask["core"]
+            core_mask = m.cell_mask["nuclei"]
             interior_mask = m.cell_mask["interior"]
-            cell_mask = m.cell_mask["cell"]
+            cell_mask = m.cell_mask["boundary"]
 
 
             # integrate nuclei, interior, cell seperatly 
