@@ -16,6 +16,11 @@ import tifffile as tif
 from typing import Union
 
 
+class StitchingMethod(enum.Enum):
+    Hardware = 2
+    MFWS = 1
+
+
 class Scanning(enum.Enum):
     """ stitching_type:
         # row and col & col and row
@@ -128,15 +133,16 @@ class ScanMethod:
             rows: int,
             cols: int,
             name_pattern: str = '*_{xxx}_{xxx}_*.tif',
+            name_index_0: bool = True,
             **kwargs
     ) -> dict:
         """
         Returns: return RaC method
         """
-        images_dict = self.get_images_index(images_path, name_pattern)
+        images_dict = self.get_images_index(images_path, name_pattern, name_index_0)
 
         if self.scan_method == Scanning.RaC:
-            pass
+            images_dict = self.rac_trans(images_dict)
 
         elif self.scan_method == Scanning.CaR:
             images_dict = self.car_trans(images_dict)
@@ -159,6 +165,14 @@ class ScanMethod:
         images_dict = trans_path2class(images_dict, **kwargs)
 
         return images_dict
+
+    @staticmethod
+    def rac_trans(images_dict: dict) -> dict:
+        new_images_dict = dict()
+        for k, v in images_dict.items():
+            _k = k.split('_')
+            new_images_dict['_'.join(_k)] = v
+        return new_images_dict
 
     @staticmethod
     def car_trans(images_dict: dict) -> dict:
@@ -227,7 +241,8 @@ class ScanMethod:
     def get_images_index(
             self,
             images_path: list,
-            name_pattern: str
+            name_pattern: str,
+            name_index_0: bool = True
     ) -> dict:
         images_dict = dict()
         re_name, ind_list = self._get_pattern(name_pattern)
@@ -252,6 +267,10 @@ class ScanMethod:
                 name = '_'.join(image_ind)
             else:
                 name = image_ind[0]
+
+            if not name_index_0:
+                name = [str(int(i) - 1).zfill(len(i)) for i in name.split('_')]
+                name = '_'.join(name)
 
             images_dict[name] = ip
 
