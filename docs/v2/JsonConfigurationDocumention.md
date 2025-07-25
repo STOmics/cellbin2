@@ -29,9 +29,9 @@ Integrates multimodal data to generate molecular expression matrices.
 
 | Slot | Field           | Example                      | Description                                                              |
 |-----|-----------------|------------------------------|--------------------------------------------------------------------------|
-| 0-N |                 | gene matrix task : (e.g., 0) | the Numberical order of task                                             |
+| 0-N |                 | gene matrix task : (e.g., 0) | The numberical order of task                                             |
 |     | `exp_matrix`    | `1`                          | Use Slot 1 (Transcriptomics or Protein) data as expression matrix source |
-|     | `cell_mask`     | `[0]`                        | Use cell mask from Slot 0                                                |
+|     | `cell_mask`     | `{"nuclei":[0], "interior": [], "boundary":[]}`| Mask dictionary                                                |
 |     | `extra_method`  | `""`                         | Reserved for custom analysis methods (empty by default,other method is To Be Extended) |
 
 
