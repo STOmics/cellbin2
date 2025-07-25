@@ -48,9 +48,9 @@
     "0": {
       "exp_matrix": 0,
       "cell_mask": {
-        "core":[0],
+        "nuclei":[0],
         "interior": [3],
-        "cell":[2]
+        "boundary":[2]
       },
       "extra_method": "",
       "correct_r":10

@@ -63,7 +63,7 @@
         "cell_mask": {
           "core":[0],
           "interior": [],
-          "cell":[]
+          "boundary":[]
         },
         "correct_r": 10,
         "extra_method": ""
@@ -73,7 +73,7 @@
         "cell_mask": {
           "core":[0],
           "interior": [],
-          "cell":[]
+          "boundary":[]
         },
         "correct_r": 10,
         "extra_method": ""
