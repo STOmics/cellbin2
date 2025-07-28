@@ -1,5 +1,0 @@
-cellbin2
-docs
-paper
-test
-tutorials
