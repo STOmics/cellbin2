@@ -1,3 +1,7 @@
 
 *.pyc
 weights/
+/demo_data/
+*.tif
+/cellbin2/contrib/multimodal_cell_merge1.py
+/build/

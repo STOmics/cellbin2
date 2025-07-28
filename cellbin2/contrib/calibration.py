@@ -289,7 +289,7 @@ def multi_channel_align(
         cfg: CalibrationParam,
         fixed_image: str,
         moving_image: str,
-        same_image: str = '',
+        same_image: Union[str, np.ndarray] = None,
         output_path: str = '',
         method: int = 0
 ) -> CalibrationInfo:
