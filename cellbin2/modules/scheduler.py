@@ -506,6 +506,7 @@ class Scheduler(object):
                     save_dir=self._output_path
                 )
                     final_nuclear_path = im_naming.cell_mask
+                    print(im_naming.cell_mask)
                     merged_core_mask = cbimread(im_naming.cell_mask, only_np=True)
                 else:
                     print("multiple core masks exist")
@@ -538,13 +539,8 @@ class Scheduler(object):
                 #merged_cell_mask_path = self._output_path + "/core_cell_merged_mask.tif"
                 # expand nuclei
                 fast_mask = run_fast_correct(
-<<<<<<< HEAD
                     mask_path=output_nuclei_path,
                     distance = distance,
-=======
-                    mask_path=to_fast,
-                    distance=m.correct_r,
->>>>>>> origin/dev
                     n_jobs=self.config.cell_correct.process
                 )
                 expand_nuclei_path = os.path.join(save_path, "expand_nuclei.tif")

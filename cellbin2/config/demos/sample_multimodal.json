@@ -41,7 +41,7 @@
       "tissue_segmentation": false,
       "cell_segmentation": true,
       "correct_r": 0,
-      "channel_align": -1
+      "channel_align": 0
     }
   },
   "molecular_classify": {
