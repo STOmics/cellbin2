@@ -58,8 +58,8 @@ You can use ```mfws -h``` to view the usage, use ```mfws -v``` to view software 
 
     ```shell
     mfws 
-    -i D:\data\stereocell\SS200000135TL_D1\SS200000135TL_D1 
-    -o D:\data\insitucall\stitch\SS200000135TL_D1.tif 
+    -i /data/image_path
+    -o /data/output_path/mfws.tif 
     --rows 13 
     --cols 9 
     --overlapx 0.1 
@@ -73,10 +73,10 @@ You can use ```mfws -h``` to view the usage, use ```mfws -v``` to view software 
 
     ```shell
     mfws
-    -i D:\data\stereocell\A00797C3\fovs
-    -o D:\data\insitucall\stitch\A00797C3.tif 
+    -i /data/image_path
+    -o /data/output_path/mfws.tif 
     --rows 15
-    --cols 11 
+    --cols 12
     --overlapx 0.1 
     --overlapy 0.1 
     --method 1
@@ -88,8 +88,8 @@ You can use ```mfws -h``` to view the usage, use ```mfws -v``` to view software 
     <summary>Leica</summary>
 
     ```shell
-    -i D:\data\stereocell\B03204F213 
-    -o D:\data\insitucall\stitch\B03204F213.tif 
+    -i /data/image_path
+    -o /data/output_path/mfws.tif 
     --rows 7 --cols 5 --overlapx 0.1 
     --overlapy 0.1 
     --method 2 
@@ -107,8 +107,8 @@ You can use ```mfws -h``` to view the usage, use ```mfws -v``` to view software 
 
     ```shell
     mfws 
-    -i '/data/image_path'  
-    -o '/data/output_path'
+    -i /data/image_path
+    -o /data/output_path
     --rows
     5
     --cols
@@ -136,8 +136,8 @@ You can use ```mfws -h``` to view the usage, use ```mfws -v``` to view software 
 
     ```shell
     mfws 
-    -i '/data/image_path'  
-    -o '/data/output_path'
+    -i /data/image_path 
+    -o /data/output_path
     --rows
     5
     --cols
@@ -164,8 +164,8 @@ You can use ```mfws -h``` to view the usage, use ```mfws -v``` to view software 
 
     ```shell
     mfws 
-    -i '/data/image_path'  
-    -o '/data/output_path'
+    -i /data/image_path
+    -o /data/output_path
     --rows
     5
     --cols

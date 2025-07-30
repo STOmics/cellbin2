@@ -327,7 +327,7 @@ def main():
                         required=False, default=0, help="Scanning method")
     parser.add_argument("-np", "--name_pattern", action="store", dest="name_pattern", type=str,
                         required=False, help="Name pattern, r{rrr}_c{ccc}.tif")
-    parser.add_argument("-name_index_0", "--name_index_0", action="store_true", dest="name_index_0",
+    parser.add_argument("-name_index_0", "--name_index_0", action="store_false", dest="name_index_0",
                         help="Is row and column index numbers in the file name start with 0?")
 
     parser.add_argument("-mt", "--method", action="store", dest="method", required=False, type=int, default=1,

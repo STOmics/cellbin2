@@ -984,10 +984,8 @@ class FFTMatcher(Matcher):
 
 
 if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-
-    dst_path = r"G:\0423\output\A02788B1\images\0005_0005.tif"
-    src_path = r"G:\0423\output\A02788B1\images\0005_0006.tif"
+    dst_path = r"G:\0423\output\images\0005_0005.tif"
+    src_path = r"G:\0423\output\images\0005_0006.tif"
 
     dst_img = tifffile.imread(dst_path)
     src_img = tifffile.imread(src_path)
