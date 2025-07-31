@@ -54,40 +54,27 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": false,
-      "channel_align": -1
+      "channel_align": 0
     }
   },
   "molecular_classify": {
       "0": {
         "exp_matrix": 1,
-<<<<<<< HEAD
         "cell_mask": {
           "nuclei":[0],
           "interior": [],
           "boundary":[]
         },
-=======
-        "cell_mask": [
-          1
-        ],
->>>>>>> origin/dev
         "correct_r": 10,
         "extra_method": ""
       },
       "1": {
         "exp_matrix": 3,
-<<<<<<< HEAD
         "cell_mask": {
           "nuclei":[0],
           "interior": [],
           "boundary":[]
         },
-=======
-        "cell_mask": [
-          0,
-          2
-        ],
->>>>>>> origin/dev
         "correct_r": 10,
         "extra_method": ""
       }

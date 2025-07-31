@@ -33,7 +33,7 @@ DEMO_DATA = {
             "SS200000135TL_D1.raw.gef": "https://bgipan.genomics.cn/v3.php/download/ln-file?FileId=6488191&ShareKey=Iqhde9tKfvWHX5q22T3n&VersionId=4370458&UserId=-1&Password=8Jhw&Policy=eyJBSyI6IkFOT05ZTU9VUyIsIkFhdCI6MSwiQWlkIjoiSnNRQ3NqRjN5cjdLQUN5VCIsIkNpZCI6ImY3NGM2NzlkLTY2ZWUtNDc1OS04ODlmLWQyMzczYTljODY5MiIsIkVwIjo5MDAsIkRhdGUiOiJGcmksIDEzIERlYyAyMDI0IDAyOjQ2OjEzIEdNVCJ9&Signature=ba71c89e825435ca47975175b187d0a151b553a2"
         },
         "stain_type": "ssDNA",
-        "kit_type": "Stereo-seq_T_FF_V1.2_R"
+        "kit_type": "Stereo-seq T FF V1.2 R"
     },
     # "C04042E3": {
     #     "data": {

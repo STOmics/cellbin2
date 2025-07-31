@@ -46,9 +46,11 @@
   "molecular_classify": {
     "0": {
       "exp_matrix": 1,
-      "cell_mask": [
-        2
-      ],
+      "cell_mask": {
+        "nuclei":[0],
+        "interior": [],
+        "boundary":[]
+      },
       "correct_r": 0,
       "extra_method": ""
     }

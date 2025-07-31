@@ -40,7 +40,6 @@
       },
       "tissue_segmentation": false,
       "cell_segmentation": true,
-      "correct_r": 0,
       "channel_align": 0
     }
   },
