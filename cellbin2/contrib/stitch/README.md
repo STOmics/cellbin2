@@ -88,6 +88,7 @@ You can use ```mfws -h``` to view the usage, use ```mfws -v``` to view software 
     <summary>Leica</summary>
 
     ```shell
+    mfws 
     -i /data/image_path
     -o /data/output_path/mfws.tif 
     --rows 7 --cols 5 --overlapx 0.1 
