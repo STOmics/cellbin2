@@ -56,6 +56,8 @@ You can use ```mfws -h``` to view the usage, use ```mfws -v``` to view software 
     <details close>
     <summary>Motic</summary>
 
+    > Note: File naming like `controlD1_0000_0001_2021-11-25_12-26-25-544.tif`, `0000_0001` represents the FOV of row 0 and column 1
+
     ```shell
     mfws 
     -i /data/image_path
@@ -70,6 +72,8 @@ You can use ```mfws -h``` to view the usage, use ```mfws -v``` to view software 
 
     <details close>
     <summary>CG</summary>
+  
+    > Note: File naming like `A00000XX_0000_0001_20221205123304.tiff`, `0000_0001` represents the FOV of row 0 and column 1
 
     ```shell
     mfws
@@ -86,6 +90,8 @@ You can use ```mfws -h``` to view the usage, use ```mfws -v``` to view software 
 
     <details close>
     <summary>Leica</summary>
+  
+    > Note: File naming like `TileScan 3_s06_RAW_ch00.tif`, `s01` represents the 6 FOV in snake by row scan mode
 
     ```shell
     mfws 
@@ -105,6 +111,8 @@ You can use ```mfws -h``` to view the usage, use ```mfws -v``` to view software 
 
     <details close>
     <summary>Dolphin - Odd numbered layers</summary>
+  
+    > Note: File naming like `DL2_DL1000011_B_20250627142513.L001.S001.C002R015.P008.C.2025-06-27_14-29-10-022.tif`, `C002R015` represents the FOV of row 2 and column 15
 
     ```shell
     mfws 
@@ -134,6 +142,8 @@ You can use ```mfws -h``` to view the usage, use ```mfws -v``` to view software 
 
     <details close>
     <summary>Dolphin - Even numbered layers</summary>
+  
+    > Note: File naming like `DL2_DL1000011_B_20250627142513.L001.S001.C002R015.P008.C.2025-06-27_14-29-10-022.tif`, `C002R015` represents the FOV of row 2 and column 15
 
     ```shell
     mfws 
@@ -162,6 +172,8 @@ You can use ```mfws -h``` to view the usage, use ```mfws -v``` to view software 
 
     <details close>
     <summary>T1</summary>
+  
+    > Note: File naming like `DP81FocusSweep20250318org-hm.L001.S001.C003R008.P003.C.2025-03-18_11-15-37-276.tif`, `C003R008` represents the FOV of row 8 and column 3
 
     ```shell
     mfws 
