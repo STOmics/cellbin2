@@ -49,7 +49,8 @@
       "cell_mask": {
         "nuclei":[0],
         "interior": [3],
-        "boundary":[2]
+        "boundary":[2],
+        "matrix":[]
       },
       "extra_method": "",
       "correct_r":10

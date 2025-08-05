@@ -26,6 +26,7 @@ from cellbin2.modules.extract.tissue_seg import run_tissue_seg
 from cellbin2.modules.extract.cell_seg import run_cell_seg
 from cellbin2.contrib.mask_manager import BestTissueCellMask, MaskManagerInfo
 from cellbin2.modules.extract.matrix_extract import extract4stitched
+from cellbin2.modules.cellmask_fixer import CellMaskFixer
 
 
 class Scheduler(object):
@@ -455,6 +456,7 @@ class Scheduler(object):
             core_mask = [] #list for nuclei masks
             interior_mask = [] #list for interior masks
             cell_mask = [] #list for boundary masks
+            matrix_mask = [] #list for matrix masks
             clog.info('======>  Extract[{}], {}'.format(idx, m))
             distance =  m.correct_r
             final_nuclear_path = self.p_naming.final_nuclear_mask 
@@ -464,6 +466,7 @@ class Scheduler(object):
             core_mask = m.cell_mask["nuclei"]
             interior_mask = m.cell_mask["interior"]
             cell_mask = m.cell_mask["boundary"]
+            matrix_mask = m.cell_mask["matrix"]
 
 
             # integrate nuclei, interior, cell seperatly 
@@ -576,7 +579,24 @@ class Scheduler(object):
                 final_mask = interior_cell_merge(cell_mask_add_interior, expand_nuclei, overlap_threshold=0.9, save_path="")
                 #final_mask = cbimread(os.path.join(save_path2, "cell_mask_add_interior.tif"), only_np=True)
                 cbimwrite(final_cell_mask_path, final_mask)
-                
+            # --------------------matrix fix--------------------
+            if len(matrix_mask) != 0: #interior mask exist
+                if len(matrix_mask) == 1:
+                    im_naming = naming.DumpImageFileNaming(
+                    sn=self.param_chip.chip_name,
+                    stain_type=self._files[matrix_mask[0]].get_group_name(sn=self.param_chip.chip_name),
+                    save_dir=self._output_path
+                )
+                    matrix_mask_path = im_naming.cell_mask
+                else:
+                    print("multiple interior masks exist")
+                    #TODO: merge multiple cell masks, return final_cell_mask = merged cell masks
+            else: #no interior mask
+                merged_interior_mask = []
+            cmf=CellMaskFixer(source_imge=str(matrix_mask_path),refer_image=r'/storeData/USER/data/01.CellBin/00.user/wangaoli/data/result/时空多蛋白数据/chip/Q00327K8/Q00327K8_DAPI_mask_raw.tif',sn='Q00327K8')
+            cmf.fix_notsinglecell2mask(out_path=self._output_path, save=True)
+
+
 
 
     def run(self, chip_no: str, input_image: str,

@@ -5,3 +5,4 @@ weights/
 *.tif
 /cellbin2/contrib/multimodal_cell_merge1.py
 /build/
+/cellbin2.egg-info/
