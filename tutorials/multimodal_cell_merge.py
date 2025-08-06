@@ -196,58 +196,63 @@ def num_n_area(mask):
     return num_labels - 1
 
 
-def count_2mask_overlap(nuclei_mask_path, cell_mask_path,save_path):
-    sem = 2
-    connectivity = 8
-    nuclei_mask_raw = cbimread(nuclei_mask_path, only_np=True)
-    cell_mask_raw = cbimread(cell_mask_path, only_np=True)
-    num_nuclei = num_n_area(nuclei_mask_raw)
-    num_cell = num_n_area(cell_mask_raw)
-    print(f"DAPI图像总共圈出 {num_nuclei}个细胞核")
-    print(f"RNA总共圈出 {num_cell}个细胞")
-
-    if len(np.unique(nuclei_mask_raw)) <= sem:
-        _, nuclei_mask = cv2.connectedComponents(nuclei_mask_raw, connectivity=connectivity)
-    else:
-        nuclei_mask_sem = f_instance2semantics(nuclei_mask_raw)
-        _, nuclei_mask = cv2.connectedComponents(nuclei_mask_sem, connectivity=connectivity)
-        cbimwrite(join(save_path, f"nuclei_mask_ori.tif"), nuclei_mask_sem * 255)
-    if len(np.unique(cell_mask_raw)) <= sem:
-        _, cell_mask = cv2.connectedComponents(cell_mask_raw, connectivity=connectivity)
-    else:
-        cell_mask_sem = f_instance2semantics(cell_mask_raw)
-        _, cell_mask = cv2.connectedComponents(cell_mask_sem, connectivity=connectivity)
-        cbimwrite(join(save_path, f"cell_mask_ori.tif"), cell_mask_sem * 255)
-
-    cell_mask[:] = make_mask_consecutive(cell_mask)
-    nuclei_mask[:] = make_mask_consecutive(nuclei_mask)
+def count_2mask_overlap(nuclei_mask_path, cell_mask_path, save_path):
+    os.makedirs(save_path, exist_ok=True)
+    output_file = os.path.join(save_path, "overlap_results.txt")
     
-    overlap_threshold = 0.5
-    # Generate mappings between cells and nuclei and vis versa.
+    with open(output_file, "w") as f:
+        def log(message):
+            print(message)
+            f.write(message + "\n")
 
-    cell_to_interior, interior_to_cell = pair_map_by_largest_overlap(
-        (cell_mask, nuclei_mask)
-    )
-    # interior mask与cell mask的关系处理 细胞质与细胞膜
-    # interior & cell overlap > 0.5, 认为interior和cell表示的为一个细胞，interior的去除
-    # 0 < interior & cell overlap <= 0.5，认为表示的为两个细胞，interior保留独有的那部分，这里目前可能出现一个细胞分成两个
-    # interior & cell overlap = 0，这个比较简单，独有的细胞
-    overlap_fracs_interior_to_cell = overlap_fractions(nuclei_mask, cell_mask, interior_to_cell, c=True)#细胞质区域对应的膜
-    interior_to_cell_overlap_upper_threshold = overlap_fracs_interior_to_cell >= overlap_threshold
-    summ = np.sum(interior_to_cell_overlap_upper_threshold)
-    print(f"有{summ}个细胞核与RNA圈细胞重叠（>0.5）")
-    print(f"percentage:{summ/num_nuclei}")
-    print(f'即有{num_nuclei - summ}个DAPI圈细胞重叠')
+        sem = 2
+        connectivity = 8
+        nuclei_mask_raw = cbimread(nuclei_mask_path, only_np=True)
+        cell_mask_raw = cbimread(cell_mask_path, only_np=True)
+        num_nuclei = num_n_area(nuclei_mask_raw)
+        num_cell = num_n_area(cell_mask_raw)
+        
+        log(f"DAPI图像总共圈出 {num_nuclei}个细胞核")
+        log(f"RNA总共圈出 {num_cell}个细胞")
 
-    cell_to_interior, interior_to_cell = pair_map_by_largest_overlap(
-        (nuclei_mask, cell_mask)
-    )
+        if len(np.unique(nuclei_mask_raw)) <= sem:
+            _, nuclei_mask = cv2.connectedComponents(nuclei_mask_raw, connectivity=connectivity)
+        else:
+            nuclei_mask_sem = f_instance2semantics(nuclei_mask_raw)
+            _, nuclei_mask = cv2.connectedComponents(nuclei_mask_sem, connectivity=connectivity)
+            cbimwrite(join(save_path, f"nuclei_mask_ori.tif"), nuclei_mask_sem * 255)
+        if len(np.unique(cell_mask_raw)) <= sem:
+            _, cell_mask = cv2.connectedComponents(cell_mask_raw, connectivity=connectivity)
+        else:
+            cell_mask_sem = f_instance2semantics(cell_mask_raw)
+            _, cell_mask = cv2.connectedComponents(cell_mask_sem, connectivity=connectivity)
+            cbimwrite(join(save_path, f"cell_mask_ori.tif"), cell_mask_sem * 255)
 
-    overlap_fracs_interior_to_cell = overlap_fractions(cell_mask, nuclei_mask, interior_to_cell, c=True)  # 细胞质区域对应的膜
-    interior_to_cell_overlap_upper_threshold = overlap_fracs_interior_to_cell >= 0.1
-    summ = np.sum(interior_to_cell_overlap_upper_threshold)
-    print(f"有{summ}个RNA细胞核与DAPI圈细胞重叠(>0.1)[因为RNA细胞普遍大于DAPI圈细胞，且包含多个DAPI细胞在里面]")
-    print(f"percentage:{summ / num_cell}")
+        cell_mask[:] = make_mask_consecutive(cell_mask)
+        nuclei_mask[:] = make_mask_consecutive(nuclei_mask)
+    
+        overlap_threshold = 0.5
+        # Generate mappings between cells and nuclei and vis versa.
+
+        cell_to_interior, interior_to_cell = pair_map_by_largest_overlap((cell_mask, nuclei_mask))
+        # interior mask与cell mask的关系处理 细胞质与细胞膜
+        # interior & cell overlap > 0.5, 认为interior和cell表示的为一个细胞，interior的去除
+        # 0 < interior & cell overlap <= 0.5，认为表示的为两个细胞，interior保留独有的那部分，这里目前可能出现一个细胞分成两个
+        # interior & cell overlap = 0，这个比较简单，独有的细胞
+        overlap_fracs_interior_to_cell = overlap_fractions(nuclei_mask, cell_mask, interior_to_cell, c=True)#细胞质区域对应的膜
+        interior_to_cell_overlap_upper_threshold = overlap_fracs_interior_to_cell >= overlap_threshold
+        summ = np.sum(interior_to_cell_overlap_upper_threshold)
+        log(f"有{summ}个细胞核与RNA圈细胞重叠（>0.5）")
+        log(f"percentage:{summ/num_nuclei}")
+        log(f'即有{num_nuclei - summ}个DAPI圈细胞重叠')
+
+        cell_to_interior, interior_to_cell = pair_map_by_largest_overlap((nuclei_mask, cell_mask))
+
+        overlap_fracs_interior_to_cell = overlap_fractions(cell_mask, nuclei_mask, interior_to_cell, c=True)  # 细胞质区域对应的膜
+        interior_to_cell_overlap_upper_threshold = overlap_fracs_interior_to_cell >= 0.1
+        summ = np.sum(interior_to_cell_overlap_upper_threshold)
+        log(f"有{summ}个RNA细胞核与DAPI圈细胞重叠(>0.1)[因为RNA细胞普遍大于DAPI圈细胞，且包含多个DAPI细胞在里面]")
+        log(f"percentage:{summ / num_cell}")
     
 
 if __name__ == '__main__':
