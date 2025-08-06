@@ -95,10 +95,9 @@ class Scheduler(object):
         data = {}
         for idx, f in self._files.items():
             g_name = f.get_group_name(sn=self.param_chip.chip_name)
-            n = naming.DumpImageFileNaming(
-                sn=self.param_chip.chip_name, stain_type=g_name, save_dir=self._output_path)
                 
             if f.is_image:
+                n = naming.DumpImageFileNaming(sn=self.param_chip.chip_name, stain_type=g_name, save_dir=self._output_path)
                 data[g_name] = {}
                 if os.path.exists(n.cell_mask):
                     data[g_name]['CellMask'] = n.cell_mask
@@ -127,9 +126,29 @@ class Scheduler(object):
                         data[g_name]['TissueMaskRawTransform'] = n.transform_tissue_mask_raw
             else:
                 if g_name == 'Transcriptomics' and not f.is_image and f.cell_segmentation:
+                # if f.cell_segmentation or f.tissue_segmentation:
+                    m_naming = naming.DumpMatrixFileNaming(sn=self.param_chip.chip_name, m_type=g_name, save_dir=self._output_path)
                     data[g_name] = {} 
-                    if os.path.exists(n.cell_mask):
-                        data[g_name]['CellMask'] = n.cell_mask
+
+                    # 检查细胞掩码
+                    if f.cell_segmentation and os.path.exists(m_naming.cell_mask):
+                        data[g_name]['CellMask'] = m_naming.cell_mask
+                        clog.info(f'Added matrix cell mask to RPI: {m_naming.cell_mask}')
+                    
+                    # 检查组织掩码
+                    if f.tissue_segmentation and os.path.exists(m_naming.tissue_mask):
+                        data[g_name]['TissueMask'] = m_naming.tissue_mask
+                        clog.info(f'Added matrix tissue mask to RPI: {m_naming.tissue_mask}')
+                    
+                    # 检查热图
+                    if os.path.exists(m_naming.heatmap):
+                        data[g_name]['Image'] = m_naming.heatmap
+                        clog.info(f'Added matrix heatmap to RPI: {m_naming.heatmap}')
+
+                    # if os.path.exists(n.cell_mask):
+                    #     data[g_name]['CellMask'] = n.cell_mask
+
+
         data['final'] = {}
         data['final']['CellMask'] = self.p_naming.final_nuclear_mask
         data['final']['TissueMask'] = self.p_naming.final_tissue_mask

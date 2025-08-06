@@ -1,7 +1,7 @@
 {
   "image_process": {
     "0": {
-      "file_path": "/Path/to/SN.tif",
+      "file_path": "E:/pyproject/cellbin_stereocell_analysis/cellbin2/data/Q00327K8.tiff",
       "tech_type": "DAPI",
       "chip_detect": true,
       "quality_control": true,
@@ -10,12 +10,12 @@
         "trackline": true,
         "reuse": -1
       },
-      "tissue_segmentation": true,
+      "tissue_segmentation": false,
       "cell_segmentation": true,
       "channel_align": -1
     },
     "1": {
-      "file_path": "/Path/to/SN.raw.gef",
+      "file_path": "E:/pyproject/cellbin_stereocell_analysis/cellbin2/data/Q00327K8.raw.gef",
       "tech_type": "Transcriptomics",
       "chip_detect": false,
       "quality_control": false,
