@@ -15,7 +15,7 @@ CellBin is an image processing pipeline designed to delineate cell boundaries fo
 
 
 ## Installation and Quick Start
-Linux
+
 ```shell
 # Clone the main repository
 git clone https://github.com/STOmics/cellbin2
@@ -37,6 +37,10 @@ pip install .[cp,rs]
 # Execute the demo (takes ~30-40 minutes on GPU hardware)
 python demo.py
 ```
+
+**Quick start:**  
+We provide ready-to-use environment packages for both Linux and Windows. Simply download, unzip, and follow our [Quick Start](docs/v2/PREPACKAGED_ENV.md) to get started in minutes.
+
 
 **Performance Note:**  
 We strongly recommend using GPU acceleration for optimal performance. Below is the runtime comparison of two processing modes for an S1 chip (1cm² chip area):
