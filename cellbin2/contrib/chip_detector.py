@@ -561,3 +561,4 @@ if __name__ == '__main__':
     # cd.detect(r"D:\02.data\temp\temp_cellbin2_test\trans_data_1\A00792D3\label.tif", (19992, 19992))
 
     main()
+
