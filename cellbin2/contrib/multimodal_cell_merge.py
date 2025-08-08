@@ -401,7 +401,9 @@ def nuclei_cell_merge(nuclei_mask_raw, cell_mask_raw, overlap_threshold=0.5, sav
         cell_mask_sem[unassigned_nuclei_indices] = consecutive_unassigned_nuc
         cell_mask[unassigned_nuclei_indices] = consecutive_unassigned_nuc
         output_nuclei_mask[unassigned_nuclei_indices] = consecutive_unassigned_nuc
-    cell_mask_add_interior_sem = instance2semantics(cell_mask_sem) 
+    cell_mask_add_interior_sem = instance2semantics(cell_mask_sem)
+    output_nuclei_mask = output_nuclei_mask - cell_mask_sem
+    output_nuclei_mask = np.where(output_nuclei_mask < 0, 0, output_nuclei_mask) 
     # cell_mask_add_interior_sem[unassigned_nuclei_indices] = 255
     # cell_mask_add_interior_sem[np.nonzero(np.logical_and(cell_mask_add_interior_sem, interior_keep_mask_))] = 125
     # cell_mask_add_interior_sem[cell_mask_add_interior_sem == 1] = 50

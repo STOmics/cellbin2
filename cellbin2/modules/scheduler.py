@@ -591,10 +591,8 @@ class Scheduler(object):
                 else:
                     print("multiple interior masks exist")
                     #TODO: merge multiple cell masks, return final_cell_mask = merged cell masks
-            else: #no interior mask
-                merged_interior_mask = []
-            cmf=CellMaskFixer(source_imge=str(matrix_mask_path),refer_image=str(final_nuclear_path),sn=self.param_chip.chip_name)
-            cmf.fix_notsinglecell2mask(out_path=self._output_path, save=True)
+                cmf=CellMaskFixer(source_imge=str(matrix_mask_path),refer_image=str(final_nuclear_path),sn=self.param_chip.chip_name)
+                cmf.fix_notsinglecell2mask(out_path=self._output_path, save=True)
 
 
 
