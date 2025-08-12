@@ -3,7 +3,6 @@ from os.path import exists
 
 from cellbin2 import __version__
 
-
 def generate_stereo_file(
         save_path: pathlib.Path,
         registered_image: pathlib.Path = pathlib.Path(""),
