@@ -15,7 +15,7 @@ from cellbin2.contrib.clarity import ClarityQC
 from cellbin2.utils.rpi import readrpi
 
 from cellbin2.utils import ipr
-from cellbin2.utils.plot_funcs import template_painting, chip_box_painting
+from cellbin2.utils.plot_funcs import template_painting, chip_box_painting, cell_seg_painting
 from cellbin2.utils import dict2json
 from cellbin2.utils.common import TechType
 from cellbin2.modules.naming import DumpPipelineFileNaming
@@ -257,6 +257,7 @@ class Metrics(object):
                 self.output_data["matrix"]["RNA"]["distribution"]["CellBin"]["MID_data"] = datadict["MID"]
                 self.output_data["matrix"]["RNA"]["distribution"]["CellBin"]["celldiameter_data"] = datadict[
                     "celldiameter"]
+                self.output_data["matrix"]["RNA"]["distribution"]["CellBin"]["cellarea_data"] = datadict["cellarea"]
                 self.output_data["matrix"]["RNA"]["distribution"]["CellBin"]["genetype_data"] = datadict["genetype"]
             if self._RNAmultiMatrix.adjustedbin is not None:
                 datadict = self._RNAmultiMatrix.adjustedbin.plot_statistic_vio(
@@ -264,18 +265,21 @@ class Metrics(object):
                 self.output_data["matrix"]["RNA"]["distribution"]["Adjusted"]["MID_data"] = datadict["MID"]
                 self.output_data["matrix"]["RNA"]["distribution"]["Adjusted"]["celldiameter_data"] = datadict[
                     "celldiameter"]
+                self.output_data["matrix"]["RNA"]["distribution"]["Adjusted"]["cellarea_data"] = datadict["cellarea"]
                 self.output_data["matrix"]["RNA"]["distribution"]["Adjusted"]["genetype_data"] = datadict["genetype"]
             if self._ProteinmultiMatrix is not None and self._ProteinmultiMatrix.cellbin is not None:
                 datadict = self._ProteinmultiMatrix.cellbin.plot_statistic_vio(self.output_figure_path_protein_cellbin)
                 self.output_data["matrix"]["Protein"]["distribution"]["CellBin"]["MID_data"] = datadict["MID"]
-                self.output_data["matrix"]["Protein"]["distribution"]["CellBin"]["celldiameter_data"] = datadict["MID"]
-                self.output_data["matrix"]["Protein"]["distribution"]["CellBin"]["genetype_data"] = datadict["MID"]
+                self.output_data["matrix"]["Protein"]["distribution"]["CellBin"]["celldiameter_data"] = datadict["celldiameter"]
+                self.output_data["matrix"]["Protein"]["distribution"]["CellBin"]["cellarea_data"] = datadict["cellarea"]
+                self.output_data["matrix"]["Protein"]["distribution"]["CellBin"]["genetype_data"] = datadict["genetype"]
             if self._ProteinmultiMatrix is not None and self._ProteinmultiMatrix.adjustedbin is not None:
                 datadict = self._ProteinmultiMatrix.adjustedbin.plot_statistic_vio(
                     self.output_figure_path_protein_adjusted)
                 self.output_data["matrix"]["Protein"]["distribution"]["Adjusted"]["MID_data"] = datadict["MID"]
-                self.output_data["matrix"]["Protein"]["distribution"]["Adjusted"]["celldiameter_data"] = datadict["MID"]
-                self.output_data["matrix"]["Protein"]["distribution"]["Adjusted"]["genetype_data"] = datadict["MID"]
+                self.output_data["matrix"]["Protein"]["distribution"]["Adjusted"]["celldiameter_data"] = datadict["celldiameter"]
+                self.output_data["matrix"]["Protein"]["distribution"]["Adjusted"]["cellarea_data"] = datadict["cellarea"]
+                self.output_data["matrix"]["Protein"]["distribution"]["Adjusted"]["genetype_data"] = datadict["genetype"]
 
         pass
 
@@ -366,15 +370,42 @@ class Metrics(object):
                 self.output_data["image_ipr"][layer]["register_info"] = {key.lower(): value for key, value in
                                                                          c_info.Register.get_attrs().items()}
                 #### Image clarity fig
-                clarity_matrix = c_info.QCInfo.ClarityPreds
-                if len(clarity_matrix) != 0:
-                    clarity_arr = ClarityQC.post_process(clarity_matrix)
-                    from PIL import Image
-                    img = Image.fromarray(clarity_arr)
-                    clarity_fig_path = os.path.join(self.output_figure_path_image, f"{layer}_clarity.png")
-                    img.save(os.path.join(clarity_fig_path))
-                    self.output_data["image_ipr"][layer]["clarity"] = os.path.relpath(clarity_fig_path,
-                                                                                      self._output_path)
+                try:
+                    clarity_matrix = c_info.QCInfo.ClarityPreds
+                    print(f"Processing clarity for {layer}")
+                    print(f"ClarityPreds type: {type(clarity_matrix)}")
+                    print(f"ClarityPreds shape: {clarity_matrix.shape if hasattr(clarity_matrix, 'shape') else 'No shape'}")
+                    print(f"ClarityPreds size: {clarity_matrix.size if hasattr(clarity_matrix, 'size') else 'No size'}")
+                    
+                    # more robust check for clarity_matrix
+                    if clarity_matrix is not None:
+                        if hasattr(clarity_matrix, 'size') and clarity_matrix.size > 0:
+                            clarity_arr = ClarityQC.post_process(clarity_matrix)
+                            from PIL import Image
+                            img = Image.fromarray(clarity_arr)  
+                            clarity_fig_path = os.path.join(self.output_figure_path_image, f"{layer}_clarity.png")
+                            img.save(clarity_fig_path)
+                            self.output_data["image_ipr"][layer]["clarity"] = os.path.relpath(clarity_fig_path,
+                                                                                              self._output_path)
+                            print(f"Generated clarity image: {clarity_fig_path}")
+                        elif hasattr(clarity_matrix, '__len__') and len(clarity_matrix) > 0:
+                            # try else
+                            clarity_arr = ClarityQC.post_process(clarity_matrix)
+                            from PIL import Image
+                            img = Image.fromarray(clarity_arr)  
+                            clarity_fig_path = os.path.join(self.output_figure_path_image, f"{layer}_clarity.png")
+                            img.save(clarity_fig_path)
+                            self.output_data["image_ipr"][layer]["clarity"] = os.path.relpath(clarity_fig_path,
+                                                                                              self._output_path)
+                            print(f"Generated clarity image from sequence: {clarity_fig_path}")
+                        else:
+                            print(f"Clarity matrix exists but is empty for {layer}")
+                    else:
+                        print(f"No clarity data for {layer}")
+                except Exception as e:
+                    print(f"Error generating clarity for {layer}: {e}")
+                    import traceback
+                    traceback.print_exc()
 
     def set_cellseg_data(self):
         def _set_imagedict(src, outline=[]):
@@ -408,8 +439,38 @@ class Metrics(object):
                 os.remove(tmp_save_p)
                 outline = [j for j in i[1]]
                 self.output_data["image_ipr"][layer]["cellseg"]["images"].append(_set_imagedict(c, outline))
+            
+            # Generate cellseg overview only (keep original 5 small images above)
+            try:
+                corrected_mask_path = self.filesource.image_dict[layer].cell_correct_mask
+                if not os.path.exists(corrected_mask_path):
+                    corrected_mask_path = None
+                    
+                img, edge_image_list, density_image_list = cell_seg_painting(
+                    image_data=self.filesource.image_dict[layer].registration_image,
+                    cell_mask_data=self.filesource.image_dict[layer].cell_mask,
+                    tissue_seg_data=self.filesource.image_dict[layer].tissue_mask,
+                    image_type=layer,
+                    corrected_mask_data=corrected_mask_path
+                )
+                
+                # Save only the main cell seg overview image
+                cellseg_overview_name = os.path.join(self.output_figure_path_image, f"{layer}_cellseg_overview.png")
+                cv2.imwrite(cellseg_overview_name, img)
+                self.output_data["image_ipr"][layer]["cellseg"]["overview"] = os.path.relpath(cellseg_overview_name, self._output_path)
+                
+                # Save the 5 cellseg small images (from density_image_list)
+                for i, small_img in enumerate(density_image_list[:5]):  # Only take first 5
+                    cellseg_small_name = os.path.join(self.output_figure_path_image, f"{layer}_cellseg_{i+1}.png")
+                    cv2.imwrite(cellseg_small_name, small_img)
+                    self.output_data["image_ipr"][layer]["cellseg"][f"cellseg{i+1}"] = os.path.relpath(cellseg_small_name, self._output_path)
+                    
+            except Exception as e:
+                print(f"Failed to generate cellseg overview for {layer}: {e}")
+            
             cell_intensity_name = os.path.join(self.output_figure_path_image, f"{layer}_cell_intensity.png")
             fig.savefig(cell_intensity_name)
+            tmp_save_p = os.path.join(self.output_tmp_dir, 'temp.png')
             fig.savefig(tmp_save_p)
             # with open('./temp.png', "rb") as f:
             #     img_c = f.read()

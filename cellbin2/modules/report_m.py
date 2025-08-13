@@ -22,7 +22,11 @@ class Report(object):
 
     def __init__(self, matrics_json, save_path=RESULT_JSON_PARH, json_template=JSON_TEMPLATE):
         """
+<<<<<<< Updated upstream
         :param json_template:  json template for report generation. The JSON file template required for generating the report
+=======
+        :param json_template:  json template for report generation
+>>>>>>> Stashed changes
         :param matrics_json:  calculated matrics json file 
         """
         self.json_path = json_template
@@ -107,29 +111,41 @@ class Report(object):
                           , self._json["cellbin"]["gene"]["cb_distribution"]["data"][0]["info"])
             _set_quantile(self.matrics_data["matrix"]["RNA"]["distribution"]["CellBin"]["genetype_data"]
                           , self._json["cellbin"]["gene"]["cb_distribution"]["data"][1]["info"])
+            if "cellarea_data" in self.matrics_data["matrix"]["RNA"]["distribution"]["CellBin"]:
+                _set_quantile(self.matrics_data["matrix"]["RNA"]["distribution"]["CellBin"]["cellarea_data"]
+                              , self._json["cellbin"]["gene"]["cb_distribution"]["data"][2]["info"])
             _set_quantile(self.matrics_data["matrix"]["RNA"]["distribution"]["CellBin"]["celldiameter_data"]
-                          , self._json["cellbin"]["gene"]["cb_distribution"]["data"][2]["info"])
+                          , self._json["cellbin"]["gene"]["cb_distribution"]["data"][3]["info"])
         if len(self.matrics_data["matrix"]["RNA"]["distribution"]["Adjusted"]) > 0:
             _set_quantile(self.matrics_data["matrix"]["RNA"]["distribution"]["Adjusted"]["MID_data"]
                           , self._json["cellbin"]["gene"]["ad_distribution"]["data"][0]["info"])
             _set_quantile(self.matrics_data["matrix"]["RNA"]["distribution"]["Adjusted"]["genetype_data"]
                           , self._json["cellbin"]["gene"]["ad_distribution"]["data"][1]["info"])
+            if "cellarea_data" in self.matrics_data["matrix"]["RNA"]["distribution"]["Adjusted"]:
+                _set_quantile(self.matrics_data["matrix"]["RNA"]["distribution"]["Adjusted"]["cellarea_data"]
+                              , self._json["cellbin"]["gene"]["ad_distribution"]["data"][2]["info"])
             _set_quantile(self.matrics_data["matrix"]["RNA"]["distribution"]["Adjusted"]["celldiameter_data"]
-                          , self._json["cellbin"]["gene"]["ad_distribution"]["data"][2]["info"])
+                          , self._json["cellbin"]["gene"]["ad_distribution"]["data"][3]["info"])
         if len(self.matrics_data["matrix"]["Protein"]["distribution"]["CellBin"]) > 0:
             _set_quantile(self.matrics_data["matrix"]["Protein"]["distribution"]["CellBin"]["MID_data"]
                           , self._json["cellbin"]["protein"]["cb_distribution"]["data"][0]["info"])
             _set_quantile(self.matrics_data["matrix"]["Protein"]["distribution"]["CellBin"]["genetype_data"]
                           , self._json["cellbin"]["protein"]["cb_distribution"]["data"][1]["info"])
+            if "cellarea_data" in self.matrics_data["matrix"]["Protein"]["distribution"]["CellBin"]:
+                _set_quantile(self.matrics_data["matrix"]["Protein"]["distribution"]["CellBin"]["cellarea_data"]
+                              , self._json["cellbin"]["protein"]["cb_distribution"]["data"][2]["info"])
             _set_quantile(self.matrics_data["matrix"]["Protein"]["distribution"]["CellBin"]["celldiameter_data"]
-                          , self._json["cellbin"]["protein"]["cb_distribution"]["data"][2]["info"])
+                          , self._json["cellbin"]["protein"]["cb_distribution"]["data"][3]["info"])
         if len(self.matrics_data["matrix"]["Protein"]["distribution"]["Adjusted"]) > 0:
             _set_quantile(self.matrics_data["matrix"]["Protein"]["distribution"]["Adjusted"]["MID_data"]
                           , self._json["cellbin"]["protein"]["ad_distribution"]["data"][0]["info"])
             _set_quantile(self.matrics_data["matrix"]["Protein"]["distribution"]["Adjusted"]["genetype_data"]
                           , self._json["cellbin"]["protein"]["ad_distribution"]["data"][1]["info"])
+            if "cellarea_data" in self.matrics_data["matrix"]["Protein"]["distribution"]["Adjusted"]:
+                _set_quantile(self.matrics_data["matrix"]["Protein"]["distribution"]["Adjusted"]["cellarea_data"]
+                              , self._json["cellbin"]["protein"]["ad_distribution"]["data"][2]["info"])
             _set_quantile(self.matrics_data["matrix"]["Protein"]["distribution"]["Adjusted"]["celldiameter_data"]
-                          , self._json["cellbin"]["protein"]["ad_distribution"]["data"][2]["info"])
+                          , self._json["cellbin"]["protein"]["ad_distribution"]["data"][3]["info"])
 
     def set_heatmap_data(self):
         if len(self.matrics_data["matrix"]["RNA"]["heatmap"]["rawbin"]) > 0:
@@ -355,9 +371,30 @@ class Report(object):
                 int_ratio = self.matrics_data["image_ipr"][layer]["cellseg"]["int_ratio"]
                 self._json["image"][f"image{num + 1}_cellseg"]["data"].append(
                     _set_data_dict("Cell Intensity / Tissue Intensity", int_ratio))
-                for i in range(5):
-                    self._json["image"][f"image{num + 1}_cellseg"][f"cellseg{i + 1}"] = \
-                        self.matrics_data["image_ipr"][layer]["cellseg"]["images"][i]["src"]
+                
+                # Map original 5 cellseg images from images array and overview
+                # First map overview
+                if "overview" in self.matrics_data["image_ipr"][layer]["cellseg"]:
+                    self._json["image"][f"image{num + 1}_cellseg"]["overview"]["src"] = \
+                        self.matrics_data["image_ipr"][layer]["cellseg"]["overview"]
+                else:
+                    self._json["image"][f"image{num + 1}_cellseg"]["overview"]["src"] = ""
+                
+                # Map original 5 cellseg images from images array to cellseg1-5
+                if "images" in self.matrics_data["image_ipr"][layer]["cellseg"]:
+                    images_list = self.matrics_data["image_ipr"][layer]["cellseg"]["images"]
+                    for i in range(min(5, len(images_list))):  # Only use first 5 images
+                        self._json["image"][f"image{num + 1}_cellseg"][f"cellseg{i + 1}"] = \
+                            images_list[i]["src"]
+                    
+                    # Fill remaining slots with empty strings
+                    for i in range(len(images_list), 8):  # Fill cellseg6-8 with empty strings
+                        self._json["image"][f"image{num + 1}_cellseg"][f"cellseg{i + 1}"] = ""
+                else:
+                    # If no images array, fill all cellseg slots with empty strings
+                    for i in range(1, 9):
+                        self._json["image"][f"image{num + 1}_cellseg"][f"cellseg{i}"] = ""
+                
                 self._json["image"][f"image{num + 1}_cellseg"]["cell_intensity"]["src"] = \
                     self.matrics_data["image_ipr"][layer]["cellseg"]["cell_intensity"]
             if "clarity" in self.matrics_data["image_ipr"][layer].keys():

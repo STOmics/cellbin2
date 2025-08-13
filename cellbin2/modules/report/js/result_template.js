@@ -99,11 +99,20 @@ const resultJson = {"sampleId": "SS200000135",
               "q3": "-",
               "min": "-",
               "max": "-"}
+          },
+          {
+            "src": ".\\assets\\rna\\cellbin\\CellDiameter.png",
+            "info": {
+              "q1": "-",
+              "q2": "-",
+              "q3": "-",
+              "min": "-",
+              "max": "-"}
           }]
       },
 	  "ad_distribution": {
 		"title":"Adjusted Distribution",
-        "msg": ["Violin plots show the distribution of deduplicated MID count, gene types and cell area in each bin"],
+        "msg": ["Violin plots show the distribution of deduplicated MID count, gene types, cell area and cell diameter in each bin"],
         "data": [
           {
             "src": ".\\assets\\rna\\adjusted\\MIDCount.png",
@@ -125,6 +134,15 @@ const resultJson = {"sampleId": "SS200000135",
           },
           {
             "src": ".\\assets\\rna\\adjusted\\CellArea.png",
+            "info": {
+              "q1": "-",
+              "q2": "-",
+              "q3": "-",
+              "min": "-",
+              "max": "-"}
+          },
+          {
+            "src": ".\\assets\\rna\\adjusted\\CellDiameter.png",
             "info": {
               "q1": "-",
               "q2": "-",
@@ -216,10 +234,10 @@ const resultJson = {"sampleId": "SS200000135",
       },
       "cb_distribution": {
 		"title":"CellBin Distribution",
-        "msg": ["Violin"],
+        "msg": ["Violin plots show the distribution of deduplicated MID count, gene types, cell area and cell diameter in each bin"],
         "data": [
           {
-            "src": ".\\assets\\rna\\cellbin\\MIDCount.png",
+            "src": ".\\assets\\protein\\cellbin\\MIDCount.png",
             "info": {
               "q1": "-",
               "q2": "-",
@@ -228,7 +246,7 @@ const resultJson = {"sampleId": "SS200000135",
               "max": "-"}
           },
           {
-            "src": ".\\assets\\rna\\cellbin\\GeneType.png",
+            "src": ".\\assets\\protein\\cellbin\\GeneType.png",
             "info": {
               "q1": "-",
               "q2": "-",
@@ -237,7 +255,16 @@ const resultJson = {"sampleId": "SS200000135",
               "max": "-"}
           },
           {
-            "src": ".\\assets\\rna\\cellbin\\CellArea.png",
+            "src": ".\\assets\\protein\\cellbin\\CellArea.png",
+            "info": {
+              "q1": "-",
+              "q2": "-",
+              "q3": "-",
+              "min": "-",
+              "max": "-"}
+          },
+          {
+            "src": ".\\assets\\protein\\cellbin\\CellDiameter.png",
             "info": {
               "q1": "-",
               "q2": "-",
@@ -248,10 +275,10 @@ const resultJson = {"sampleId": "SS200000135",
       },
 	  "ad_distribution": {
 		"title":"Adjusted Distribution",
-        "msg": ["Violin plots show the distribution of deduplicated MID count, gene types and cell area in each bin"],
+        "msg": ["Violin plots show the distribution of deduplicated MID count, gene types, cell area and cell diameter in each bin"],
         "data": [
           {
-            "src": ".\\assets\\rna\\adjusted\\MIDCount.png",
+            "src": ".\\assets\\protein\\adjusted\\MIDCount.png",
             "info": {
               "q1": "-",
               "q2": "-",
@@ -260,7 +287,7 @@ const resultJson = {"sampleId": "SS200000135",
               "max": "-"}
           },
           {
-            "src": ".\\assets\\rna\\adjusted\\GeneType.png",
+            "src": ".\\assets\\protein\\adjusted\\GeneType.png",
             "info": {
               "q1": "-",
               "q2": "-",
@@ -269,7 +296,16 @@ const resultJson = {"sampleId": "SS200000135",
               "max": "-"}
           },
           {
-            "src": ".\\assets\\rna\\adjusted\\CellArea.png",
+            "src": ".\\assets\\protein\\adjusted\\CellArea.png",
+            "info": {
+              "q1": "-",
+              "q2": "-",
+              "q3": "-",
+              "min": "-",
+              "max": "-"}
+          },
+          {
+            "src": ".\\assets\\protein\\adjusted\\CellDiameter.png",
             "info": {
               "q1": "-",
               "q2": "-",
@@ -664,10 +700,13 @@ const resultJson = {"sampleId": "SS200000135",
 	  "cellseg5": "",
 	"cell_intensity": {
     "title": "Cell Intensity",
+    "src": ""},
+  "overview": {
+    "title": "Cell Seg Overview",
     "src": ""}},
 	"image1_clarity": {
     "title": "Clarity",
-	"src": ".\\assets\\rna\\adjusted\\MIDCount.png"
+	"src": ".\\assets\\image\\ssDNA_clarity.png"
   },
   	"image1_chipbox": {
     "title": "Chip Box",
@@ -983,10 +1022,13 @@ const resultJson = {"sampleId": "SS200000135",
 	  "cellseg5": "",
 	"cell_intensity": {
     "title": "Cell Intensity",
+    "src": ""},
+  "overview": {
+    "title": "Cell Seg Overview",
     "src": ""}},
 	"image2_clarity": {
     "title": "Clarity",
-	"src": ".\\assets\\rna\\adjusted\\MIDCount.png"
+	"src": ".\\assets\\image\\ssDNA_clarity.png"
   },
   	"image2_chipbox": {
     "title": "Chip Box",
@@ -1300,12 +1342,42 @@ const resultJson = {"sampleId": "SS200000135",
 	  "cellseg3": "",
 	  "cellseg4": "",
 	  "cellseg5": "",
+    "cellseg6": "",
+	  "cellseg7": "",
+	  "cellseg8": "",
 	"cell_intensity": {
     "title": "Cell Intensity",
+    "src": ""},
+  "overview": {
+    "title": "Cell Seg Overview",
+    "src": ""},
+  "edge_1": {
+    "title": "Edge Region 1", 
+    "src": ""},
+  "edge_2": {
+    "title": "Edge Region 2",
+    "src": ""},
+  "edge_3": {
+    "title": "Edge Region 3",
+    "src": ""},
+  "edge_4": {
+    "title": "Edge Region 4",
+    "src": ""},
+  "density_1": {
+    "title": "Density Region 1",
+    "src": ""},
+  "density_2": {
+    "title": "Density Region 2", 
+    "src": ""},
+  "density_3": {
+    "title": "Density Region 3",
+    "src": ""},
+  "density_4": {
+    "title": "Density Region 4",
     "src": ""}},
 	"image3_clarity": {
     "title": "Clarity",
-	"src": ".\\assets\\rna\\adjusted\\MIDCount.png"
+	"src": ".\\assets\\image\\ssDNA_clarity.png"
   },
   	"image3_chipbox": {
       "title": "Chip Box",
@@ -1620,12 +1692,42 @@ const resultJson = {"sampleId": "SS200000135",
 	  "cellseg3": "",
 	  "cellseg4": "",
 	  "cellseg5": "",
+    "cellseg6": "",
+    "cellseg7": "",
+    "cellseg8": "",
 	"cell_intensity": {
     "title": "Cell Intensity",
+    "src": ""},
+  "overview": {
+    "title": "Cell Seg Overview",
+    "src": ""},
+  "edge_1": {
+    "title": "Edge Region 1", 
+    "src": ""},
+  "edge_2": {
+    "title": "Edge Region 2",
+    "src": ""},
+  "edge_3": {
+    "title": "Edge Region 3",
+    "src": ""},
+  "edge_4": {
+    "title": "Edge Region 4",
+    "src": ""},
+  "density_1": {
+    "title": "Density Region 1",
+    "src": ""},
+  "density_2": {
+    "title": "Density Region 2", 
+    "src": ""},
+  "density_3": {
+    "title": "Density Region 3",
+    "src": ""},
+  "density_4": {
+    "title": "Density Region 4",
     "src": ""}},
 	"image4_clarity": {
     "title": "Clarity",
-	"src": ".\\assets\\rna\\adjusted\\MIDCount.png"
+	"src": ".\\assets\\image\\ssDNA_clarity.png"
   },
   	"image4_chipbox": {
     "title": "Chip Box",
