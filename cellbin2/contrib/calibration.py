@@ -214,7 +214,6 @@ class Calibrate:
         Returns:
 
         """
-        # 一致性
         if self.method:
             norm_scale = min(self.src_image.shape) / max(self.dst_image.shape)
             self.dst_image = cv.resize(
@@ -228,7 +227,7 @@ class Calibrate:
                 self.src_image, self.dst_image, 'same'
             )
 
-        # 填充
+        # padding
         # pad_rate = 0.1
         # padding_size = int(max(self.src_image.shape) * pad_rate)
         # self.src_image = cv.copyMakeBorder(
@@ -290,7 +289,7 @@ def multi_channel_align(
         cfg: CalibrationParam,
         fixed_image: str,
         moving_image: str,
-        same_image: str = '',
+        same_image: Union[str, np.ndarray] = None,
         output_path: str = '',
         method: int = 0
 ) -> CalibrationInfo:

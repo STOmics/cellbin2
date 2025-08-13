@@ -31,7 +31,7 @@ from cellbin2.modules.extract.matrix_extract import extract4stitched
 class Scheduler(object):
     """
     A scheduler class responsible for managing the registration, segmentation, calibration, and matrix extraction processes.
-    
+
     Attributes:
         weights_root (str): The root directory for storing CNN weight files.
         param_chip (StereoChip): An instance of StereoChip for handling chip mask information.
@@ -94,11 +94,11 @@ class Scheduler(object):
         """
         data = {}
         for idx, f in self._files.items():
+            g_name = f.get_group_name(sn=self.param_chip.chip_name)
+            n = naming.DumpImageFileNaming(
+                sn=self.param_chip.chip_name, stain_type=g_name, save_dir=self._output_path)
+                
             if f.is_image:
-                g_name = f.get_group_name(sn=self.param_chip.chip_name)
-                n = naming.DumpImageFileNaming(
-                    sn=self.param_chip.chip_name, stain_type=g_name, save_dir=self._output_path)
-
                 data[g_name] = {}
                 if os.path.exists(n.cell_mask):
                     data[g_name]['CellMask'] = n.cell_mask
@@ -125,6 +125,11 @@ class Scheduler(object):
                         data[g_name]['TissueMaskRaw'] = n.tissue_mask_raw
                     elif os.path.exists(n.transform_tissue_mask_raw):
                         data[g_name]['TissueMaskRawTransform'] = n.transform_tissue_mask_raw
+            else:
+                if g_name == 'Transcriptomics' and not f.is_image and f.cell_segmentation:
+                    data[g_name] = {} 
+                    if os.path.exists(n.cell_mask):
+                        data[g_name]['CellMask'] = n.cell_mask
         data['final'] = {}
         data['final']['CellMask'] = self.p_naming.final_nuclear_mask
         data['final']['TissueMask'] = self.p_naming.final_tissue_mask
@@ -259,7 +264,7 @@ class Scheduler(object):
                 tissue_mask=tissue_mask,
                 cell_mask=cell_mask,
                 chip_box=c_box,
-                method=0,
+                method=self.config.tissue_segmentation.best_tissue_mask_method,
                 stain_type=f.tech
             )
             btcm = BestTissueCellMask.get_best_tissue_cell_mask(input_data=input_data)
@@ -279,7 +284,7 @@ class Scheduler(object):
     def run_single_image(self):
         """
         Process each single image in the pipeline.
-        
+
         This method iterates over each image file, performs necessary transformations,
         and applies segmentation. It handles both cases where IPR data is available and
         where it is not.
@@ -343,12 +348,23 @@ class Scheduler(object):
                         cur_c_image=cur_c_image
                     )
             else:
+                print('Processing matrix file: {}'.format(f.file_path))
+                print('Matrix file tech type: {}'.format(f.tech.name))
+                print('Tissue segmentation enabled: {}'.format(f.tissue_segmentation))
+                print('Cell segmentation enabled: {}'.format(f.cell_segmentation))
+                
                 if f.tissue_segmentation or f.cell_segmentation:
                     cur_m_naming = naming.DumpMatrixFileNaming(
                         sn=self.param_chip.chip_name,
                         m_type=f.tech.name,
                         save_dir=self._output_path,
                     )
+                    print('Matrix file naming configuration:')
+                    print('- Heatmap path: {}'.format(cur_m_naming.heatmap))
+                    print('- Tissue mask path: {}'.format(cur_m_naming.tissue_mask))
+                    print('- Cell mask path: {}'.format(cur_m_naming.cell_mask))
+                    
+                    print('Starting matrix extraction with extract4stitched...')
                     cm = extract4stitched(
                         image_file=f,
                         param_chip=self.param_chip,
@@ -356,7 +372,10 @@ class Scheduler(object):
                         config=self.config,
                         detect_feature=False
                     )
+                    print('Matrix extraction completed')
+
                     if f.tissue_segmentation:
+                        print('Starting tissue segmentation...')
                         run_tissue_seg(
                             image_file=f,
                             image_path=cur_m_naming.heatmap,
@@ -364,13 +383,17 @@ class Scheduler(object):
                             chip_info=self.param_chip,
                             config=self.config,
                         )
+                        print('Tissue segmentation completed')
+
                     if f.cell_segmentation:
+                        print('Starting cell segmentation...')
                         run_cell_seg(
                             image_file=f,
                             image_path=cur_m_naming.heatmap,
                             save_path=cur_m_naming.cell_mask,
                             config=self.config,
                         )
+                        print('Cell segmentation completed')
 
     def run_mul_image(self):
         """
@@ -429,57 +452,132 @@ class Scheduler(object):
         :return: None
         """
         for idx, m in self.molecular_classify_files.items():
+            core_mask = [] #list for nuclei masks
+            interior_mask = [] #list for interior masks
+            cell_mask = [] #list for boundary masks
             clog.info('======>  Extract[{}], {}'.format(idx, m))
-            picked_mask = m.cell_mask
-            final_nuclear_path = self.p_naming.final_nuclear_mask
+            distance =  m.correct_r
+            final_nuclear_path = self.p_naming.final_nuclear_mask 
             final_t_mask_path = self.p_naming.final_tissue_mask
-            final_cell_mask_path = self.p_naming.final_cell_mask
-            if len(picked_mask) == 1:  # Just one mask
-                im_naming = naming.DumpImageFileNaming(
+            final_cell_mask_path = self.p_naming.final_cell_mask 
+            print(final_cell_mask_path)
+            core_mask = m.cell_mask["nuclei"]
+            interior_mask = m.cell_mask["interior"]
+            cell_mask = m.cell_mask["boundary"]
+
+
+            # integrate nuclei, interior, cell seperatly 
+
+            if len(cell_mask) != 0: #cell mask exist
+                if len(cell_mask) == 1:
+                    im_naming = naming.DumpImageFileNaming(
                     sn=self.param_chip.chip_name,
-                    stain_type=self._files[picked_mask[0]].get_group_name(sn=self.param_chip.chip_name),
+                    stain_type=self._files[cell_mask[0]].get_group_name(sn=self.param_chip.chip_name),
                     save_dir=self._output_path
                 )
-                to_fast = final_nuclear_path
-            else:  # Two masks, assuming the first is the nuclear mask and the second is the membrane mask
-                im_naming1 = naming.DumpImageFileNaming(
-                    sn=self.param_chip.chip_name,
-                    stain_type=self._files[picked_mask[0]].get_group_name(sn=self.param_chip.chip_name),
-                    save_dir=self._output_path
-                )
-                im_naming2 = naming.DumpImageFileNaming(
-                    sn=self.param_chip.chip_name,
-                    stain_type=self._files[picked_mask[1]].get_group_name(sn=self.param_chip.chip_name),
-                    save_dir=self._output_path
-                )
-                if im_naming1.stain_type == TechType.IF.name:
-                    im_naming = im_naming2
+                    print(im_naming.cell_mask)
+                    merged_cell_mask = cbimread(im_naming.cell_mask, only_np=True)
                 else:
-                    im_naming = im_naming1
-                merged_cell_mask_path = im_naming.cell_mask_merged
-                if not os.path.exists(merged_cell_mask_path):
-                    from cellbin2.contrib.mask_manager import merge_cell_mask
-                    # TODO: Temporarily assume im_naming1 is the nuclear segmentation result,
-                    #       im_naming2 is the membrane segmentation result
-                    if not im_naming1.cell_mask.exists() or not im_naming2.cell_mask.exists():
-                        continue
-                    mask1 = cbimread(im_naming1.cell_mask, only_np=True)
-                    mask2 = cbimread(im_naming2.cell_mask, only_np=True)
-                    merged_mask = merge_cell_mask(mask1, mask2)
-                    cbimwrite(merged_cell_mask_path, merged_mask)
-                to_fast = merged_cell_mask_path
-            if im_naming.cell_mask.exists():
-                shutil.copy2(im_naming.cell_mask, final_nuclear_path)
-            if im_naming.tissue_mask.exists():
-                shutil.copy2(im_naming.tissue_mask, final_t_mask_path)
-            # Here, we have the final cell mask and final tissue mask
-            if not os.path.exists(final_cell_mask_path) and to_fast.exists():
+                    print("multiple cell masks exist")
+                    #TODO: merge multiple cell masks, return final_cell_mask = merged cell masks
+            else: #no cell mask
+                merged_cell_mask = []
+            
+            if len(interior_mask) != 0: #interior mask exist
+                if len(interior_mask) == 1:
+                    im_naming = naming.DumpImageFileNaming(
+                    sn=self.param_chip.chip_name,
+                    stain_type=self._files[interior_mask[0]].get_group_name(sn=self.param_chip.chip_name),
+                    save_dir=self._output_path
+                )
+                    print(im_naming.cell_mask)
+                    merged_interior_mask = cbimread(im_naming.cell_mask, only_np=True)
+                else:
+                    print("multiple interior masks exist")
+                    #TODO: merge multiple cell masks, return final_cell_mask = merged cell masks
+            else: #no interior mask
+                merged_interior_mask = []
+            
+            if len(core_mask) != 0: #core mask exist
+                if len(core_mask) == 1:
+                    im_naming = naming.DumpImageFileNaming(
+                    sn=self.param_chip.chip_name,
+                    stain_type=self._files[core_mask[0]].get_group_name(sn=self.param_chip.chip_name),
+                    save_dir=self._output_path
+                )
+                    final_nuclear_path = im_naming.cell_mask
+                    print(im_naming.cell_mask)
+                    merged_core_mask = cbimread(im_naming.cell_mask, only_np=True)
+                else:
+                    print("multiple core masks exist")
+                    #TODO: merge multiple cell masks, return final_cell_mask = merged cell masks
+            else: #no core mask
+                merged_core_mask = []
+
+
+            #  --------------------nuclei expand--------------------
+            if len(interior_mask) == 0 and len(cell_mask) == 0:  
+                #merged_cell_mask_path = self._output_path + "core_extend_mask.tif"
+                to_fast = final_nuclear_path
+                if not os.path.exists(final_cell_mask_path) and os.path.exists(to_fast):
+                    fast_mask = run_fast_correct(
+                        mask_path=to_fast,
+                        distance = distance,
+                        n_jobs=self.config.cell_correct.process
+                    )
+                    cbimwrite(final_cell_mask_path, fast_mask)
+            # --------------------nuclei cell merge----------------------
+            elif len(interior_mask) == 0 and len(cell_mask) != 0:
+                from cellbin2.contrib.mask_manager import merge_cell_mask
+                from cellbin2.contrib.multimodal_cell_merge import interior_cell_merge
+                save_path = os.path.join(self._output_path, "multimodal_mid_file")
+                os.makedirs(save_path, exist_ok=True)
+                #merged_mask = merge_cell_mask(merged_cell_mask, merged_core_mask)
+                output_nuclei = merge_cell_mask(merged_cell_mask, merged_core_mask)
+                output_nuclei_path = os.path.join(save_path, f"output_nuclei_mask.tif")
+                cbimwrite(output_nuclei_path, output_nuclei)
+                #merged_cell_mask_path = self._output_path + "/core_cell_merged_mask.tif"
+                # expand nuclei
                 fast_mask = run_fast_correct(
-                    mask_path=to_fast,
-                    distance=m.correct_r,
+                    mask_path=output_nuclei_path,
+                    distance = distance,
                     n_jobs=self.config.cell_correct.process
                 )
-                cbimwrite(final_cell_mask_path, fast_mask)
+                expand_nuclei_path = os.path.join(save_path, "expand_nuclei.tif")
+                cbimwrite(expand_nuclei_path, fast_mask)
+                # merge expanded nuclei with cell
+               
+                expand_nuclei = cbimread(expand_nuclei_path, only_np=True)
+                final_mask = interior_cell_merge(merged_cell_mask, expand_nuclei, overlap_threshold=0.9, save_path="")
+                cbimwrite(final_cell_mask_path, final_mask)
+            # --------------------multimodal merge--------------------
+            elif len(interior_mask) != 0 and len(cell_mask) != 0:
+                from cellbin2.contrib.multimodal_cell_merge import multimodal_merge
+                from cellbin2.contrib.multimodal_cell_merge import interior_cell_merge
+                save_path = os.path.join(self._output_path, "multimodal_mid_file")
+                os.makedirs(save_path, exist_ok=True)
+                merged_mask = multimodal_merge(merged_core_mask, merged_cell_mask, merged_interior_mask, overlap_threshold=0.5, save_path = save_path)
+                # expand nuclei
+                output_nuclei = os.path.join(save_path, "output_nuclei_mask.tif")
+                fast_mask = run_fast_correct(
+                    mask_path=output_nuclei,
+                    distance = distance,
+                    n_jobs=self.config.cell_correct.process
+                )
+                expand_nuclei_path = os.path.join(save_path, "expand_nuclei.tif")
+                cbimwrite(expand_nuclei_path, fast_mask)
+                
+                # merge expanded nuclei with cell
+                expand_nuclei_path = os.path.join(save_path, "expand_nuclei.tif")
+                cell_mask_add_interior_path = os.path.join(save_path, "cell_mask_add_interior.tif")
+                cell_mask_add_interior = cbimread(cell_mask_add_interior_path, only_np=True)
+                
+                expand_nuclei = cbimread(expand_nuclei_path, only_np=True)
+                final_mask = interior_cell_merge(cell_mask_add_interior, expand_nuclei, overlap_threshold=0.9, save_path="")
+                #final_mask = cbimread(os.path.join(save_path2, "cell_mask_add_interior.tif"), only_np=True)
+                cbimwrite(final_cell_mask_path, final_mask)
+                
+
 
     def run(self, chip_no: str, input_image: str,
             stain_type: str, param_file: str,
@@ -592,12 +690,12 @@ class Scheduler(object):
         k_ = []
         # List to store file paths that should be removed
         remove_ = []
-        
+
         # Iterate over files in self._files
         for idx, f in self._files.items():
             # Get group name for the file
             g_name = f.get_group_name(sn=self.param_chip.chip_name)
-            
+
             # Check if the file is a matrix
             if f.is_matrix:
                 # Create DumpMatrixFileNaming object for matrix files
@@ -613,41 +711,41 @@ class Scheduler(object):
                     stain_type=g_name,
                     save_dir=self._output_path
                 )
-            
+
             # Iterate over attributes of the file naming object
             for p in dir(f_name):
                 att = getattr(f_name, p)
                 pt = f_name.__class__.__dict__.get(p)
-                
+
                 # Check if the attribute is a property and the file exists
                 if isinstance(pt, property) and att.exists():
                     all_.append(att)
-                    
+
                     # Check if the file should be removed or kept
                     if pt not in f_to_keep:
                         remove_.append(att)
                     else:
                         k_.append(att)
-        
+
         # Iterate over attributes of self.p_naming
         for p_p in dir(self.p_naming):
             p_att = getattr(self.p_naming, p_p)
             p_pt = self.p_naming.__class__.__dict__.get(p_p)
-            
+
             # Check if the attribute is a property and the file exists
             if isinstance(p_pt, property) and p_att.exists():
                 all_.append(p_att)
-                
+
                 # Check if the file should be removed or kept
                 if p_pt not in f_to_keep:
                     remove_.append(p_att)
                 else:
                     k_.append(p_att)
-        
+
         # Iterate over files in the output directory
         for f in os.listdir(self._output_path):
             path = os.path.join(self._output_path, f)
-            
+
             # Remove the file if it is in the remove_ list
             if Path(path) in remove_:
                 os.remove(path)

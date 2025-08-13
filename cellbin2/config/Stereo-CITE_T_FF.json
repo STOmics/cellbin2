@@ -12,6 +12,7 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": true,
+      "magnification": 10,
       "channel_align": -1
     },
     "Transcriptomics": {
@@ -24,8 +25,9 @@
         "trackline": true,
         "reuse": -1
       },
-      "tissue_segmentation": true,
+      "tissue_segmentation": false,
       "cell_segmentation": false,
+      "magnification": 10,
       "channel_align": -1
     },
     "IF": {
@@ -40,6 +42,7 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": false,
+      "magnification": 10,
       "channel_align": 0
     },
     "HE": {
@@ -54,6 +57,7 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": true,
+      "magnification": 10,
       "channel_align": -1
     },
     "ssDNA": {
@@ -68,15 +72,43 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": true,
+      "magnification": 10,
+      "channel_align": -1
+    },
+    "Protein": {
+      "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000045_M5/SS200000045_M5.raw.gef",
+      "tech_type": "Protein",
+      "chip_detect": false,
+      "quality_control": false,
+      "registration": {
+        "fixed_image": -1,
+        "trackline": true,
+        "reuse": -1
+      },
+      "tissue_segmentation": false,
+      "cell_segmentation": false,
+      "magnification": 10,
       "channel_align": -1
     }
   },
   "molecular_classify": {
     "Transcriptomics": {
       "exp_matrix": 1,
-      "cell_mask": [
-        0
-      ],
+      "cell_mask": {
+        "nuclei":[0],
+        "interior": [],
+        "boundary":[]
+      },
+      "correct_r": 10,
+      "extra_method": ""
+    },
+    "Protein": {
+      "exp_matrix": 1,
+      "cell_mask": {
+        "nuclei":[0],
+        "interior": [],
+        "boundary":[]
+      },
       "correct_r": 10,
       "extra_method": ""
     }
@@ -84,8 +116,8 @@
   "run": {
     "qc": true,
     "alignment": true,
-    "matrix_extract": true,
-    "report": false,
+    "matrix_extract": false,
+    "report": true,
     "annotation": false
   }
 }

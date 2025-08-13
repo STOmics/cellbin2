@@ -2,7 +2,7 @@ import sys
 import os
 import argparse
 
-# 1. 提前验证 onnxruntime 是否安装
+# 1. Verify in advance whether onnxruntime is installed
 try:
     import onnxruntime as ort
 except ImportError:

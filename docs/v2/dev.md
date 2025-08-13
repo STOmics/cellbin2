@@ -4,7 +4,7 @@ test
 ```shell
 
 pip install pytest-html
-python3 -m pytest # 一定要这样执行，不然会找不到cellbin
+python3 -m pytest # It must be executed in this way, otherwise the cellbin cannot be found.
 pytest test/test_cellbin_pipeline.py --html=/media/Data1/user/dengzhonghan/data/cellbin2/auto_test/0.0.1/report/0.01.html --self-contained-html
 ```
 

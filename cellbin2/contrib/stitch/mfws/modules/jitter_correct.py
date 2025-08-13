@@ -19,9 +19,6 @@ class CorrectMethods(Enum):
 
 
 class JitterCorrect:
-    """
-
-    """
     def __init__(
             self,
             jitter: list,
@@ -69,12 +66,10 @@ class JitterCorrect:
 
     def fill_value(self, jit: np.ndarray, xo: int, yo: int) -> np.ndarray:
         """
-
         Args:
             jit:
             xo:
             yo:
-
         Returns:
 
         """
@@ -110,13 +105,14 @@ class JitterCorrect:
         # _x_mean = round(np.mean(np.percentile(_x, [25, 75])))
 
         x_dict = self._cluster_num(
-            *np.unique(_jit[:, :], return_counts = True)
+            *np.unique(_jit[:, :], return_counts=True)
         )
-        x_list = sorted(x_dict.items(), key = lambda x: x[1][1], reverse = True)
+        x_list = sorted(x_dict.items(), key=lambda x: x[1][1], reverse=True)
 
         usable_list = list()
         for xl in x_list:
-            if xl[1][0][0] == self._placeholder: continue
+            if xl[1][0][0] == self._placeholder:
+                continue
 
             if xl[1][1] >= len(_x) * 0.1:
                 usable_list.extend(xl[1][0])
@@ -151,7 +147,8 @@ class JitterCorrect:
             add_flag = False
             for k_index, k in enumerate(arr):
 
-                if k == n: continue
+                if k == n:
+                    continue
                 elif np.abs(k - n) <= cn:
 
                     if len(cluster_list) == 0:
@@ -186,6 +183,6 @@ class JitterCorrect:
 if __name__ == "__main__":
     aaa = np.load(r"D:\02.data\temp\temp\x.npy")
     bbb = np.load(r"D:\02.data\temp\temp\y.npy")
-    jc = JitterCorrect([aaa, bbb], image_size = [6105, 4608])
+    jc = JitterCorrect([aaa, bbb], image_size=[6105, 4608])
     aaa, bbb = jc.correct()
     print(1)

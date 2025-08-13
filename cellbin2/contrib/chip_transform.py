@@ -52,7 +52,7 @@ def chip_transform(
         color_space: "HSV" or "HLS"
         scale: [fixed_image microscope magnification, moving_image microscope magnification], usually [2, 1]
         method: int
-            0: 原图配准
+            0: origin img regist
             1:
 
     Returns:
