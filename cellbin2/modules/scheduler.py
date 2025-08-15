@@ -505,6 +505,10 @@ class Scheduler(object):
                     stain_type=self._files[core_mask[0]].get_group_name(sn=self.param_chip.chip_name),
                     save_dir=self._output_path
                 )
+                    if im_naming.cell_mask.exists():
+                        shutil.copy2(im_naming.cell_mask, final_nuclear_path)
+                    if im_naming.tissue_mask.exists():
+                        shutil.copy2(im_naming.tissue_mask, final_t_mask_path)
                     final_nuclear_path = im_naming.cell_mask
                     print(im_naming.cell_mask)
                     merged_core_mask = cbimread(im_naming.cell_mask, only_np=True)
