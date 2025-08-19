@@ -27,10 +27,7 @@ class Stitching(object):
             channel: int = 0,
             proc_count: int = 1,
             fusion: int = 0,
-            flip_x: bool = False,
-            flip_y: bool = False,
             down_sample: int = 1,
-            stitch_method: str = 'cd',
             **kwargs
     ):
         """
@@ -43,10 +40,7 @@ class Stitching(object):
             overlap_x:
             overlap_y:
             proc_count:
-            flip_x:
-            flip_y:
             fusion:
-            stitch_mode:
         """
         # input parameters
         self.start_ind = [start_row, start_col]
@@ -58,13 +52,7 @@ class Stitching(object):
         self.proc_count = proc_count
 
         self.fusion = fusion
-
-        self.flip_x = flip_x
-        self.flip_y = flip_y
-
         self.down_sample = down_sample
-
-        self.stitch_method = stitch_method
 
         # internal parameters
         self._fov_location: Union[None, np.ndarray] = None
@@ -122,7 +110,7 @@ class Stitching(object):
         self._fov_height, self._fov_width = img.shape[:2]
         self._fov_channel = img.shape[2] if len(img.shape) > 2 else 1
 
-    def _get_loc_by_mfws(self, image_dict: dict):
+    def _get_loc_by_mfws(self, image_dict: dict, method: str = 'cd'):
         """
         Returns:
         """
@@ -143,7 +131,7 @@ class Stitching(object):
         lm.set_jitter(self._fov_x_jitter, self._fov_y_jitter)
         lm.set_overlap(self.overlap[0], self.overlap[1])
 
-        lm.create_location(self.stitch_method)
+        lm.create_location(method)
 
         self._fov_location = lm.fov_loc_array
 

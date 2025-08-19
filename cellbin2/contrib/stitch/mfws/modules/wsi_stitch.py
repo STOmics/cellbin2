@@ -71,10 +71,18 @@ class StitchingWSI(object):
         self.mosaic_width, self.mosaic_height = [x1 + self.fov_width, y1 + self.fov_height]
 
     def mosaic(self, src_image: dict, loc=None, down_sample=1, multi=False, fuse_flag=True):
-        k = [i * (90 / self._fuse_size) for i in range(0, self._fuse_size)][::-1]  # fusion ratio
-
         self.fov_rows, self.fov_cols = loc.shape[:2]
         self._init_parm(src_image)
+        if self.fov_width * self._overlap_x > self._fuse_size:
+            kx = [i * (90 / self._fuse_size) for i in range(0, self._fuse_size)][::-1]  # fusion ratio
+            fuse_flag_x = True
+        else:
+            fuse_flag_x = False
+        if self.fov_height * self._overlap_y > self._fuse_size:
+            ky = [i * (90 / self._fuse_size) for i in range(0, self._fuse_size)][::-1]  # fusion ratio
+            fuse_flag_y = True
+        else:
+            fuse_flag_y = False
 
         self._set_location(loc)
         h, w = (int(self.mosaic_height / down_sample), int(self.mosaic_width / down_sample))
@@ -88,7 +96,6 @@ class StitchingWSI(object):
         else:
             for i in tqdm.tqdm(range(self.fov_rows), desc='FOVs Stitching', mininterval=5, colour='green', unit='col', ncols=100):
                 for j in range(self.fov_cols):
-
                     blend_flag_h = False
                     blend_flag_v = False
 
@@ -100,7 +107,7 @@ class StitchingWSI(object):
                         x_, y_ = (int(x / down_sample), int(y / down_sample))
 
                         # ------------- fusion
-                        if fuse_flag:
+                        if fuse_flag_x:
                             if j > 0:
                                 if rc_key(i, j - 1) in src_image.keys():
                                     blend_flag_h = True
@@ -112,6 +119,7 @@ class StitchingWSI(object):
                                         source_h = copy.deepcopy(
                                             self.buffer[y - dif_h:y + self.fov_height, x:x + self._fuse_size])
 
+                        if fuse_flag_y:
                             if i > 0:
                                 if rc_key(i - 1, j) in src_image.keys():
                                     blend_flag_v = True
@@ -122,7 +130,8 @@ class StitchingWSI(object):
                                     else:
                                         source_v = copy.deepcopy(
                                             self.buffer[y:y + self._fuse_size, x - dif_v:x + self.fov_width])
-                        ###########
+
+                        # ###########
                         _h, _w = arr.shape[:2]
                         b_h, b_w = int(np.ceil(_h / down_sample)), int(np.ceil(_w / down_sample))
                         _arr = cv.resize(arr, (b_w, b_h))
@@ -134,8 +143,8 @@ class StitchingWSI(object):
                         ###########
                         if fuse_flag:
                             try:
-                                if blend_flag_h:
-                                    result_h, _y = self.blend_image_h(arr, source_h, x, y, dif_h, k, self._fuse_size)
+                                if blend_flag_h and fuse_flag_x:
+                                    result_h, _y = self.blend_image_h(arr, source_h, x, y, dif_h, kx, self._fuse_size)
                                     _h, _w = result_h.shape[:2]
                                     self.buffer[_y:_y + _h, x:x + _w, ...] = result_h
 
@@ -144,8 +153,8 @@ class StitchingWSI(object):
                                     else:
                                         arr[-dif_h:, :_w] = result_h
 
-                                if blend_flag_v:
-                                    result_v, _x = self.blend_image_v(arr, source_v, x, y, dif_v, k, self._fuse_size)
+                                if blend_flag_v and fuse_flag_y:
+                                    result_v, _x = self.blend_image_v(arr, source_v, x, y, dif_v, ky, self._fuse_size)
                                     _h, _w = result_v.shape[:2]
                                     self.buffer[y:y + _h, _x:_x + _w] = result_v
                             except Exception as e:
