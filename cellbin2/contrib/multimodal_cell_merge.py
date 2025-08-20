@@ -10,38 +10,11 @@ import cv2
 from cellbin2.contrib.cellpose_segmentor import f_instance2semantics
 from cellbin2.image import cbimread, cbimwrite
 from cellbin2.utils.pro_monitor import process_decorator
+from skimage.morphology import remove_small_objects
 
 MAX_INPUT_LABEL_VALUE: Final[int] = np.iinfo(np.uint32).max
 
 
-# def unique_nonzero_pairs(masks):
-#     """Compute the unique pairs between to labeled masks with nonzero labels.
-#
-#     Args:
-#         masks (tuple[LabeledMask,LabeledMask]): The masks to compare and
-#             generated unique pairings.
-#
-#     Returns:
-#         np.ndarray[tuple[int,int], np.intp]: A matrix of shape `(p, 2)`
-#             containing the `p` unique pairs.
-#         np.ndarray[tuple[int,int], int]: An array of shape `(p,)` of counts
-#             specifying how many times each pair occured.
-#     """
-#     # a (p, 2) matrix of pairs of values from cell and nuclei masks.
-#     # paired_counts has the number of times that pair is seen
-#     paired_labels, paired_counts = np.unique(
-#         np.column_stack((masks[0].ravel(), masks[1].ravel())),
-#         axis=0,
-#         return_counts=True,
-#     )
-#     # Pairs of (cell-label, nucleus-label), where both the cell and nucleus ID
-#     # are non-zero (i.e., not background)
-#     nz_pairs = (paired_labels[:, 0] > 0) & (paired_labels[:, 1] > 0)
-#     nz_counts = paired_counts[nz_pairs]
-#     nz_paired_labels = paired_labels[nz_pairs, :]
-#     del paired_labels, paired_counts, nz_pairs
-#
-#     return nz_paired_labels, nz_counts
 
 # @process_decorator('GiB')
 def unique_nonzero_pairs_numpy(masks):
@@ -97,7 +70,56 @@ def pair_map_by_largest_overlap(masks):
     b_to_a[nz_paired_labels[count_sort_ix, 1]] = nz_paired_labels[count_sort_ix, 0] 
 
     return a_to_b, b_to_a
+def keep_large_nucleus_fragments(original_nucleus_mask: np.ndarray, filtered_nucleus_mask: np.ndarray, threshold=0.4) -> np.ndarray:
+    """
+    keep only big pieces of cell pieces
+    """
+    original_nucleus_mask = instance2semantics(original_nucleus_mask)
+    filtered_nucleus_mask = instance2semantics(filtered_nucleus_mask)
+    result_mask = np.zeros_like(filtered_nucleus_mask, dtype=np.uint8)
+    contours, _ = cv2.findContours(original_nucleus_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
+
+    for contour in contours:
+
+        x, y, w, h = cv2.boundingRect(contour)
+        nucleus_roi = original_nucleus_mask[y:y+h, x:x+w]
+        filtered_nucleus_roi = filtered_nucleus_mask[y:y+h, x:x+w]
+        contour_roi = contour - np.array([x,y])
+        roi_mask = np.zeros((h,w), dtype=np.uint8)
+        
+        cv2.fillPoly(roi_mask, [contour_roi],(1,)) # cell before filterd 
+        not_cell_area = np.where(roi_mask != 0, 0,filtered_nucleus_roi)
+        not_cell_area[np.where(not_cell_area > 0)] = 1
+        nucleus_roi = cv2.bitwise_and(roi_mask, nucleus_roi)
+        area = nucleus_roi.sum()
+        filtered_nucleus_roi = cv2.bitwise_and(roi_mask, filtered_nucleus_roi)
+
+        filtered_roi = label(filtered_nucleus_roi, connectivity=1)
+        frag_ids = np.unique(filtered_roi)
+        frag_ids = frag_ids[frag_ids != 0]
+        for frag_id in frag_ids:
+            frag_mask = (filtered_roi == frag_id)
+            overlap = frag_mask.sum()
+            
+            overlap_ratio = overlap / area
+            if overlap_ratio < threshold:
+                # remove small piece of cell
+                filtered_roi = np.where(filtered_roi == frag_id, 0,filtered_roi)
+                
+        not_cell_area = instance2semantics(not_cell_area)
+        filtered_roi = instance2semantics(filtered_roi)
+        filtered_nucleus_mask[y:y+h, x:x+w] = filtered_roi + not_cell_area
+    return filtered_nucleus_mask
+
+def cell_filter(final_nuclear_path,final_cell_mask_path):
+    final_nuclear = cbimread(final_nuclear_path, only_np=True)
+    final_cell_mask = cbimread(final_cell_mask_path, only_np=True)
+    filtered_mask = final_nuclear * final_cell_mask
+    filtered_mask = label(filtered_mask, connectivity=1) 
+    filtered_mask = remove_small_objects(filtered_mask, min_size=15)
+    filtered_mask = instance2semantics(filtered_mask)
+    return filtered_mask
 
 # @process_decorator('GiB')
 def make_mask_consecutive(
@@ -203,80 +225,61 @@ def instance2semantics(ins):
     ins[np.where(ins > 0)] = 1
     return np.array(ins, dtype=np.uint8)
 
-# @process_decorator('GiB')
-def interior_cell_merge(cell_mask_raw, interior_mask_raw, overlap_threshold=0.5, save_path=""):
+def overlap_v2(secondary_mask_raw, primary_mask_raw, overlap_threshold=0.2, save_path=""):
     sem = 2
     connectivity = 8
-    interior_mask_raw = interior_mask_raw.astype(np.uint8)
-    cell_mask_raw = cell_mask_raw.astype(np.uint8)
-    
-    if len(np.unique(cell_mask_raw)) <= sem:
-        _, cell_mask = cv2.connectedComponents(cell_mask_raw, connectivity=connectivity)
-    else:
-        cell_mask_sem = instance2semantics(cell_mask_raw)
-        _, cell_mask = cv2.connectedComponents(cell_mask_sem, connectivity=connectivity)
-        cbimwrite(join(save_path, f"cell_mask_ori.tif"), cell_mask_sem * 255)
-    if len(np.unique(interior_mask_raw)) <= sem:
-        _, interior_mask = cv2.connectedComponents(interior_mask_raw, connectivity=connectivity)
-    else:
-        interior_mask_sem = instance2semantics(interior_mask_raw)
-        _, interior_mask = cv2.connectedComponents(interior_mask_sem, connectivity=connectivity)
-        cbimwrite(join(save_path, f"interior_mask_ori.tif"), interior_mask_sem * 255)
+    secondary_mask_raw = secondary_mask_raw.astype(np.uint8)
+    primary_mask_raw = primary_mask_raw.astype(np.uint8)
+    secondary_mask = instance2semantics(secondary_mask_raw)
+    _, secondary_mask = cv2.connectedComponents(secondary_mask, connectivity=connectivity)
+    primary_mask = instance2semantics(primary_mask_raw)
+    _, primary_mask = cv2.connectedComponents(primary_mask, connectivity=connectivity)
     # to instance segmentation and relable all cells
-    cell_mask[:] = make_mask_consecutive(cell_mask)
-    interior_mask[:] = make_mask_consecutive(interior_mask)
+    primary_mask[:] = make_mask_consecutive(primary_mask)
+    secondary_mask[:] = make_mask_consecutive(secondary_mask)
 
-    lower_right_overlap_mask = np.zeros(cell_mask.shape, dtype=bool)
-    top_left_bounds_cells = np.ones(cell_mask.shape, dtype=bool) 
-
-    edge_filter_cells = np.logical_and(
-        top_left_bounds_cells, np.logical_not(lower_right_overlap_mask)
-    )
-    num_cells = np.count_nonzero(np.unique(cell_mask[edge_filter_cells]))
 
     # Generate mappings between cells and nuclei and vis versa.
-    cell_to_interior, interior_to_cell = pair_map_by_largest_overlap( 
-        (cell_mask, interior_mask)
+    cell_to_interior, secondary_to_primary = pair_map_by_largest_overlap( 
+        (primary_mask, secondary_mask)
     )
 
     # process overlap between interior mask and cell mask
     # if interior & cell overlap > 0.5, consider interior and cell as same cell, remove the interior
     # if 0 < interior & cell overlap <= 0.5，consider interior and cell as two cells，keep the non-overlapping part of interior mask
     # interior & cell overlap = 0，keep both 
-    overlap_fracs_interior_to_cell = overlap_fractions(interior_mask, cell_mask, interior_to_cell, c=True)
-    interior_to_cell_no_overlap = overlap_fracs_interior_to_cell == 0
-    interior_to_cell_overlap_below_threshold = overlap_fracs_interior_to_cell <= overlap_threshold
-    interior_keep_idx = np.logical_or(interior_to_cell_no_overlap, interior_to_cell_overlap_below_threshold)
-    interior_keep_idx[0] = False  
-    interior_keep_bool_mask = interior_keep_idx[interior_mask]
-    interior_mask_unique_bool_mask = interior_keep_bool_mask * np.logical_not(cell_mask)
-    interior_mask_unique = interior_mask_unique_bool_mask * interior_mask
+    overlap_fracs_interior_to_cell = overlap_fractions(secondary_mask, primary_mask, secondary_to_primary, c=True)
+    secondary_to_cell_no_overlap = overlap_fracs_interior_to_cell == 0
+    secondary_to_cell_overlap_below_threshold = overlap_fracs_interior_to_cell <= overlap_threshold
+    secondary_keep_idx = np.logical_or(secondary_to_cell_no_overlap, secondary_to_cell_overlap_below_threshold)
+    secondary_keep_idx[0] = False  
+    secondary_keep_bool_mask = secondary_keep_idx[secondary_mask]
+    secondary_mask_unique_bool_mask = secondary_keep_bool_mask * np.logical_not(primary_mask)
+    secondary_mask_unique = secondary_mask_unique_bool_mask * secondary_mask
     # some connected components may be split into separate fragments, relabel
-    interior_mask_unique_relabel = label(interior_mask_unique)
+    secondary_mask_unique_relabel = label(secondary_mask_unique)
     # if interior is split into multiple parts, retain only the largest fragment
-    interior_to_interior_unique, interior_unique_to_interior \
-        = pair_map_by_largest_overlap((interior_mask, interior_mask_unique_relabel))
-    interior_splits_remove_bool_mask = interior_to_interior_unique[interior_mask] == interior_mask_unique_relabel
-    interior_mask_final = interior_mask_unique_relabel * interior_splits_remove_bool_mask
-    interior_mask_final = make_mask_consecutive(
-        interior_mask_final, start_from=np.max(cell_mask) + 1
+    secondary_to_primary_unique, secondary_unique_to_secondary \
+        = pair_map_by_largest_overlap((secondary_mask, secondary_mask_unique_relabel))
+    secondary_splits_remove_bool_mask = secondary_to_primary_unique[secondary_mask] == secondary_mask_unique_relabel
+    secondary_mask_final = secondary_mask_unique_relabel * secondary_splits_remove_bool_mask
+    secondary_mask_final = make_mask_consecutive(
+        secondary_mask_final, start_from=np.max(primary_mask) + 1
     )
-    print(f"interior index from {np.max(cell_mask) + 1} to {np.max(interior_mask_final)}")
-    int_interior_mask_final = instance2semantics(interior_mask_final)
-    contours, _ = cv2.findContours(int_interior_mask_final, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    interior_boundary = np.zeros_like(int_interior_mask_final)
-    cv2.drawContours(interior_boundary, contours, -1, 1, 1)
-    cell_mask_add_interior = np.add(cell_mask, interior_mask_final)
+    print(f"interior index from {np.max(primary_mask) + 1} to {np.max(secondary_mask_final)}")
+    int_secondary_mask_final = instance2semantics(secondary_mask_final)
+    contours, _ = cv2.findContours(int_secondary_mask_final, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    secondary_boundary = np.zeros_like(int_secondary_mask_final)
+    cv2.drawContours(secondary_boundary, contours, -1, 1, 1)
+    primary_mask_add_secondary = np.add(primary_mask, secondary_mask_final)
     
-    cell_mask = cell_mask_add_interior
-    save_cell_mask = instance2semantics(cell_mask_add_interior)
-    save_cell_mask = np.where(interior_boundary > 0, 0, save_cell_mask)
-    if save_path != "":
-        cbimwrite(join(save_path, f"cell_mask_add_interior.tif"), instance2semantics(save_cell_mask) * 255)
-        cbimwrite(join(save_path, f"interior_mask_final.tif"), instance2semantics(interior_mask_final) * 255)
-    #cell_mask = cbimread(join(save_path, f"cell_mask_add_interior.tif"), only_np=True)
-    save_cell_mask = save_cell_mask.astype(np.uint8)
-    return save_cell_mask
+    primary_mask = primary_mask_add_secondary
+    save_primary_mask = instance2semantics(primary_mask_add_secondary)
+    save_primary_mask = label(save_primary_mask, connectivity=1) 
+    save_primary_mask = remove_small_objects(save_primary_mask, min_size=15)
+    save_primary_mask = np.where(secondary_boundary > 0, 0, save_primary_mask)
+    save_primary_mask = save_primary_mask.astype(np.uint8)
+    return secondary_mask_final, save_primary_mask
         # partial_metrics,
     
 
@@ -401,12 +404,9 @@ def nuclei_cell_merge(nuclei_mask_raw, cell_mask_raw, overlap_threshold=0.5, sav
         cell_mask_sem[unassigned_nuclei_indices] = consecutive_unassigned_nuc
         cell_mask[unassigned_nuclei_indices] = consecutive_unassigned_nuc
         output_nuclei_mask[unassigned_nuclei_indices] = consecutive_unassigned_nuc
-    cell_mask_add_interior_sem = instance2semantics(cell_mask_sem)
+    cell_mask_add_interior_sem = instance2semantics(cell_mask_sem) 
     output_nuclei_mask = output_nuclei_mask - cell_mask_sem
-    output_nuclei_mask = np.where(output_nuclei_mask < 0, 0, output_nuclei_mask) 
-    # cell_mask_add_interior_sem[unassigned_nuclei_indices] = 255
-    # cell_mask_add_interior_sem[np.nonzero(np.logical_and(cell_mask_add_interior_sem, interior_keep_mask_))] = 125
-    # cell_mask_add_interior_sem[cell_mask_add_interior_sem == 1] = 50
+    output_nuclei_mask = np.where(output_nuclei_mask < 0, 0, output_nuclei_mask)
     save_cell_mask_add_interior_sem = np.where(boundary > 0, 0, cell_mask_add_interior_sem)
     print(f"# of cells: {np.max(cell_mask) + 1}")
     if save_path != "":
@@ -440,19 +440,19 @@ def multimodal_merge(nuclei_mask_path, cell_mask_path, interior_mask_path, overl
     cell_mask_raw = cbimread(cell_mask_path, only_np=True)
     interior_mask_raw = cbimread(interior_mask_path, only_np=True)
 
-    cell_add_interior = interior_cell_merge(cell_mask_raw, interior_mask_raw, overlap_threshold=0.5, save_path=save_path)
-    #cell_add_interior_path = join(save_path, f"cell_mask_add_interior.tif")
-    #cell_add_interior = cbimread(cell_add_interior_path, only_np=True)
-    #interior_cell_merge(nuclei_mask_path=nuclei_mask_path, cell_mask_path=cell_mask_path, interior_mask_path=interior_mask_path, overlap_threshold=0.5, save_path=save_path)
+    interior_mask_final, cell_add_interior = overlap_v2(interior_mask_raw, cell_mask_raw, overlap_threshold=0.5, save_path=save_path)
+    interior_mask_final = keep_large_nucleus_fragments(interior_mask_raw, interior_mask_final)
+    if save_path != "":
+        cbimwrite(join(save_path, f"interior_mask_final.tif"), instance2semantics(interior_mask_final) * 255)
+        cbimwrite(join(save_path, f"cell_mask_add_interior.tif"), instance2semantics(cell_add_interior) * 255)
     #-----------------------------start merging nuclei---------------------------------------------------------
     
-    output_nuclei_mask, final_mask = nuclei_cell_merge(nuclei_mask_raw, cell_add_interior, overlap_threshold=0.5, save_path=save_path)
-    #output_nuclei_mask, cell_mask = nuclei_cell_merge(nuclei_mask_path = nuclei_mask_path, cell_mask_path = cell_mask_path , overlap_threshold=0.5, save_path=save_path)
-    #cell_add_interior_path = join(save_path, f"cell_mask_add_interior_add_nuclei_sem.tif")
-    #final_mask = cbimread(cell_add_interior_path, only_np=True)
+    output_nuclei_mask, final_mask = overlap_v2(nuclei_mask_raw, cell_add_interior, overlap_threshold=0.5, save_path=save_path)
+    if save_path != "":
+        cbimwrite(join(save_path, f"output_nuclei_mask.tif"), instance2semantics(output_nuclei_mask) * 255)
+        cbimwrite(join(save_path, f"cell_mask_add_interior_add_nuclei.tif"), instance2semantics(final_mask) * 255)
     final_mask = final_mask.astype(np.uint8)
     return final_mask
-    #
 
 
 class MaskTile(NamedTuple):
