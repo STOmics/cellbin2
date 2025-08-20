@@ -554,7 +554,7 @@ class Scheduler(object):
                 # merge expanded nuclei with cell
                
                 expand_nuclei = cbimread(expand_nuclei_path, only_np=True)
-                secondary_mask_final, final_mask = overlap_v2(merged_cell_mask, expand_nuclei, overlap_threshold=0.9, save_path="")
+                secondary_mask_final, final_mask = overlap_v2(expand_nuclei, merged_cell_mask, overlap_threshold=0.9, save_path="")
                 cbimwrite(final_cell_mask_path, final_mask)
             # --------------------multimodal merge--------------------
             elif len(interior_mask) != 0 and len(cell_mask) != 0:
@@ -577,7 +577,7 @@ class Scheduler(object):
                 cell_mask_add_interior = cbimread(cell_mask_add_interior_path, only_np=True)
                 
                 expand_nuclei = cbimread(expand_nuclei_path, only_np=True)
-                secondary_mask_final, final_mask = overlap_v2(cell_mask_add_interior, expand_nuclei, overlap_threshold=0.9, save_path="")
+                secondary_mask_final, final_mask = overlap_v2(expand_nuclei, cell_mask_add_interior, overlap_threshold=0.9, save_path="")
                 #final_mask = cbimread(os.path.join(save_path2, "cell_mask_add_interior.tif"), only_np=True)
                 cbimwrite(final_cell_mask_path, final_mask)
             # --------------------matrix fix--------------------
