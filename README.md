@@ -223,7 +223,8 @@ please modify [sample_multimodal.json](cellbin2/config/demos/sample_multimodal.j
 complete infomation for numtimodal cell segmentation, visit [multimodal.md](docs/v2/multimodal.md)
 
 > more examples, please visit [example.md](docs/v2/example.md)
-
+### Cell Segmentation Customization
+To customize the cell segmentation model, please visit [model customization SOP](https://alidocs.dingtalk.com/i/nodes/14lgGw3P8vv3oq71HG2nmvM285daZ90D?utm_scene=team_space)
 ## ErrorCode
 refer to [error.md](docs/v2/error.md)
 
