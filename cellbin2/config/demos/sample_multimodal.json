@@ -22,7 +22,7 @@
       "registration": {
         "fixed_image": -1,
         "trackline": false,
-        "reuse": -1
+        "reuse": 0
       },
       "tissue_segmentation": false,
       "cell_segmentation": true,
@@ -36,7 +36,7 @@
       "registration": {
         "fixed_image": -1,
         "trackline": true,
-        "reuse": -1
+        "reuse": 0
       },
       "tissue_segmentation": false,
       "cell_segmentation": true,

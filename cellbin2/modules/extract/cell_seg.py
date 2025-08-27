@@ -8,6 +8,22 @@ from cellbin2.contrib import cell_segmentor
 from pathlib import Path
 from cellbin2.utils import ipr
 from cellbin2.utils.rle import RLEncode
+from cellbin2.contrib import cellpose_segmentor
+import os
+import numpy as np
+from cellpose import io
+
+
+def instance2semantics(ins):
+    """
+    instance to semantics
+    Args:
+        ins(ndarray):labeled instance
+
+    Returns(ndarray):mask
+    """
+    ins[np.where(ins > 0)] = 1
+    return np.array(ins, dtype=np.uint8)
 
 
 def run_cell_seg(
@@ -30,8 +46,20 @@ def run_cell_seg(
     Returns:
         cell_mask: The segmented cell mask.
     """
-    if image_file.tech == TechType.IF:
-        from cellbin2.contrib import cellpose_segmentor
+    # check input data stain type and its referred model
+    stain_type = str(image_file.tech.name)
+    cellseg_model_path = getattr(config.cell_segmentation, f"{stain_type}_weights_path")
+    cellseg_model = os.path.basename(cellseg_model_path)
+
+    if cellseg_model == 'cpsam':
+        from cellbin2.contrib import cpsam_segmentor
+        cell_mask = cpsam_segmentor.predict_cpsam(
+            image_path=image_path,
+            batch_size=32,
+            use_gpu=True
+        )
+    elif cellseg_model == 'cyto2torch_0' or 'cyto2':
+        print("Using cellpose_segmentor for cell segmentation")
         cell_mask = cellpose_segmentor.segment4cell(
             input_path=str(image_path),
             cfg=config.cell_segmentation,
@@ -45,7 +73,10 @@ def run_cell_seg(
             fast=False,
             gpu=0
         )
-    cbimwrite(str(save_path), cell_mask)
+    
+    # transform cell_mask from instance to 0 1 semantics mask
+    semantics = instance2semantics(cell_mask)
+    cbimwrite(str(save_path), semantics)
     # Here we do not save, the mask based on the registration image will be saved later
     # if channel_image is not None:
     #     channel_image.CellSeg.CellSegShape = list(cell_mask.shape)

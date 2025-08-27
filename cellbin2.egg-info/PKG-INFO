@@ -1,0 +1,41 @@
+Metadata-Version: 2.1
+Name: cellbin2
+Version: 0.0.1
+Summary: A framework for generating single-cell gene expression data
+Author-email: cell bin research group <bgi@genomics.cn>
+Requires-Python: >=3.8
+License-File: LICENSE
+Requires-Dist: numpy==1.23.5
+Requires-Dist: h5py==3.8.0
+Requires-Dist: objtyping
+Requires-Dist: pydantic
+Requires-Dist: opencv-python==4.8.0.76
+Requires-Dist: imagecodecs==2023.3.16
+Requires-Dist: aenum
+Requires-Dist: tqdm==4.65.0
+Requires-Dist: tifffile==2023.2.3
+Requires-Dist: scipy
+Requires-Dist: scikit-image==0.21.0
+Requires-Dist: numba==0.56.4
+Requires-Dist: onnxruntime-gpu==1.15.1
+Requires-Dist: scikit-learn==1.3.0
+Requires-Dist: imreg_dft==2.0.0
+Requires-Dist: prettytable==3.11.0
+Requires-Dist: PyYAML
+Requires-Dist: matplotlib==3.7.1
+Requires-Dist: requests
+Requires-Dist: pandas==1.5.3
+Requires-Dist: pyvips-binary
+Requires-Dist: pyvips
+Provides-Extra: cp
+Requires-Dist: cellpose==3.0.11; extra == "cp"
+Requires-Dist: patchify==0.2.3; extra == "cp"
+Provides-Extra: rs
+Requires-Dist: gefpy==1.2.3; extra == "rs"
+Requires-Dist: mapbox_earcut; extra == "rs"
+Provides-Extra: rp
+Requires-Dist: fastcluster==1.2.6; extra == "rp"
+Requires-Dist: stereopy==1.6.0; extra == "rp"
+Requires-Dist: beautifulsoup4; extra == "rp"
+Requires-Dist: csscompressor; extra == "rp"
+Requires-Dist: jsmin; extra == "rp"
