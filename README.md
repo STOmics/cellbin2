@@ -222,6 +222,16 @@ CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
 please modify [sample_multimodal.json](cellbin2/config/demos/sample_multimodal.json)<br>
 complete infomation for numtimodal cell segmentation, visit [multimodal.md](docs/v2/multimodal.md)
 
+#### Case 9: Chip-based Single Cell<br>
+DAPI + Transcriptomics
+```shell
+CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
+-c SN \ # chip number
+-p Stereocell_analysis.json \ # Personalized Json File
+-o test/SN \ # output dir
+```
+please modify [Stereocell_analysis.json](\cellbin2\config\demos\Stereocell_analysis.json)<br>
+
 > more examples, please visit [example.md](docs/v2/example.md)
 
 ## ErrorCode
