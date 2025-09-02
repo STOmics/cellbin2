@@ -58,7 +58,7 @@ def run_cell_seg(
             batch_size=32,
             use_gpu=True
         )
-    elif cellseg_model == 'cyto2torch_0' or 'cyto2':
+    elif cellseg_model == 'cyto2torch_0' or cellseg_model == 'cyto2':
         print("Using cellpose_segmentor for cell segmentation")
         cell_mask = cellpose_segmentor.segment4cell(
             input_path=str(image_path),
