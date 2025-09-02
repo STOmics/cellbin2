@@ -12,7 +12,9 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": true,
-      "channel_align": -1
+      "magnification": 10,
+      "channel_align": -1,
+      "tissue_filter": -1
     },
     "1": {
       "file_path": "/Path/to/SN.raw.gef",
@@ -26,7 +28,9 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": false,
-      "channel_align": -1
+      "magnification": 10,
+      "channel_align": -1,
+      "tissue_filter": -1
     },
     "2": {
       "file_path": "/Path/to/SN_ATP_IF.tif",
@@ -40,7 +44,9 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": true,
-      "channel_align": 0
+      "magnification": 10,
+      "channel_align": 0,
+      "tissue_filter": 0
     },
     "3": {
       "file_path": "/Path/to/SN.protein.raw.gef",
@@ -54,7 +60,9 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": false,
-      "channel_align": 0
+      "magnification": 10,
+      "channel_align": 0,
+      "tissue_filter": 0
     }
   },
   "molecular_classify": {

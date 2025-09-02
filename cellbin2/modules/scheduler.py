@@ -271,7 +271,7 @@ class Scheduler(object):
             )
             btcm = BestTissueCellMask.get_best_tissue_cell_mask(input_data=input_data)
             final_tissue_mask = btcm.best_tissue_mask
-            final_cell_mask = btcm.best_cell_mask
+            #final_cell_mask = btcm.best_cell_mask
         if final_cell_mask is not None:
             cbimwrite(
                 output_path=cs_save_path,
@@ -396,6 +396,34 @@ class Scheduler(object):
                             config=self.config,
                         )
                         print('Cell segmentation completed')
+        for idx, f in self._files.items():
+            if f.is_image and f.cell_segmentation==True:
+                g_name = f.get_group_name(sn=self.param_chip.chip_name)
+                cur_f_name = naming.DumpImageFileNaming(
+                    sn=self.param_chip.chip_name,
+                    stain_type=g_name,
+                    save_dir=self._output_path
+                )
+                cs_path = cur_f_name.transform_cell_mask_raw
+                save_path = cur_f_name.transform_cell_mask
+                cell_mask = cbimread(cs_path, only_np=True)
+                if f.tissue_filter == -1:
+                    ts_path = cur_f_name.transform_tissue_mask
+                else:
+                    filter_f_name = naming.DumpImageFileNaming(
+                        sn=self.param_chip.chip_name,
+                        stain_type=self._files[f.tissue_filter].get_group_name(sn=self.param_chip.chip_name),
+                        save_dir=self._output_path
+                    )
+                    ts_path = filter_f_name.transform_tissue_mask
+                if os.path.exists(ts_path):
+                    tissue_mask = cbimread(ts_path, only_np=True)
+                    filter_mask = BestTissueCellMask.best_cell_mask(tissue_mask, cell_mask)
+                    if filter_mask is not None:
+                        cbimwrite(
+                            output_path=save_path,
+                            files=filter_mask
+                        )
 
     def run_mul_image(self):
         """

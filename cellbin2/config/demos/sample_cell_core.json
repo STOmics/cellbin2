@@ -13,7 +13,8 @@
       "tissue_segmentation": false,
       "cell_segmentation": true,
       "magnification": 10,
-      "channel_align": -1
+      "channel_align": -1,
+      "tissue_filter": -1
     },
     "2": {
       "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/Q00148CA/raw_images/stitch/Q00148CA_CY5_IF.tif",
@@ -28,7 +29,8 @@
       "tissue_segmentation": false,
       "cell_segmentation": true,
       "magnification": 10,
-      "channel_align": 0
+      "channel_align": 0,
+      "tissue_filter": 0
     },
     "3": {
       "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/Q00148CA/raw_images/stitch/Q00148CA_TRITC_IF.tif",
@@ -43,7 +45,8 @@
       "tissue_segmentation": false,
       "cell_segmentation": true,
       "magnification": 10,
-      "channel_align": 0
+      "channel_align": 0,
+      "tissue_filter": 0
     }
   },
   "molecular_classify": {

@@ -13,7 +13,8 @@
             "tissue_segmentation": true,
             "cell_segmentation": true,
             "magnification": 10,
-            "channel_align": -1
+            "channel_align": -1,
+            "tissue_filter": -1
         },
         "1": {
             "file_path": "Path/SN.gem.gz",
@@ -28,7 +29,8 @@
             "tissue_segmentation": true,
             "cell_segmentation": true,
             "magnification": 10,
-            "channel_align": -1
+            "channel_align": -1,
+            "tissue_filter": -1
         }
     },
     "molecular_classify": {

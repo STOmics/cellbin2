@@ -63,6 +63,7 @@ class ProcFile(BaseModel):
     channel_align: int
     registration: ProcRegistration
     magnification: int
+    tissue_filter: int
     _supported_matrix = ['.gef', '.gz', '.gem']
     _supported_image = ['.tif', '.tiff', '.TIF', '.TIFF']
 
