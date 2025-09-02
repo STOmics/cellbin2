@@ -5,14 +5,6 @@
 🌟 File  : __init__.py.py
 🌟 Description  : 
 """
-try:
-    from .image_stitch import stitch_image
-except ImportError:
-    from image_stitch import stitch_image
 
-try:
-    from .modules.stitching import Stitching
-except ImportError:
-    from modules.stitching import Stitching
-
-version = '0.0.1'
+appname = 'mfws'
+version = '0.1.1'

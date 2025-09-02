@@ -108,6 +108,12 @@ class cbMatrix(object):
         return self.raw_data.cells["cell_diameter"]
 
     @property
+    def cell_area(self):
+        if "area" not in self.raw_data.cells.obs.columns:
+            raise Exception("No area result in .gef")
+        return self.raw_data.cells["area"]
+
+    @property
     def cell_n_gene(self):
         if "n_gene" not in self.raw_data.cells.obs.columns:
             self.raw_data.cells["n_gene"] = self.raw_data.exp_matrix.getnnz(axis=1)
@@ -196,13 +202,19 @@ class cbMatrix(object):
     def plot_statistic_vio(self, save_path):
 
         MID_file = os.path.join(save_path, f"MIDCount.png")
-        celldiameter_file = os.path.join(save_path, f"CellArea.png")
+        celldiameter_file = os.path.join(save_path, f"CellDiameter.png")
+        cellarea_file = os.path.join(save_path, f"CellArea.png")
         genetype_file = os.path.join(save_path, f"GeneType.png")
 
         celldiameter_data = self._plt_vio(self.cell_diameter,
                                           title="Univariate distribution of Cell Diameter(\xb5m)",
                                           xlabel="Cell Diameter",
                                           save_path=celldiameter_file, color=mcolors.TABLEAU_COLORS["tab:blue"])
+
+        cellarea_data = self._plt_vio(self.cell_area,
+                                      title="Univariate distribution of Cell Area(pixel²)",
+                                      xlabel="Cell Area",
+                                      save_path=cellarea_file, color=mcolors.TABLEAU_COLORS["tab:purple"])
 
         ngene_data = self._plt_vio(self.cell_n_gene,
                                    title="Univariate distribution of Gene Type",
@@ -213,7 +225,7 @@ class cbMatrix(object):
                                  xlabel="MID counts",
                                  save_path=MID_file, color=mcolors.TABLEAU_COLORS["tab:green"])
 
-        return {"celldiameter": celldiameter_data, "genetype": ngene_data, "MID": MID_data}
+        return {"celldiameter": celldiameter_data, "cellarea": cellarea_data, "genetype": ngene_data, "MID": MID_data}
 
     def get_cluster_data(self, reset=True):
         _temp_df = pd.DataFrame()
@@ -365,7 +377,7 @@ class BinMatrix(object):
 
 
 class MultiMatrix(object):
-    """ Jointly manage multiple matrices: may be required """
+    """ Joint management of multiple matrices: may be needed """
 
     def __init__(self, cellbin_path, adjusted_path, tissuegef_path, raw_path, matrix_type: TechType):
 

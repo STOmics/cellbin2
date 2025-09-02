@@ -235,7 +235,7 @@ def f_percentile_threshold(img, percentile=99.9):
     return img
 
 
-def f_equalize_adapthist(img, kernel_size=None):
+def f_equalize_adapthist(img, kernel_size=None, enhance_times=None):
     """
     Pre-process images using Contrast Limited Adaptive
     Histogram Equalization (CLAHE).
@@ -243,6 +243,7 @@ def f_equalize_adapthist(img, kernel_size=None):
     :param img: (CHANGE) (numpy.array): numpy array of phase image data.
     :param kernel_size: (integer): Size of kernel for CLAHE,
             defaults to 1/8 of image size.
+    :param enhance_times: (integer): Number of times to apply CLAHE, defaults to 1.
     :return: numpy.array:Pre-processed image
 
     2023/09/20 @fxzhao replace scikit-image methods with OpenCV methods, improve computational speed and reduce memory usage
@@ -252,7 +253,8 @@ def f_equalize_adapthist(img, kernel_size=None):
         kernel_size = 128
     clahe = cv2.createCLAHE(clipLimit=2.56, tileGridSize=(math.ceil(img.shape[0] / kernel_size),
                                                           math.ceil(img.shape[1] / kernel_size)))
-    img = clahe.apply(img)
+    for _ in range(enhance_times or 1):
+        img = clahe.apply(img)
     return img
 
 def f_equalize_adapthist_V2(img, kernel_size=None):    #this function is originally f_equalize_adapthist() from cellbin1.2.0.16, since there is already a function with the same name, it has been renamed to V2.

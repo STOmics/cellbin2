@@ -49,6 +49,8 @@ FILES_TO_KEEP = (
     naming.DumpPipelineFileNaming.final_tissue_mask,
     naming.DumpPipelineFileNaming.input_json,
     naming.DumpMatrixFileNaming.matrix_template,
+    naming.DumpPipelineFileNaming.rpi,
+    naming.DumpPipelineFileNaming.stereo,
 )
 
 FILES_TO_KEEP_RESEARCH = FILES_TO_KEEP + (

@@ -15,7 +15,7 @@ CellBin is an image processing pipeline designed to delineate cell boundaries fo
 
 
 ## Installation and Quick Start
-Linux
+
 ```shell
 # Clone the main repository
 git clone https://github.com/STOmics/cellbin2
@@ -37,6 +37,10 @@ pip install .[cp,rs]
 # Execute the demo (takes ~30-40 minutes on GPU hardware)
 python demo.py
 ```
+
+**Quick start:**  
+We provide ready-to-use environment packages for both Linux and Windows. Simply download, unzip, and follow our [Quick Start](docs/v2/PREPACKAGED_ENV.md) to get started in minutes.
+
 
 **Performance Note:**  
 We strongly recommend using GPU acceleration for optimal performance. Below is the runtime comparison of two processing modes for an S1 chip (1cm² chip area):
@@ -206,6 +210,17 @@ ssDNA + HE + trans gef
  -o test/SN \ # output dir
  -k "Stereo-CITE_T_FF_V1.1_R"
  ```
+
+#### Case 8: Multimodal Cell Segmentation<br>
+DAPI + TRITC +CY5
+```shell
+CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
+-c SN \ # chip number
+-p sample_multimodal.json \ # Personalized Json File
+-o test/SN \ # output dir
+```
+please modify [sample_multimodal.json](cellbin2/config/demos/sample_multimodal.json)<br>
+complete infomation for numtimodal cell segmentation, visit [multimodal.md](docs/v2/multimodal.md)
 
 > more examples, please visit [example.md](docs/v2/example.md)
 
