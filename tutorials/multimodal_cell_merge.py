@@ -67,7 +67,7 @@ def pair_map_by_largest_overlap(masks):
     a_to_b = np.zeros(np.max(mask_a) + 1, dtype=np.uint32)
     a_to_b[nz_paired_labels[count_sort_ix, 0]] = nz_paired_labels[count_sort_ix, 1]
     b_to_a = np.zeros(np.max(mask_b) + 1, dtype=np.uint32)
-    b_to_a[nz_paired_labels[count_sort_ix, 1]] = nz_paired_labels[count_sort_ix, 0] #maska 和 maskb的对应关系，细胞核属于哪个膜，膜包含哪个核
+    b_to_a[nz_paired_labels[count_sort_ix, 1]] = nz_paired_labels[count_sort_ix, 0] 
 
     return a_to_b, b_to_a
 
@@ -165,32 +165,13 @@ def overlap_fractions(
     overlap_frac[nz_assignments] = max_counts / areas 
 
     return overlap_frac
-
-
-class MaskTile(NamedTuple):
-    """A class that defines a mask tile with overlap region on the left and above."""
-
-    # the row in the mask where the tile starts
-    row_start: int
-    # the col in the mask where the tile starts
-    col_start: int
-    # the end row (exclusive) of the tile
-    row_end: int
-    # the end col (exclusive) of the tile
-    col_end: int
-    # the row (exclusive) where overlap region ends
-    # equivalently, this is the first row of the unique part of the tile
-    unique_row_start: int
-    # the col (exclusive) where overlap region ends
-    # equivalently, this is the first col of the unique part of the tile
-    unique_col_start: int
     
     
 def num_n_area(mask):
     if len(np.unique(mask)) > 2:
         _, mask = cv2.threshold(mask, 0, 1, cv2.THRESH_BINARY)
 
-    # 计算连通域及其统计信息
+    # connectivity and the stats
     num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(mask.astype(np.uint8), connectivity=4)
 
     return num_labels - 1
@@ -212,8 +193,8 @@ def count_2mask_overlap(nuclei_mask_path, cell_mask_path, save_path):
         num_nuclei = num_n_area(nuclei_mask_raw)
         num_cell = num_n_area(cell_mask_raw)
         
-        log(f"DAPI图像总共圈出 {num_nuclei}个细胞核")
-        log(f"RNA总共圈出 {num_cell}个细胞")
+        log(f"DAPI segmentation has {num_nuclei} cells")
+        log(f"RNA segmentation has {num_cell} cells")
 
         if len(np.unique(nuclei_mask_raw)) <= sem:
             _, nuclei_mask = cv2.connectedComponents(nuclei_mask_raw, connectivity=connectivity)
@@ -235,23 +216,18 @@ def count_2mask_overlap(nuclei_mask_path, cell_mask_path, save_path):
         # Generate mappings between cells and nuclei and vis versa.
 
         cell_to_interior, interior_to_cell = pair_map_by_largest_overlap((cell_mask, nuclei_mask))
-        # interior mask与cell mask的关系处理 细胞质与细胞膜
-        # interior & cell overlap > 0.5, 认为interior和cell表示的为一个细胞，interior的去除
-        # 0 < interior & cell overlap <= 0.5，认为表示的为两个细胞，interior保留独有的那部分，这里目前可能出现一个细胞分成两个
-        # interior & cell overlap = 0，这个比较简单，独有的细胞
-        overlap_fracs_interior_to_cell = overlap_fractions(nuclei_mask, cell_mask, interior_to_cell, c=True)#细胞质区域对应的膜
+        overlap_fracs_interior_to_cell = overlap_fractions(nuclei_mask, cell_mask, interior_to_cell, c=True)
         interior_to_cell_overlap_upper_threshold = overlap_fracs_interior_to_cell >= overlap_threshold
         summ = np.sum(interior_to_cell_overlap_upper_threshold)
-        log(f"有{summ}个细胞核与RNA圈细胞重叠（>0.5）")
+        log(f"{summ} cells have overlap with RNA cells (>0.5)")
         log(f"percentage:{summ/num_nuclei}")
-        log(f'即有{num_nuclei - summ}个DAPI圈细胞重叠')
 
         cell_to_interior, interior_to_cell = pair_map_by_largest_overlap((nuclei_mask, cell_mask))
 
-        overlap_fracs_interior_to_cell = overlap_fractions(cell_mask, nuclei_mask, interior_to_cell, c=True)  # 细胞质区域对应的膜
+        overlap_fracs_interior_to_cell = overlap_fractions(cell_mask, nuclei_mask, interior_to_cell, c=True)  
         interior_to_cell_overlap_upper_threshold = overlap_fracs_interior_to_cell >= 0.1
         summ = np.sum(interior_to_cell_overlap_upper_threshold)
-        log(f"有{summ}个RNA细胞核与DAPI圈细胞重叠(>0.1)[因为RNA细胞普遍大于DAPI圈细胞，且包含多个DAPI细胞在里面]")
+        log(f"{summ} RNA cells have overlap with DAPI cells (>0.1) [AS RNA cell masks are generally larger than DAPI cell masks, thus overlapping with multiple DAPI cells]")
         log(f"percentage:{summ / num_cell}")
     
 

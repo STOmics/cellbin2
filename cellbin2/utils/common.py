@@ -30,19 +30,19 @@ iPlaceHolder = -999
 sPlaceHolder = '-'
 
 FILES_TO_KEEP = (
-    # 图像相关
+    # image related
     naming.DumpImageFileNaming.registration_image,
     naming.DumpImageFileNaming.tissue_mask,
     naming.DumpImageFileNaming.cell_mask,
 
-    # 矩阵文件相关
-    naming.DumpMatrixFileNaming.heatmap,  # 矩阵文件的热图
-    naming.DumpMatrixFileNaming.cell_mask,    # 矩阵文件的细胞掩码
-    naming.DumpMatrixFileNaming.tissue_mask,  # 矩阵文件的组织掩码
+    # matrix file related
+    naming.DumpMatrixFileNaming.heatmap,  # matrix file heatmap
+    naming.DumpMatrixFileNaming.cell_mask,    # matrix file cell mask
+    naming.DumpMatrixFileNaming.tissue_mask,  # matrix file tissue mask
 
-    # 流程相关
-    naming.DumpPipelineFileNaming.rpi,        # RPI 文件
-    naming.DumpPipelineFileNaming.stereo,     # Stereo 文件
+    # process related
+    naming.DumpPipelineFileNaming.rpi,        # RPI file
+    naming.DumpPipelineFileNaming.stereo,     # Stereo file
     naming.DumpPipelineFileNaming.ipr,
     naming.DumpPipelineFileNaming.final_nuclear_mask,
     naming.DumpPipelineFileNaming.final_cell_mask,

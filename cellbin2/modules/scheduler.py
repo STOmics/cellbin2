@@ -130,17 +130,17 @@ class Scheduler(object):
                     m_naming = naming.DumpMatrixFileNaming(sn=self.param_chip.chip_name, m_type=g_name, save_dir=self._output_path)
                     data[g_name] = {} 
 
-                    # 检查细胞掩码
+                    # check cell mask
                     if f.cell_segmentation and os.path.exists(m_naming.cell_mask):
                         data[g_name]['CellMask'] = m_naming.cell_mask
                         clog.info(f'Added matrix cell mask to RPI: {m_naming.cell_mask}')
-                    
-                    # 检查组织掩码
+
+                    # check tissue mask
                     if f.tissue_segmentation and os.path.exists(m_naming.tissue_mask):
                         data[g_name]['TissueMask'] = m_naming.tissue_mask
                         clog.info(f'Added matrix tissue mask to RPI: {m_naming.tissue_mask}')
-                    
-                    # 检查热图
+
+                    # check heatmap
                     if os.path.exists(m_naming.heatmap):
                         data[g_name]['Image'] = m_naming.heatmap
                         clog.info(f'Added matrix heatmap to RPI: {m_naming.heatmap}')
