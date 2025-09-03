@@ -236,7 +236,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Count overlap between two masks")
     
     parser.add_argument('-n', required=True, help='Path to nuclei mask image')
-    parser.add_argument('-c', required=True, help='Path to cell mask image')
+    parser.add_argument('-c', required=True, help='Path to RNA cell mask image')
     parser.add_argument('-o', required=True, help='Directory to save output')
 
     args = parser.parse_args()
