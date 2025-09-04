@@ -531,7 +531,7 @@ class Scheduler(object):
                     )
                     cbimwrite(final_cell_mask_path, fast_mask)
             # --------------------nuclei cell merge----------------------
-            elif len(interior_mask) == 0 and len(cell_mask) != 0:
+            elif len(interior_mask) == 0 and len(cell_mask) != 0 and len(core_mask) != 0:
                 from cellbin2.contrib.mask_manager import merge_cell_mask
                 from cellbin2.contrib.multimodal_cell_merge import interior_cell_merge
                 save_path = os.path.join(self._output_path, "multimodal_mid_file")
@@ -555,7 +555,7 @@ class Scheduler(object):
                 final_mask = interior_cell_merge(merged_cell_mask, expand_nuclei, overlap_threshold=0.9, save_path="")
                 cbimwrite(final_cell_mask_path, final_mask)
             # --------------------multimodal merge--------------------
-            elif len(interior_mask) != 0 and len(cell_mask) != 0:
+            elif len(interior_mask) != 0 and len(cell_mask) != 0 and len(core_mask) != 0:
                 from cellbin2.contrib.multimodal_cell_merge import multimodal_merge
                 from cellbin2.contrib.multimodal_cell_merge import interior_cell_merge
                 save_path = os.path.join(self._output_path, "multimodal_mid_file")
@@ -580,6 +580,12 @@ class Scheduler(object):
                 final_mask = interior_cell_merge(cell_mask_add_interior, expand_nuclei, overlap_threshold=0.9, save_path="")
                 #final_mask = cbimread(os.path.join(save_path2, "cell_mask_add_interior.tif"), only_np=True)
                 cbimwrite(final_cell_mask_path, final_mask)
+            # --------------------boundary only--------------------
+            elif len(interior_mask) == 0 and len(cell_mask) != 0:
+                cbimwrite(final_cell_mask_path, merged_cell_mask)
+            # --------------------interior only--------------------
+            elif len(interior_mask) != 0 and len(cell_mask) == 0:
+                cbimwrite(final_cell_mask_path, merged_interior_mask)
                 
 
 
