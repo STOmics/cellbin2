@@ -12,6 +12,7 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": true,
+      "magnification": 10,
       "channel_align": -1
     },
     "1": {
@@ -26,6 +27,7 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": false,
+      "magnification": 10,
       "channel_align": -1
     },
     "2": {
@@ -40,6 +42,7 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": true,
+      "magnification": 10,
       "channel_align": 0
     },
     "3": {
@@ -54,6 +57,7 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": false,
+      "magnification": 10,
       "channel_align": -1
     }
   },
