@@ -1,5 +1,6 @@
 import os
 import json
+from tkinter import N
 
 import numpy as np
 import pandas as pd
@@ -69,6 +70,7 @@ class StereoChip(object):
         self._s13_label = ['Y', 'Q']
         self._chip_rows = '0_0'
         self._chip_cols = '0_0'
+        self._template_points: np.ndarray = None
 
     @staticmethod
     def _create_points(b, e):
@@ -163,6 +165,7 @@ class StereoChip(object):
             (track_points_data['y'] < fov_y_max)].to_numpy()
 
         points_finish = (points_fov - [mask_x_min, mask_y_min]) * 2
+        # self._template_points = points_finish
 
         x_set, y_set = map(lambda x: sorted(set(x)),
                            points_finish.transpose(1, 0).tolist())
@@ -176,6 +179,19 @@ class StereoChip(object):
 
         zero_x = x_set[_x_index + 1]
         zero_y = y_set[_y_index + 1]
+
+        n = points_finish.shape[0]
+        points_with_indices = np.zeros((n,4))
+        points_with_indices[:, :2] = points_finish
+        for i in range(n):
+            x, y = points_finish[i]
+            x_idx = np.where(x_set == x)[0][0]
+            y_idx = np.where(y_set == y)[0][0]
+            i_index = (x_idx - np.where(np.array(x_set) == zero_x)[0][0]) % 9
+            j_index = (y_idx - np.where(np.array(y_set) == zero_y)[0][0]) % 9
+            points_with_indices[i, 2] = i_index
+            points_with_indices[i, 3] = j_index
+        self._template_points = points_with_indices
 
         # added: distance between 00 point and chip corner
         index = np.where(((points_finish[:, 0] == zero_x) & (points_finish[:, 1] == zero_y)) == True)[0][0]
@@ -205,6 +221,10 @@ class StereoChip(object):
             ud = info1["ud_expand"]
 
         return row, col, lr, ud
+
+    @property
+    def template_points(self, ):
+        return self._template_points
 
     @property
     def zero_zero_point(self, ): return self._00pt
