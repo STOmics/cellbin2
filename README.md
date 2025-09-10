@@ -71,6 +71,10 @@ Customized configuration for different chips and experimental requirements can b
 # configuration information is in the .json file
 CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py -c SerialNumber -p paper/SerialNumber.json -o path/to/your/output_directory/SerialNumber
 ```
+### Paper data running
+**Introduction for running [dataset in paper](paper/README.md)**
+
+**Instructions for using the [stitching tool](https://github.com/STOmics/cellbin2/tree/paper/cellbin2/contrib/stitch)**
 
 ### Parameters
 
@@ -80,36 +84,8 @@ CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py -c SerialNumber -p pa
 | `-p`         | Path to your customized configuration file<br/>  | [`config/custom.json`](cellbin2/config/demos/sample.json) |
 | `-o`         | Path to your output directory                                                                                              | `results/Z97502X8`                                        |
 
-## ErrorCode
-refer to [error.md](docs/v2/error.md)
-
-<a id="outputs"></a>
-## Outputs
-| File Name | Description |
-| ---- | ---- |
-| SN_cell_mask.tif | Final cell mask |
-| SN_mask.tif | Final nuclear mask |
-| SN_tissue_mask.tif | Final tissue mask |
-| SN_params.json | CellBin 2.0 input params |
-| SN.ipr | Image processing record |
-| metrics.json | CellBin 2.0 Metrics |
-| CellBin_0.0.1_report.html | CellBin 2.0 report |
-| SN.rpi | Recorded image processing (for visualization) |
-| SN.stereo | A JSON-formatted manifest file that records the visualization files in the result |
-| SN.tar.gz | tar.gz file |
-| SN_DAPI_mask.tif | Cell mask on registered image |
-| SN_DAPI_regist.tif | Registered image |
-| SN_DAPI_tissue_cut.tif | Tissue mask on registered image |
-| SN_IF_mask.tif | Cell mask on registered image |
-| SN_IF_regist.tif | Registered image |
-| SN_IF_tissue_cut.tif | Tissue mask on registered image |
-| SN_Transcriptomics_matrix_template.txt | Track template on gene matrix |
-
-- **Image files (`*.tif`):** Inspect using [ImageJ](https://imagej.net/ij/)
-- **Gene expression file** (generated only when matrix_extract module is enabled): 
-  Visualize with [StereoMap v4](https://www.stomics.tech/service/stereoMap_4_1/docs/kuai-su-kai-shi.html#ke-shi-hua-shu-ru-wen-jian).   
-
-
+## ErrorCode and Outputs
+refer to [Main Readme.md](https://github.com/STOmics/cellbin2/blob/main/README.md)
 
 ## Reference
 https://github.com/STOmics/CellBin <br>
