@@ -34,7 +34,7 @@ POINTS_BEGIN_Y = 105
 POINTS_END_X = 163275
 POINTS_END_Y = 163275
 
-CHIP_TITLE_NAME = ['A', 'B', 'C', 'D', 'Y', 'E', 'F', 'G', 'H', 'Q', 'S']
+CHIP_TITLE_NAME = ['A', 'B', 'C', 'D', 'Y', 'E', 'F', 'G', 'H', 'Q', 'J', 'K', 'L', 'M', 'N', 'P', 'S']
 
 
 class StereoChip(object):
@@ -329,17 +329,22 @@ class StereoChip(object):
                     if _w in self.chip_name[-4:]:
                         return False
 
-                if self.is_from_S13:
-                    if int(self.chip_name[1: 1 + 5]) >= s13_min_num:
-                        return True
+                    prefix = self.chip_name[0]
+                    num_str = self.chip_name[1:6]
+                    # Determine if all are numbers
+                    if num_str.isdigit():
+                        num_val = int(num_str)
+                        if prefix in ['A', 'B', 'C', 'D']: 
+                            return num_val >= s6_min_num
+                        elif prefix == 'Y':
+                            return num_val >= s13_min_num
+                        else:
+                            # support [E, F,.....] and any 5-digit number
+                            return True
                     else:
-                        return False
-                else:
-                    if int(self.chip_name[1: 1 + 5]) >= s6_min_num:
+                        # support any 5-digit number with letters
                         return True
-                    else:
-                        return False
-            else:  # long code cannot be determined yet, considered it as old data
+            else:  # long code not supported
                 return False
         except ValueError:
             return False
@@ -365,16 +370,21 @@ class StereoChip(object):
     def _base_rules(self, ):
         name_len = len(self._name)
 
-        if name_len == 0: return 0
+        if name_len == 0:
+            return 0
 
-        if self._name[0] not in CHIP_TITLE_NAME: return 0
+        # 首位必须是字母
+        if not self._name[0] in CHIP_TITLE_NAME:
+            return 0
 
         if name_len in [8, 10]:
-            if not self._name[1: 6].isdigit(): return 0
-            if not 97 <= ord(self._name[6].lower()) <= 122: return 0
-
+            # 第7位必须是字母
+            if not self._name[6].isalpha():
+                return 0
+            # 8位时第8位必须是数字
             if name_len == 8:
-                if not self._name[7].isdigit(): return 0
+                if not self._name[7].isdigit():
+                    return 0
             self.name_type = ChipNameType.SHORT
         elif name_len in [14, 16, 17, 18]:
             self.name_type = ChipNameType.LONG
