@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/images/framework_final_01.jpg"><br/>
+  <img src="docs/images/framework_final_02.jpg"><br/>
   <h1 align="center">
     cellbin2: A framework for generating single-cell gene expression data
   </h1>
