@@ -16,11 +16,11 @@ from cellbin2.utils.weights_manager import download_by_names
 
 
 class TissueSegParam(BaseModel, BaseModule):
-    ssDNA_weights_path: str = Field(r"tissueseg_bcdu_S_240618_tf.onnx",
+    ssDNA_weights_path: str = Field(r"tissueseg_bcdu_SDI_230523_tf.onnx",
                                     description="name of the ssdna model")
     DAPI_weights_path: str = Field(r"tissueseg_bcdu_SDI_230523_tf.onnx",
                                    description="name of the dapi model")
-    HE_weights_path: str = Field(r"tissueseg_bcdu_H_20241018_tf.onnx",
+    HE_weights_path: str = Field(r"tissueseg_bcdu_H_20240201_tf.onnx",
                                  description="name of the he model")
     Transcriptomics_weights_path: str = Field(r"tissueseg_bcdu_rna_220909_tf.onnx",
                                               description="name of the transcriptomics model")

@@ -72,9 +72,9 @@ templateReferenceV2:
   v2_rotate_fov_min_thr: 7
 
 tissueSegmentation:
-  ssDNA_weights_path: tissueseg_bcdu_S_240618_tf.onnx
+  ssDNA_weights_path: tissueseg_bcdu_SDI_230523_tf.onnx
   DAPI_weights_path: tissueseg_bcdu_SDI_230523_tf.onnx
-  HE_weights_path: tissueseg_bcdu_H_20241018_tf.onnx
+  HE_weights_path: tissueseg_bcdu_H_20240201_tf.onnx
   IF_weights_path:
   Transcriptomics_weights_path: tissueseg_bcdu_rna_220909_tf.onnx
   Protein_weights_path: tissueseg_bcdu_rna_220909_tf.onnx
