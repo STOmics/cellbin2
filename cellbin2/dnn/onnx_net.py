@@ -3,7 +3,6 @@ from os import path
 from cellbin2.dnn import BaseNet
 from cellbin2.utils import clog
 
-
 class OnnxNet(BaseNet):
     def __init__(self, model_path, gpu="-1", num_threads=0):
         super(OnnxNet, self).__init__()

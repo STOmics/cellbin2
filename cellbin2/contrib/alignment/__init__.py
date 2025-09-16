@@ -87,7 +87,7 @@ def registration(moving_image: ChipFeature,
     :param rot90_flag:
     :return: RegistrationInfo
     """
-    # TODO 临时兼容性改动
+    # TODO Temporary Compatibility Changes
     #  11/22 by lizepeng
     if qc_info[0]:
         res_template = centroid(

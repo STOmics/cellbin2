@@ -12,6 +12,7 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": true,
+      "magnification": 10,
       "channel_align": -1
     },
     "Transcriptomics": {
@@ -24,8 +25,9 @@
         "trackline": true,
         "reuse": -1
       },
-      "tissue_segmentation": false,
+      "tissue_segmentation": true,
       "cell_segmentation": false,
+      "magnification": 10,
       "channel_align": -1
     },
     "IF": {
@@ -40,6 +42,7 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": false,
+      "magnification": 10,
       "channel_align": 0
     },
     "HE": {
@@ -53,7 +56,8 @@
         "reuse": -1
       },
       "tissue_segmentation": true,
-      "cell_segmentation": false,
+      "cell_segmentation": true,
+      "magnification": 10,
       "channel_align": -1
     },
     "ssDNA": {
@@ -68,15 +72,18 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": true,
+      "magnification": 10,
       "channel_align": -1
     }
   },
   "molecular_classify": {
     "Transcriptomics": {
       "exp_matrix": 1,
-      "cell_mask": [
-        0
-      ],
+      "cell_mask": {
+        "nuclei":[0],
+        "interior": [],
+        "boundary":[]
+      },
       "correct_r": 10,
       "extra_method": ""
     }
@@ -84,8 +91,8 @@
   "run": {
     "qc": true,
     "alignment": true,
-    "matrix_extract": false,
-    "report": false,
+    "matrix_extract": true,
+    "report": true,
     "annotation": false
   }
 }
