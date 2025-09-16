@@ -12,6 +12,7 @@
             },
             "tissue_segmentation": true,
             "cell_segmentation": true,
+            "magnification": 10,
             "channel_align": -1
         }
     },

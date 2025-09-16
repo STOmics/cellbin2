@@ -15,14 +15,14 @@ class TechType(Enum):
 
 
 KIT_VERSIONS = (
-    'Stereo-seq T FF V1.2',
-    'Stereo-seq T FF V1.3',
-    'Stereo-CITE T FF V1.0',
-    'Stereo-CITE T FF V1.1',
-    'Stereo-seq N FFPE V1.0',
+    'Stereo-seq_T_FF_V1.2',
+    'Stereo-seq_T_FF_V1.3',
+    'Stereo-CITE_T_FF_V1.0',
+    'Stereo-CITE_T_FF_V1.1',
+    'Stereo-seq_N_FFPE_V1.0',
 )
 
-KIT_VERSIONS_R = tuple(i + " R" for i in KIT_VERSIONS)
+KIT_VERSIONS_R = tuple(i + "_R" for i in KIT_VERSIONS)
 
 bPlaceHolder = False
 fPlaceHolder = -999.999
@@ -39,12 +39,12 @@ FILES_TO_KEEP = (
     naming.DumpPipelineFileNaming.final_tissue_mask,
     naming.DumpPipelineFileNaming.input_json,
     naming.DumpMatrixFileNaming.matrix_template,
+    naming.DumpPipelineFileNaming.rpi,
+    naming.DumpPipelineFileNaming.stereo,
 )
 
 FILES_TO_KEEP_RESEARCH = FILES_TO_KEEP + (
-    naming.DumpPipelineFileNaming.stereo,
     naming.DumpPipelineFileNaming.tar_gz,
-    naming.DumpPipelineFileNaming.rpi,
 )
 
 

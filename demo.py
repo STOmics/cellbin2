@@ -33,7 +33,7 @@ DEMO_DATA = {
             "SS200000135TL_D1.raw.gef": "https://bgipan.genomics.cn/v3.php/download/ln-file?FileId=6488191&ShareKey=Iqhde9tKfvWHX5q22T3n&VersionId=4370458&UserId=-1&Password=8Jhw&Policy=eyJBSyI6IkFOT05ZTU9VUyIsIkFhdCI6MSwiQWlkIjoiSnNRQ3NqRjN5cjdLQUN5VCIsIkNpZCI6ImY3NGM2NzlkLTY2ZWUtNDc1OS04ODlmLWQyMzczYTljODY5MiIsIkVwIjo5MDAsIkRhdGUiOiJGcmksIDEzIERlYyAyMDI0IDAyOjQ2OjEzIEdNVCJ9&Signature=ba71c89e825435ca47975175b187d0a151b553a2"
         },
         "stain_type": "ssDNA",
-        "kit_type": "Stereo-seq T FF V1.2 R"
+        "kit_type": "Stereo-seq_T_FF_V1.2_R"
     },
     # "C04042E3": {
     #     "data": {
@@ -41,7 +41,7 @@ DEMO_DATA = {
     #         "C04042E3_fov_stitched.tif": "https://bgipan.genomics.cn/v3.php/download/ln-file?FileId=6488941&ShareKey=Iqhde9tKfvWHX5q22T3n&VersionId=4370869&UserId=-1&Password=8Jhw&Policy=eyJBSyI6IkFOT05ZTU9VUyIsIkFhdCI6MSwiQWlkIjoiSnNRQ3NqRjN5cjdLQUN5VCIsIkNpZCI6ImY3NGM2NzlkLTY2ZWUtNDc1OS04ODlmLWQyMzczYTljODY5MiIsIkVwIjo5MDAsIkRhdGUiOiJGcmksIDEzIERlYyAyMDI0IDAyOjQ3OjEyIEdNVCJ9&Signature=83937f630d30db8d83efb99dcc716c7c8bb606fb"
     #     },
     #     "stain_type": "HE",
-    #     "kit_type": "Stereo-seq T FF V1.3 R"
+    #     "kit_type": "Stereo-seq_T_FF_V1.3_R"
     # },
     # "A02677B5": {
     #     "data": {
@@ -50,7 +50,7 @@ DEMO_DATA = {
     #         "A02677B5_IF.tif": "https://bgipan.genomics.cn/v3.php/download/ln-file?FileId=6489272&ShareKey=Iqhde9tKfvWHX5q22T3n&VersionId=4371162&UserId=-1&Password=8Jhw&Policy=eyJBSyI6IkFOT05ZTU9VUyIsIkFhdCI6MSwiQWlkIjoiSnNRQ3NqRjN5cjdLQUN5VCIsIkNpZCI6ImY3NGM2NzlkLTY2ZWUtNDc1OS04ODlmLWQyMzczYTljODY5MiIsIkVwIjo5MDAsIkRhdGUiOiJGcmksIDEzIERlYyAyMDI0IDAyOjQ5OjQ5IEdNVCJ9&Signature=e824807daa72bcb9b7ee4adacbe32613fce3b285"
     #     },
     #     "stain_type": "DAPI",
-    #     "kit_type": "Stereo-CITE T FF V1.0 R"
+    #     "kit_type": "Stereo-CITE_T_FF_V1.0_R"
     # }
 }
 

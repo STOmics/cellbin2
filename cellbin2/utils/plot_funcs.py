@@ -337,8 +337,10 @@ def chip_box_painting(
     _image = image.resize_image(rate).image
 
     if len(_image.shape) == 2:
-        _image = cv2.equalizeHist(_image)
-        _image = cv.cvtColor(f_ij_16_to_8(_image), cv.COLOR_GRAY2BGR)
+        # Ensure image is 8-bit single channel before histogram equalization
+        _image_8bit = f_ij_16_to_8(_image)
+        _image = cv2.equalizeHist(_image_8bit)
+        _image = cv.cvtColor(_image, cv.COLOR_GRAY2BGR)
     else:
         _image = f_ij_16_to_8(_image)
 
@@ -394,6 +396,238 @@ def chip_box_painting(
         chipbox_part_image_lists.append(chip)
 
     return _image, chipbox_part_image_lists
+
+
+def cell_seg_painting(
+        image_data: Union[str, np.ndarray, CBImage],
+        cell_mask_data: Union[str, np.ndarray, CBImage],
+        tissue_seg_data: Union[str, np.ndarray, CBImage],
+        image_type: str,
+        corrected_mask_data: Union[str, np.ndarray, CBImage] = None,
+        image_size: int = 1024,
+        cell_color: tuple = (0, 255, 0),
+        corrected_color: tuple = (255, 255, 0),
+        tissue_color: tuple = (0, 0, 255),
+        edge_rect_color: tuple = (255, 0, 255),
+        density_rect_color: tuple = (255, 255, 0),
+        idx_color: tuple = (255, 255, 255),
+        draw_thickness: int = 2,
+        contour_thickness: int = 1
+) -> Union[np.ndarray, list, list]:
+    """
+    Create enhanced cell segmentation visualization similar to template_painting.
+    
+    Args:
+        image_data: Input image data (path or array)
+        cell_mask_data: Cell segmentation mask
+        tissue_seg_data: Tissue segmentation mask  
+        image_type: Image type (ssDNA, DAPI, HE)
+        corrected_mask_data: Optional corrected cell mask
+        image_size: Size for cropped regions
+        cell_color: Color for cell contours
+        corrected_color: Color for corrected cell contours
+        tissue_color: Color for tissue boundary
+        edge_rect_color: Color for edge region rectangles
+        density_rect_color: Color for density region rectangles
+        idx_color: Color for region index text
+        draw_thickness: Thickness for rectangles
+        contour_thickness: Thickness for cell contours
+        
+    Returns:
+        Tuple of (main_image, edge_image_list, density_image_list)
+    """
+    # Read input data
+    image = cbimread(image_data)
+    if image_type in ['DAPI', 'ssDNA']:
+        image = image.to_gray()
+    
+    cell_mask = cbimread(cell_mask_data, only_np=True)
+    tissue_mask = cbimread(tissue_seg_data, only_np=True)
+    
+    if corrected_mask_data is not None:
+        corrected_mask = cbimread(corrected_mask_data, only_np=True)
+    else:
+        corrected_mask = None
+    
+    # Get 5 high cell density regions (original cellseg regions)
+    density_points = get_high_density_regions(cell_mask, tissue_mask, num_regions=5)
+    
+    ########################
+    # Crop 5 high density regions
+    density_image_list, density_coord_list = crop_cell_seg_regions(
+        density_points, cell_mask, corrected_mask,
+        image, image_size, image_type,
+        cell_color, corrected_color, contour_thickness
+    )
+    # No edge regions needed - only the 5 original cellseg regions
+    edge_image_list, edge_coord_list = [], []
+    ########################
+    
+    # Create main overview image
+    rate = image_size*2 / max(image.width, image.height)
+    _image = image.resize_image(rate)
+    
+    if len(_image.image.shape) == 2:
+        _image = cv.cvtColor(f_ij_16_to_8(_image.image), cv.COLOR_GRAY2BGR)
+    else:
+        _image = f_ij_16_to_8(_image.image)
+    
+    # Draw tissue boundary
+    tissue_resized = cv.resize(tissue_mask.astype(np.uint8), 
+                              (int(image.width * rate), int(image.height * rate)))
+    contours, _ = cv.findContours(tissue_resized, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    cv.drawContours(_image, contours, -1, tissue_color, contour_thickness)
+    
+    # Draw rectangles for the 5 cellseg regions (numbered 1-5)
+    small_idx = 0
+    for dc in density_coord_list:
+        small_idx += 1
+        y0, y1, x0, x1 = dc
+        _p = np.array([[x0, y0], [x0, y1], [x1, y1], [x1, y0]], dtype=np.int32)
+        
+        cv.polylines(_image, [(_p * rate).astype(np.int32)],
+                     True, density_rect_color, draw_thickness)
+        
+        # Draw index as 1-5 (matching the small images)
+        text_pos = (int(x0 * rate) + 10, int(y0 * rate) + 40)
+        cv.putText(_image, f"{small_idx}", text_pos, cv.FONT_HERSHEY_SIMPLEX, 1.2, idx_color, 2)
+    
+    _image = pad_to_target_size(_image, image_size*2, image_size*2, (0, 0, 0))
+    
+    # Return overview image and 5 cellseg images (edge_image_list is empty now)
+    return _image, edge_image_list, density_image_list
+
+
+def get_high_density_regions(cell_mask, tissue_mask, num_regions=5, region_size=1024):
+    """
+    Find regions with high cell density for detailed visualization.
+    
+    Args:
+        cell_mask: Cell segmentation mask
+        tissue_mask: Tissue segmentation mask
+        num_regions: Number of high density regions to find
+        region_size: Size of each region
+        
+    Returns:
+        List of center points for high density regions
+    """
+    from cellbin2.image.wsi_split import SplitWSI
+    
+    # Combine cell and tissue masks
+    combined_mask = cell_mask * tissue_mask
+    
+    # Split into regions
+    sp = SplitWSI(combined_mask, win_shape=(region_size, region_size))
+    sp._f_split()
+    boxes = sp.box_lst
+    
+    # Count cells in each region
+    density_scores = []
+    for box in boxes:
+        y_begin, y_end, x_begin, x_end = box
+        sub_mask = combined_mask[y_begin:y_end, x_begin:x_end]
+        
+        # Count connected components (cells)
+        contours, _ = cv.findContours(sub_mask.astype(np.uint8), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
+        cell_count = len(contours)
+        
+        # Calculate center point
+        center_x = (x_begin + x_end) // 2
+        center_y = (y_begin + y_end) // 2
+        
+        density_scores.append({
+            'center': [center_x, center_y],
+            'cell_count': cell_count,
+            'box': box
+        })
+    
+    # Sort by cell density and get top regions
+    density_scores.sort(key=lambda x: x['cell_count'], reverse=True)
+    
+    # Return center points of top density regions
+    top_regions = density_scores[:num_regions]
+    return [region['center'] for region in top_regions if region['cell_count'] > 0]
+
+
+def crop_cell_seg_regions(center_points, cell_mask, corrected_mask,
+                         image, image_size, image_type,
+                         cell_color, corrected_color, contour_thickness):
+    """
+    Crop regions around specified center points and add cell segmentation overlays.
+    
+    Args:
+        center_points: List of center points for cropping
+        cell_mask: Cell segmentation mask
+        corrected_mask: Optional corrected cell mask
+        image: Input image
+        image_size: Size of cropped regions
+        image_type: Image type for enhancement
+        cell_color: Color for cell contours
+        corrected_color: Color for corrected cell contours
+        contour_thickness: Thickness of contours
+        
+    Returns:
+        Tuple of (image_list, coord_list)
+    """
+    image_list = []
+    coord_list = []
+    
+    for center_point in center_points:
+        x, y = map(int, center_point[:2])
+        
+        # Calculate crop boundaries
+        if x <= image_size // 2:
+            x_left = 0
+            x_right = image_size
+        elif x + image_size // 2 > image.width:
+            x_left = image.width - image_size
+            x_right = image.width
+        else:
+            x_left = x - image_size // 2
+            x_right = x + image_size // 2
+
+        if y <= image_size // 2:
+            y_up = 0
+            y_down = image_size
+        elif y + image_size // 2 > image.height:
+            y_up = image.height - image_size
+            y_down = image.height
+        else:
+            y_up = y - image_size // 2
+            y_down = y + image_size // 2
+        
+        # Crop image
+        _ci = image.crop_image([y_up, y_down, x_left, x_right])
+        coord_list.append([y_up, y_down, x_left, x_right])
+        
+        # Enhance image
+        enhance_func = pt_enhance_method.get(image_type, dapi_enhance)
+        _ci = enhance_func(_ci)
+        
+        # Ensure image is BGR
+        if len(_ci.shape) == 2:
+            _ci = cv.cvtColor(_ci, cv.COLOR_GRAY2BGR)
+        
+        # Crop masks
+        cell_crop = cell_mask[y_up:y_down, x_left:x_right]
+        
+        # Draw cell contours
+        contours, _ = cv.findContours(cell_crop.astype(np.uint8), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        cv.drawContours(_ci, contours, -1, cell_color, contour_thickness)
+        
+        # Draw corrected cell contours if available
+        if corrected_mask is not None:
+            corrected_crop = corrected_mask[y_up:y_down, x_left:x_right]
+            corrected_contours, _ = cv.findContours(corrected_crop.astype(np.uint8), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+            cv.drawContours(_ci, corrected_contours, -1, corrected_color, contour_thickness)
+        
+        # Add cell count text
+        cell_count = len(contours)
+        cv.putText(_ci, f"Cells: {cell_count}", (10, 30), cv.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
+        
+        image_list.append(_ci)
+    
+    return image_list, coord_list
 
 
 def get_view_image(

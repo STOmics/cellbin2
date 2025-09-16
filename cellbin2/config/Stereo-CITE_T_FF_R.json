@@ -4,7 +4,7 @@
       "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000045_M5/SS200000045_M5_fov_stitched.tif",
       "tech_type": "DAPI",
       "chip_detect": false,
-      "quality_control": false,
+      "quality_control": true,
       "registration": {
         "fixed_image": -1,
         "trackline": true,
@@ -12,6 +12,7 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": true,
+      "magnification": 10,
       "channel_align": -1
     },
     "Transcriptomics": {
@@ -26,6 +27,7 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": false,
+      "magnification": 10,
       "channel_align": -1
     },
     "IF": {
@@ -39,7 +41,8 @@
         "reuse": -1
       },
       "tissue_segmentation": true,
-      "cell_segmentation": false,
+      "cell_segmentation": true,
+      "magnification": 10,
       "channel_align": 0
     },
     "HE": {
@@ -54,11 +57,27 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": true,
+      "magnification": 10,
       "channel_align": -1
     },
     "ssDNA": {
       "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000135TL_D1/SS200000135TL_D1_fov_stitched_ssDNA.tif",
       "tech_type": "ssDNA",
+      "chip_detect": false,
+      "quality_control": true,
+      "registration": {
+        "fixed_image": -1,
+        "trackline": true,
+        "reuse": -1
+      },
+      "tissue_segmentation": true,
+      "cell_segmentation": true,
+      "magnification": 10,
+      "channel_align": -1
+    },
+    "Protein": {
+      "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000045_M5/SS200000045_M5.raw.gef",
+      "tech_type": "Protein",
       "chip_detect": false,
       "quality_control": false,
       "registration": {
@@ -67,16 +86,29 @@
         "reuse": -1
       },
       "tissue_segmentation": true,
-      "cell_segmentation": true,
+      "cell_segmentation": false,
+      "magnification": 10,
       "channel_align": -1
     }
   },
   "molecular_classify": {
     "Transcriptomics": {
       "exp_matrix": 1,
-      "cell_mask": [
-        0
-      ],
+      "cell_mask": {
+        "nuclei":[0],
+        "interior": [],
+        "boundary":[]
+      },
+      "correct_r": 10,
+      "extra_method": ""
+    },
+    "Protein": {
+      "exp_matrix": 5,
+      "cell_mask": {
+        "nuclei":[0],
+        "interior": [],
+        "boundary":[]
+      },
       "correct_r": 10,
       "extra_method": ""
     }
@@ -85,7 +117,7 @@
     "qc": true,
     "alignment": true,
     "matrix_extract": true,
-    "report": false,
+    "report": true,
     "annotation": false
   }
 }

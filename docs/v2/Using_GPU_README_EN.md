@@ -71,11 +71,11 @@ After downloading the archive file perform the following installation steps:
 
 eg：
 
-![cuDNN 文件夹](../images/Use_GPU/cuDNN.png)
+![cuDNN folder](../images/Use_GPU/cuDNN.png)
 
 (This is the unzipped folder of cuDNN)
 
-![CUDA 文件夹](../images/Use_GPU/CUDA.png)
+![CUDA folder](../images/Use_GPU/CUDA.png)
 
 (This is the folder in the corresponding version of CUDA)
 
@@ -113,7 +113,7 @@ pip show  onnxruntime-gpu
 pip install --no-deps cellbin
 
 
-## If**onnxruntime-gpu version: Version: x.x.x Required-by:xxx 中 Required-by not include cell-bin
+## If**onnxruntime-gpu version: Version: x.x.x Required-by:xxx  Required-by not include cell-bin
 #uninstall onnxruntime onnxruntime-gpu
 pip uninstall onnxruntime onnxruntime-gpu -y
 # Install a suitable version
@@ -123,7 +123,7 @@ pip show onnxruntime-gpu
 ```
 ### Other steps GPU calls work fine, mIF has problems using cellpose
 
-![GPU 转 CPU](../images/Use_GPU/cellpose_wa.png)
+![GPU 2 CPU](../images/Use_GPU/cellpose_wa.png)
 
 The main reason for the above is the mismatch between PyTorch version and CUDA version.  
 
@@ -139,7 +139,7 @@ pip show torch
 For example: current PyTorch version: 2.4.1, prompts requires: cuda-cu12  
 PyTorch and current cuda version conflict. This is due to the fact that the highest version of PyTorch is installed by default in the cellpose environment.
 
-![环境检查](../images/Use GPU/pytorch_version.png)
+![envitoment checking](../images/Use GPU/pytorch_version.png)
 
 If this is the case, you can first check the appropriate current version of ``PyTorch`` for CUDA by following the link  
 

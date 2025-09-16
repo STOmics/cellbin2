@@ -1,5 +1,5 @@
 case1: only qc <br>
-Find cellbin2/Stereo-CITE T FF.json<br>
+Find cellbin2/Stereo-CITE_T_FF.json<br>
 change run like follows
    
 ```shell
@@ -43,13 +43,13 @@ python cellbin2/cellbin_pipeline.py \
 -s DAPI \
 -imf SN_IF.tif \
 -m SN.raw.gef \
--k "Stereo-CITE T FF V1.0" \
+-k "Stereo-CITE_T_FF_V1.0" \
 -o result/SN 
 ```
 ---
 case3: only alignment without registration & matrix extract <br>
 This mode assumes the input image is aligned, so only run tissue and cell seg <br>
-If kit type is Stereo-CITE T FF V1.0, you find Stereo-CITE T FF.json under cellbin2/config <br>
+If kit type is Stereo-CITE_T_FF_V1.0, you find Stereo-CITE_T_FF.json under cellbin2/config <br>
 change run like follows
 ```shell
 "run": {
@@ -62,14 +62,14 @@ change run like follows
 ```
 ---
 case 4: No matrix <br>
-Stereo-seq T FF
+Stereo-seq_T_FF
 ssDNA
 ```shell
 -c SN 
 -i /Path/TO/SN_fov_stitched_ssDNA.tif 
 -s ssDNA 
 -o /Path/TO//test/SN 
--k "Stereo-seq T FF V1.2"
+-k "Stereo-seq_T_FF_V1.2"
 ```
 ---
 case 5: Create bin1 matrix image

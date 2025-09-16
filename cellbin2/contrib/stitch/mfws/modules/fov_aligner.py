@@ -3,7 +3,6 @@ Matcher provide the way to get overlap/offset from neighbor FOV.
 """
 import glog
 import copy
-import time
 import tifffile
 import itertools
 
@@ -11,16 +10,11 @@ import cv2 as cv
 import numpy as np
 from tqdm import tqdm
 
-from multiprocessing import Process, Manager, Pool, cpu_count
+from multiprocessing import Manager, Pool
 try:
     from .jitter_correct import JitterCorrect
 except ImportError:
     from jitter_correct import JitterCorrect
-
-try:
-    from .image import Image
-except ImportError:
-    from image import Image
 
 
 def rc_key(row: int, col: int):
@@ -84,7 +78,8 @@ class FOVAligner(object):
             add_flag = False
             for k_index, k in enumerate(arr):
 
-                if k == n: continue
+                if k == n:
+                    continue
                 elif np.abs(k - n) <= cn:
 
                     if len(cluster_list) == 0:
@@ -119,7 +114,8 @@ class FOVAligner(object):
                 if min(overlap_dis[0]) < i < max(overlap_dis[0]): flag = True
                 index = list(x_set).index(i)
                 count += x_count[index]
-            if flag: x_dict[k] = (xc, count)
+            if flag:
+                x_dict[k] = (xc, count)
         x_list = max(x_dict.items(), key=lambda x: x[1][1])[1][0]
 
         y_dict = dict()
@@ -161,17 +157,28 @@ class FOVAligner(object):
                 # process_list = []
                 # num = int(cpu_count() / 2)
                 # num = 10
-                glog.info(f"stitch using {self.num} process")
+                glog.info(f"Stitch using {self.num} process")
                 pool = Pool(processes=self.num)
+
+                pb = tqdm(total=len(tesk_list), colour='green', unit='row', ncols=100)
+                pb.set_description('Calculate jitter')
 
                 for tesk in tesk_list:
                     if list(tesk.keys())[0] == 'row':
                         row_index = tesk['row']
-                        pool.apply_async(func=self._multi_jitter, args=(h_j, confi_h, row_index, None, 0))
+                        pool.apply_async(
+                            func=self._multi_jitter,
+                            args=(h_j, confi_h, row_index, None, 0),
+                            callback=lambda *args: pb.update(1)
+                        )
 
                     elif list(tesk.keys())[0] == 'col':
                         col_index = tesk['col']
-                        pool.apply_async(func=self._multi_jitter, args=(v_j, confi_v, None, col_index, 1))
+                        pool.apply_async(
+                            func=self._multi_jitter,
+                            args=(v_j, confi_v, None, col_index, 1),
+                            callback=lambda *args: pb.update(1)
+                        )
 
                     else:
                         pass
@@ -190,7 +197,7 @@ class FOVAligner(object):
                     confi_mask[row, col, 1] = confi_v[key]
         else:
             glog.info("Scan Row by Row.")
-            for i in tqdm(range(self.rows), desc='RowByRow'):
+            for i in tqdm(range(self.rows), desc='RowByRow', colour='green', unit='row', ncols=100):
                 train = self._get_image(i, 0)
                 for j in range(1, self.cols):
                     query = self._get_image(i, j)
@@ -203,7 +210,7 @@ class FOVAligner(object):
                     train = query
 
             glog.info("Scan Col by Col.")
-            for j in tqdm(range(self.cols), desc='ColByCol'):
+            for j in tqdm(range(self.cols), desc='ColByCol', colour='green', unit='col', ncols=100):
                 train = self._get_image(0, j)
                 for i in range(1, self.rows):
                     query = self._get_image(i, j)
@@ -236,7 +243,7 @@ class FOVAligner(object):
         jc = JitterCorrect([self.horizontal_jitter, self.vertical_jitter], image_size = self.i_shape)
         self.horizontal_jitter, self.vertical_jitter = jc.correct()
 
-        glog.info("Scan image done!")
+        # glog.info("Scan image done")
 
     def offset_eval(self, height, width, overlap=[0.1, 0.1]):
         """
@@ -500,7 +507,7 @@ class FFTMatcher(Matcher):
         lims = np.array([[-size_y, size_y], [-size_x, size_x]])
         max_peak = self._interpret_translation(
             image1, image2, yins, xins, *lims[0], *lims[1]
-        )  # opposite to inputted position parameter 
+        )  # 与输入进来的位置参数刚好相反
         ncc, offset_y, offset_x, sub_dst, sub_src = max_peak
         return ncc, offset_y, offset_x, sub_dst, sub_src
 
@@ -977,10 +984,8 @@ class FFTMatcher(Matcher):
 
 
 if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-
-    dst_path = r"G:\0423\output\A02788B1\images\0005_0005.tif"
-    src_path = r"G:\0423\output\A02788B1\images\0005_0006.tif"
+    dst_path = r"G:\0423\output\images\0005_0005.tif"
+    src_path = r"G:\0423\output\images\0005_0006.tif"
 
     dst_img = tifffile.imread(dst_path)
     src_img = tifffile.imread(src_path)

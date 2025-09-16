@@ -26,13 +26,12 @@ Configures parallel processing tasks for different stained image or gene. Keys `
 #### **2. Molecular Classification Module (`molecular_classify`)**  
 Integrates multimodal data to generate molecular expression matrices.
 
-| Slot | Field           | Example                     | Description                                                              |
-|-----|-----------------|-----------------------------|--------------------------------------------------------------------------|
-| 0-N |                 | gene matrix task : (e.g., 0) | the Numberical order of task                                             |
-|     | `exp_matrix`    | `1`                         | Use Slot 1 (Transcriptomics or Protein) data as expression matrix source |
-|     | `cell_mask`     | `[0]`                       | Use cell mask from Slot 0                                                |
-|     | `correct_r`     | `10`                         | Cell mask correction radius (pixels). `0` = disable correction (execute in alignment)   |
-|     | `extra_method`  | `""`                        | Reserved for custom analysis methods (empty by default,other method is To Be Extended) |
+| Slot | Field           | Example                      | Description                                                              |
+|-----|-----------------|------------------------------|--------------------------------------------------------------------------|
+| 0-N |                 | gene matrix task : (e.g., 0) | The numberical order of task                                             |
+|     | `exp_matrix`    | `1`                          | Use Slot 1 (Transcriptomics or Protein) data as expression matrix source |
+|     | `cell_mask`     | `{"nuclei":[0], "interior": [], "boundary":[]}`| Mask dictionary                                                |
+|     | `extra_method`  | `""`                         | Reserved for custom analysis methods (empty by default,other method is To Be Extended) |
 
 
 ---

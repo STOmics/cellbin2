@@ -80,6 +80,7 @@ tissueSegmentation:
   Protein_weights_path: tissueseg_bcdu_rna_220909_tf.onnx
   GPU: 0
   num_threads: 0
+  best_tissue_mask_method: 0
 
 cellSegmentation:
   ssDNA_weights_path: cellseg_bcdu_SHDI_221008_tf.onnx
@@ -90,6 +91,7 @@ cellSegmentation:
   Protein_weights_path: cellseg_unet_RNA_20230606.onnx
   GPU: 0
   num_threads: 0
+  enhance_times: 1
 
 Registration:
   HE_channel: 1

@@ -251,3 +251,4 @@ if __name__ == "__main__":
 
     # Perform object detection and obtain the output image
     output_image = detection.run(args.img)
+
