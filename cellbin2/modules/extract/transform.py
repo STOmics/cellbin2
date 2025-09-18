@@ -1,5 +1,6 @@
 import numpy as np
 from pydantic import BaseModel, Field
+import os
 from typing import Dict, Tuple, Union, Optional
 
 from cellbin2.image import cbimread, CBImage
@@ -11,6 +12,7 @@ from cellbin2.utils.stereo_chip import StereoChip
 from cellbin2.modules.metadata import ProcParam, ProcFile
 from cellbin2.modules import naming
 from cellbin2.utils import clog
+from cellbin2.contrib.chip_transform import chip_transform
 
 
 def read_transform(
@@ -105,9 +107,24 @@ def run_transform(
         research_mode=research_mode,
     )
     # Apply transformations to the image
-    transform_image = cbimread(file.file_path).trans_image(
-        scale=scale, rotate=rotation, offset=offset
-    )
+    if file.chip_matching != -1:
+        fixed_path = files[file.chip_matching].file_path
+        clog.info('Transform [moving, fixed] == ({}, {})'.format(
+            os.path.basename(file.file_path), os.path.basename(fixed_path)))
+        chip_scale = [1, float(file.magnification) / files[file.chip_matching].magnification]
+
+        registed_image_tmp = chip_transform(
+            fixed_image=fixed_path,
+            moving_image=file.file_path,
+            scale=chip_scale,
+        )
+        transform_image = registed_image_tmp.trans_image(
+            scale=scale, rotate=rotation, offset=offset
+        )
+    else:
+        transform_image = cbimread(file.file_path).trans_image(
+            scale=scale, rotate=rotation, offset=offset
+        )
     trans_im_shape = transform_image.shape
     g_name = file.get_group_name(sn=param_chip.chip_name)
     image_info = channel_images[g_name]

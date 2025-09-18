@@ -402,53 +402,38 @@ class Scheduler(object):
         # since this is registration, single-image processing is considered complete by default
         for idx, f in self._files.items():
             if f.is_image:
-                if f.chip_matching == -1 and f.channel_align == -1:
-                    clog.info('======>  File[{}] CellBin, {}'.format(idx, f.file_path))
-                    g_name = f.get_group_name(sn=self.param_chip.chip_name)
-                    cur_f_name = naming.DumpImageFileNaming(
-                        sn=self.param_chip.chip_name,
-                        stain_type=g_name,
-                        save_dir=self._output_path
+                clog.info('======>  File[{}] CellBin, {}'.format(idx, f.file_path))
+                g_name = f.get_group_name(sn=self.param_chip.chip_name)
+                cur_f_name = naming.DumpImageFileNaming(
+                    sn=self.param_chip.chip_name,
+                    stain_type=g_name,
+                    save_dir=self._output_path
+                )
+                if self._channel_images is not None and self._ipr is not None:
+                    if f.registration.fixed_image == -1 and f.registration.reuse == -1:
+                        continue
+                    if f.registration.fixed_image == -1 and self._files[
+                        f.registration.reuse].registration.fixed_image == -1:
+                        continue
+                    run_register(
+                        image_file=f,
+                        cur_f_name=cur_f_name,
+                        files=self._files,
+                        channel_images=self._channel_images,
+                        output_path=self._output_path,
+                        param_chip=self.param_chip,
+                        config=self.config,
+                        debug=self.debug
                     )
-                    if self._channel_images is not None and self._ipr is not None:
-                        if f.registration.fixed_image == -1 and f.registration.reuse == -1:
-                            continue
-                        if f.registration.fixed_image == -1 and self._files[
-                            f.registration.reuse].registration.fixed_image == -1:
-                            continue
-                        run_register(
-                            image_file=f,
-                            cur_f_name=cur_f_name,
-                            files=self._files,
-                            channel_images=self._channel_images,
-                            output_path=self._output_path,
-                            param_chip=self.param_chip,
-                            config=self.config,
-                            debug=self.debug
-                        )
-                        if f.registration.fixed_image != -1:
-                            fixed = self._files[f.registration.fixed_image]
-                            if fixed.is_matrix:
-                                self.matrix_file = self._files[f.registration.fixed_image]
-                    else:
-                        transform_to_register(
-                            cur_f_name=cur_f_name
-                        )
+                    if f.registration.fixed_image != -1:
+                        fixed = self._files[f.registration.fixed_image]
+                        if fixed.is_matrix:
+                            self.matrix_file = self._files[f.registration.fixed_image]
                 else:
-                    if f.chip_matching != -1:
-                        fixed_path = cur_f_name.registration_image
-                        clog.info('Transform [moving, fixed] == ({}, {})'.format(
-                            os.path.basename(f.file_path), os.path.basename(fixed_path)))
-                        scale = [1, float(f.magnification) / 10]
-
-                        chip_transform(
-                            fixed_image=fixed_path,
-                            moving_image=f.file_path,
-                            scale=scale,
-                            output_path=os.path.join(
-                                self._output_path,
-                                f'{self.param_chip.chip_name}_{f.tech_type}_regist.tif')
-                        )
+                    transform_to_register(
+                        cur_f_name=cur_f_name
+                    )
+                
 
     def run_merge_masks(self):
         """

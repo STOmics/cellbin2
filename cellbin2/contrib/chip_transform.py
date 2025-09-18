@@ -14,6 +14,7 @@ from typing import Union
 from cellbin2.utils import clog
 from cellbin2.image import cbimread, cbimwrite
 from cellbin2.contrib.calibration import Calibrate
+from cellbin2.image import CBImage
 
 
 def _to_color(
@@ -38,11 +39,11 @@ def _to_color(
 def chip_transform(
         fixed_image: Union[np.ndarray, str],
         moving_image: Union[np.ndarray, str],
-        output_path: str,
+        output_path: str = None,
         color_space: str = "HSV",
         scale: list = None,
         method: int = 1
-) -> None:
+) -> CBImage:
     """
 
     Args:
@@ -62,7 +63,7 @@ def chip_transform(
 
     fixed_image = cbimread(fixed_image)
     moving_image = cbimread(moving_image)
-    # moving_image = moving_image.trans_image(flip_lr = True)
+    moving_image = moving_image.trans_image(flip_lr = True)
 
     fi, mi = map(
         lambda x: _to_color(x, color_space),
@@ -83,16 +84,17 @@ def chip_transform(
         method = method
     ).calibration()
 
-    clog.info("Chip transform -- write image...")
-    _new_mi = cbimread(new_mi)
-    _new_mi = _new_mi.resize_image(2)
+    if output_path != None:
+        clog.info("Chip transform -- write image...")
+        _new_mi = cbimread(new_mi)
+        _new_mi = _new_mi.resize_image(2)
+        cbimwrite(output_path, new_mi)
+        cbimwrite(output_path.replace("_regist", "_20X_regist"), _new_mi)
 
-    cbimwrite(output_path, new_mi)
-    cbimwrite(output_path.replace("_regist", "_20X_regist"), _new_mi)
-
+    return CBImage(new_mi) 
 
 if __name__ == "__main__":
-    chip_transform(
+    img = chip_transform(
         fixed_image = r"D:\02.data\temp\temp\src_image\LXX_2_HE_d2.tif",
         moving_image = r"D:\02.data\temp\temp\src_image\lxx_宫颈癌2\test_v3.tif",
         output_path = r"D:\02.data\temp\temp\src_image\lxx_宫颈癌2\regis_v3.tif",
