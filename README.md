@@ -15,34 +15,39 @@ CellBin is an image processing pipeline designed to delineate cell boundaries fo
 
 
 ## Installation and Quick Start
-
+### Option 1: Install via pip 
 ```shell
-# Clone the main repository
-git clone https://github.com/STOmics/cellbin2
-# git clone -b <branch> https://github.com/STOmics/cellbin2
-
 # Create and activate a Conda environment
-conda create --name cellbin2 python=3.8
-conda activate cellbin2
-
+conda create --name env-cellbinv2 python=3.8
+conda activate env-cellbinv2
+# Install the cellbin2 from PyPI
+pip install cellbin2==1.1.0
+# Or install with optional dependencies
+pip install cellbin2[cp,rs]==1.1.0      # Editable install with basic extras
+pip install cellbin2[cp,rs,rp]==1.1.0   # # Editable install including report module
+```
+### Option 2: Install from source
+```shell
+# Create and activate a Conda environment
+conda create --name env-cellbinv2 python=3.8
+conda activate env-cellbinv2
+# Clone the repository
+git clone https://github.com/STOmics/cellbin2
 # Install package dependencies
 cd cellbin2
-pip install .[cp,rs]
-
-# For development mode (optional):
-# pip install -e .[cp,rs]      # Editable install with basic extras
-# pip install -e .[cp,rs,rp]   # Editable install including report module
+pip install -e .[cp,rs]    # Editable install with basic extras
+pip install -e .[cp,rs,rp]   # Editable install including report module
 # if you pip install packages error, please refer to the pyproject.toml file for more details.
 
 # Execute the demo (takes ~30-40 minutes on GPU hardware)
 python demo.py
 ```
 
-**Quick start:**  
+### Quick start:
 We provide ready-to-use environment packages for both Linux and Windows. Simply download, unzip, and follow our [Quick Start](docs/v2/PREPACKAGED_ENV.md) to get started in minutes.
 
 
-**Performance Note:**  
+### Performance Note: 
 We strongly recommend using GPU acceleration for optimal performance. Below is the runtime comparison of two processing modes for an S1 chip (1cm² chip area):
 
 | Processing Mode | Runtime    |
@@ -57,7 +62,7 @@ We strongly recommend using GPU acceleration for optimal performance. Below is t
 
 If the pipeline defaults to CPU mode unexpectedly, follow our [GPU troubleshooting guide](docs/v2/Using_GPU_README_EN.md) to verify your hardware setup.
 
-**Output Verification:**  
+### Output Verification: 
 After completion, validate the output integrity by comparing your results with the [Outputs](#outputs). 
 
 

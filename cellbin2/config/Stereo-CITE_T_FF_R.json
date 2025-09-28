@@ -103,7 +103,7 @@
       "extra_method": ""
     },
     "Protein": {
-      "exp_matrix": 1,
+      "exp_matrix": 5,
       "cell_mask": {
         "nuclei":[0],
         "interior": [],

@@ -8,9 +8,9 @@ The "molecular_classify" module utilizes a "cell_mask" dictionary within each sl
 
 ```shell
 "cell_mask": {
-        "core":[0],
+        "nuclei":[0],
         "interior":[1],
-        "cell":[2]
+        "boundary":[2]
       }
 "correct_r":10
 ```
@@ -32,9 +32,9 @@ When processing input data containing only nuclei stain images, the JSON configu
 
 ```shell
 "cell_mask": {
-        "core":[0],
+        "nuclei":[0],
         "interior":[],
-        "cell":[]
+        "boundary":[]
       }
 "correct_r":10      
 ```
@@ -50,9 +50,9 @@ When the input data contains both nuclei stain and membrane stain images, the JS
 
 ```shell
 "cell_mask": {
-        "core":[0],
+        "nuclei":[0],
         "interior":[],
-        "cell":[2]
+        "boundary":[2]
       }
 "correct_r":10      
 ```
@@ -60,8 +60,7 @@ This method processes each nuclei individually by first resolving overlaps betwe
 
 | File Name | Description |
 | ---- | ---- |
-| core_cell_merged_mask.tif | Nuclei cell integration mask |
-| SN_cell_mask.tif | Expanded cell mask |
+| SN_cell_mask.tif | Nuclei cell integration mask |
 
 #### 3. Nuclei Interior Cell Integration Method
 Full demo JSON file visit: [Nuclei Interior Cell JSON](../../cellbin2/config/demos/sample_multimodal.json)
@@ -69,9 +68,9 @@ When the input data contains all three type of stain images, the JSON file shoul
 
 ```shell
 "cell_mask": {
-        "core":[0],
+        "nuclei":[0],
         "interior":[3],
-        "cell":[2]
+        "boundary":[2]
       }
 "correct_r":10      
 ```
@@ -84,8 +83,7 @@ After membrane and interior mask are merged, nuclei mask are added. Similar to n
 
 | File Name | Description |
 | ---- | ---- |
-| core_interior_cell_merged_mask.tif | Nuclei interior cell integration mask |
-| SN_cell_mask.tif | Expanded cell mask |
+| SN_cell_mask.tif | Nuclei interior cell integration mask |
 | multimodal_mid_file | Intermediate mask files generated during processing |
 | multimodal_mid_file/cell_mask_add_interior_add_nuclei.tif | Nuclei interior cell integration mask |
 | multimodal_mid_file/cell_mask_add_interior.tif | Mask of merged cell and interior |
