@@ -202,7 +202,6 @@ CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
 ```
 please modify [Plant.json](cellbin2/config/demos/Plant.json)<br>
 
-
 #### Case 7: Multi-stain cellbin <br>
 ssDNA + HE + trans gef
  ```shell
