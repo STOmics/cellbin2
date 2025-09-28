@@ -245,7 +245,13 @@ class TrackPointQC(object):
                     mininterval=10,
                     desc='Track points detect'
             ):
+                if isinstance(val, (list, tuple)):
+                    y0, y1, x0, x1 = val
+                    if (y1 - y0) <= 1 or (x1 - x0) <= 1:
+                        continue
                 img_obj: CBImage = self.img_read(val, buffer)
+                if img_obj is None:
+                    continue
                 cp, angle = self.ci.predict(img_obj)
                 if save_dir is not None:
                     # debug mode
@@ -263,7 +269,13 @@ class TrackPointQC(object):
                     mininterval=10,
                     desc='Track points detect'
             ):
+                if isinstance(val, (list, tuple)):
+                    y0, y1, x0, x1 = val
+                    if (y1 - y0) <= 1 or (x1 - x0) <= 1:
+                        continue
                 img_obj = self.img_read(val, buffer)
+                if img_obj is None:
+                    continue
                 sub_process = pool.apply_async(self.ci.predict, args=(img_obj,))
                 processes.append([key, sub_process, img_obj])
             pool.close()
