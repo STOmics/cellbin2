@@ -26,6 +26,8 @@ from cellbin2.modules.extract.tissue_seg import run_tissue_seg
 from cellbin2.modules.extract.cell_seg import run_cell_seg
 from cellbin2.contrib.mask_manager import BestTissueCellMask, MaskManagerInfo
 from cellbin2.modules.extract.matrix_extract import extract4stitched
+from cellbin2.modules.cellmask_fixer import CellMaskFixer
+from cellbin2.contrib.multimodal_cell_merge import cell_filter, overlap_v2, multimodal_merge, keep_large_nucleus_fragments
 
 
 class Scheduler(object):
@@ -95,9 +97,10 @@ class Scheduler(object):
         data = {}
         for idx, f in self._files.items():
             g_name = f.get_group_name(sn=self.param_chip.chip_name)
+            n = naming.DumpImageFileNaming(
+                sn=self.param_chip.chip_name, stain_type=g_name, save_dir=self._output_path)
                 
             if f.is_image:
-                n = naming.DumpImageFileNaming(sn=self.param_chip.chip_name, stain_type=g_name, save_dir=self._output_path)
                 data[g_name] = {}
                 if os.path.exists(n.cell_mask):
                     data[g_name]['CellMask'] = n.cell_mask
@@ -126,29 +129,9 @@ class Scheduler(object):
                         data[g_name]['TissueMaskRawTransform'] = n.transform_tissue_mask_raw
             else:
                 if g_name == 'Transcriptomics' and not f.is_image and f.cell_segmentation:
-                # if f.cell_segmentation or f.tissue_segmentation:
-                    m_naming = naming.DumpMatrixFileNaming(sn=self.param_chip.chip_name, m_type=g_name, save_dir=self._output_path)
                     data[g_name] = {} 
-
-                    # check cell mask
-                    if f.cell_segmentation and os.path.exists(m_naming.cell_mask):
-                        data[g_name]['CellMask'] = m_naming.cell_mask
-                        clog.info(f'Added matrix cell mask to RPI: {m_naming.cell_mask}')
-
-                    # check tissue mask
-                    if f.tissue_segmentation and os.path.exists(m_naming.tissue_mask):
-                        data[g_name]['TissueMask'] = m_naming.tissue_mask
-                        clog.info(f'Added matrix tissue mask to RPI: {m_naming.tissue_mask}')
-
-                    # check heatmap
-                    if os.path.exists(m_naming.heatmap):
-                        data[g_name]['Image'] = m_naming.heatmap
-                        clog.info(f'Added matrix heatmap to RPI: {m_naming.heatmap}')
-
-                    # if os.path.exists(n.cell_mask):
-                    #     data[g_name]['CellMask'] = n.cell_mask
-
-
+                    if os.path.exists(n.cell_mask):
+                        data[g_name]['CellMask'] = n.cell_mask
         data['final'] = {}
         data['final']['CellMask'] = self.p_naming.final_nuclear_mask
         data['final']['TissueMask'] = self.p_naming.final_tissue_mask
@@ -288,7 +271,7 @@ class Scheduler(object):
             )
             btcm = BestTissueCellMask.get_best_tissue_cell_mask(input_data=input_data)
             final_tissue_mask = btcm.best_tissue_mask
-            final_cell_mask = btcm.best_cell_mask
+            #final_cell_mask = btcm.best_cell_mask
         if final_cell_mask is not None:
             cbimwrite(
                 output_path=cs_save_path,
@@ -373,9 +356,10 @@ class Scheduler(object):
                 print('Cell segmentation enabled: {}'.format(f.cell_segmentation))
                 
                 if f.tissue_segmentation or f.cell_segmentation:
+                    g_name = f.get_group_name(sn=self.param_chip.chip_name, pattern="Transcriptomics")
                     cur_m_naming = naming.DumpMatrixFileNaming(
                         sn=self.param_chip.chip_name,
-                        m_type=f.tech.name,
+                        m_type=g_name,
                         save_dir=self._output_path,
                     )
                     print('Matrix file naming configuration:')
@@ -413,6 +397,34 @@ class Scheduler(object):
                             config=self.config,
                         )
                         print('Cell segmentation completed')
+        for idx, f in self._files.items():
+            if f.is_image and f.cell_segmentation==True:
+                g_name = f.get_group_name(sn=self.param_chip.chip_name)
+                cur_f_name = naming.DumpImageFileNaming(
+                    sn=self.param_chip.chip_name,
+                    stain_type=g_name,
+                    save_dir=self._output_path
+                )
+                cs_path = cur_f_name.transform_cell_mask_raw
+                save_path = cur_f_name.transform_cell_mask
+                cell_mask = cbimread(cs_path, only_np=True)
+                if f.tissue_filter == -1:
+                    ts_path = cur_f_name.transform_tissue_mask
+                else:
+                    filter_f_name = naming.DumpImageFileNaming(
+                        sn=self.param_chip.chip_name,
+                        stain_type=self._files[f.tissue_filter].get_group_name(sn=self.param_chip.chip_name),
+                        save_dir=self._output_path
+                    )
+                    ts_path = filter_f_name.transform_tissue_mask
+                if os.path.exists(ts_path):
+                    tissue_mask = cbimread(ts_path, only_np=True)
+                    filter_mask = BestTissueCellMask.best_cell_mask(tissue_mask, cell_mask)
+                    if filter_mask is not None:
+                        cbimwrite(
+                            output_path=save_path,
+                            files=filter_mask
+                        )
 
     def run_mul_image(self):
         """
@@ -474,15 +486,17 @@ class Scheduler(object):
             core_mask = [] #list for nuclei masks
             interior_mask = [] #list for interior masks
             cell_mask = [] #list for boundary masks
+            matrix_mask = [] #list for matrix masks
             clog.info('======>  Extract[{}], {}'.format(idx, m))
             distance =  m.correct_r
             final_nuclear_path = self.p_naming.final_nuclear_mask 
             final_t_mask_path = self.p_naming.final_tissue_mask
             final_cell_mask_path = self.p_naming.final_cell_mask 
-            print(final_cell_mask_path)
+            final_matrix_mask_path = self.p_naming.final_matrix_mask
             core_mask = m.cell_mask["nuclei"]
             interior_mask = m.cell_mask["interior"]
             cell_mask = m.cell_mask["boundary"]
+            matrix_mask = m.cell_mask["matrix"]
 
 
             # integrate nuclei, interior, cell seperatly 
@@ -550,9 +564,8 @@ class Scheduler(object):
                     )
                     cbimwrite(final_cell_mask_path, fast_mask)
             # --------------------nuclei cell merge----------------------
-            elif len(interior_mask) == 0 and len(cell_mask) != 0 and len(core_mask) != 0:
+            elif len(interior_mask) == 0 and len(cell_mask) != 0:
                 from cellbin2.contrib.mask_manager import merge_cell_mask
-                from cellbin2.contrib.multimodal_cell_merge import interior_cell_merge
                 save_path = os.path.join(self._output_path, "multimodal_mid_file")
                 os.makedirs(save_path, exist_ok=True)
                 #merged_mask = merge_cell_mask(merged_cell_mask, merged_core_mask)
@@ -571,12 +584,10 @@ class Scheduler(object):
                 # merge expanded nuclei with cell
                
                 expand_nuclei = cbimread(expand_nuclei_path, only_np=True)
-                final_mask = interior_cell_merge(merged_cell_mask, expand_nuclei, overlap_threshold=0.9, save_path="")
+                secondary_mask_final, final_mask = overlap_v2(expand_nuclei, merged_cell_mask, overlap_threshold=0.9, save_path="")
                 cbimwrite(final_cell_mask_path, final_mask)
             # --------------------multimodal merge--------------------
-            elif len(interior_mask) != 0 and len(cell_mask) != 0 and len(core_mask) != 0:
-                from cellbin2.contrib.multimodal_cell_merge import multimodal_merge
-                from cellbin2.contrib.multimodal_cell_merge import interior_cell_merge
+            elif len(interior_mask) != 0 and len(cell_mask) != 0:
                 save_path = os.path.join(self._output_path, "multimodal_mid_file")
                 os.makedirs(save_path, exist_ok=True)
                 merged_mask = multimodal_merge(merged_core_mask, merged_cell_mask, merged_interior_mask, overlap_threshold=0.5, save_path = save_path)
@@ -596,16 +607,45 @@ class Scheduler(object):
                 cell_mask_add_interior = cbimread(cell_mask_add_interior_path, only_np=True)
                 
                 expand_nuclei = cbimread(expand_nuclei_path, only_np=True)
-                final_mask = interior_cell_merge(cell_mask_add_interior, expand_nuclei, overlap_threshold=0.9, save_path="")
+                secondary_mask_final, final_mask = overlap_v2(expand_nuclei, cell_mask_add_interior, overlap_threshold=0.9, save_path="")
                 #final_mask = cbimread(os.path.join(save_path2, "cell_mask_add_interior.tif"), only_np=True)
                 cbimwrite(final_cell_mask_path, final_mask)
-            # --------------------boundary only--------------------
-            elif len(interior_mask) == 0 and len(cell_mask) != 0:
-                cbimwrite(final_cell_mask_path, merged_cell_mask)
-            # --------------------interior only--------------------
-            elif len(interior_mask) != 0 and len(cell_mask) == 0:
-                cbimwrite(final_cell_mask_path, merged_interior_mask)
-                
+            # --------------------matrix fix--------------------
+            if len(matrix_mask) != 0: #interior mask exist    
+                from cellbin2.contrib.mask_manager import merge_cell_mask
+
+                ma_naming = naming.DumpMatrixFileNaming(
+                sn=self.param_chip.chip_name,
+                m_type=self._files[matrix_mask[0]].get_group_name(sn=self.param_chip.chip_name, pattern = 'Transcriptomics'),
+                save_dir=self._output_path,
+            )
+                pri_mask_path = ma_naming.cell_mask
+                print(pri_mask_path)
+                if len(matrix_mask) == 1:
+                    shutil.copy2(pri_mask_path, final_matrix_mask_path)
+                else:
+                    pri_mask = cbimread(pri_mask_path, only_np=True)
+                    for i in matrix_mask[1:]:
+                        ma_naming = naming.DumpMatrixFileNaming(
+                        sn=self.param_chip.chip_name,
+                        m_type=self._files[i].get_group_name(sn=self.param_chip.chip_name, pattern = 'Transcriptomics'),
+                        save_dir=self._output_path,
+                        )
+                        sed_mask_path = ma_naming.cell_mask
+                        print(sed_mask_path)
+                        sed_mask = cbimread(sed_mask_path, only_np=True)
+                        _, pri_mask = merge_cell_mask(pri_mask, sed_mask)
+                    cbimwrite(final_matrix_mask_path, pri_mask)
+                if final_nuclear_path.exists():
+                    cmf=CellMaskFixer(source_imge=str(final_matrix_mask_path),refer_image=str(final_nuclear_path),sn=self.param_chip.chip_name)
+                    cmf.fix_notsinglecell2mask(out_path=self._output_path, save=True)   
+            if final_nuclear_path.exists() and final_cell_mask_path.exists():
+                filtered_core_mask = cell_filter(final_nuclear_path,final_cell_mask_path)
+                final_nuclear = cbimread(final_nuclear_path, only_np=True)
+                filtered_core_mask = keep_large_nucleus_fragments(final_nuclear, filtered_core_mask)
+                cbimwrite(final_nuclear_path, filtered_core_mask)
+
+
 
 
     def run(self, chip_no: str, input_image: str,

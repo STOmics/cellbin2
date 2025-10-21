@@ -7,7 +7,7 @@
       "quality_control": false,
       "registration": {
         "fixed_image": -1,
-        "trackline": false,
+        "trackline": true,
         "reuse": -1
       },
       "tissue_segmentation": false,

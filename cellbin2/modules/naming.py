@@ -203,6 +203,11 @@ class DumpPipelineFileNaming(object):
     def final_tissue_mask(self, ):
         """Final tissue mask"""
         return '{}_tissue_mask.tif'.format(self._chip_no)
+    
+    @my_property_dec
+    def final_matrix_mask(self, ):
+        """Final matrix mask"""
+        return '{}_Transcriptomics_mask.tif'.format(self._chip_no)
 
     @my_property_dec
     def input_json(self):

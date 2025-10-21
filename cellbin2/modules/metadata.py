@@ -63,6 +63,7 @@ class ProcFile(BaseModel):
     channel_align: int
     registration: ProcRegistration
     magnification: int
+    tissue_filter: int
     _supported_matrix = ['.gef', '.gz', '.gem']
     _supported_image = ['.tif', '.tiff', '.TIF', '.TIFF']
 
@@ -98,7 +99,8 @@ class ProcFile(BaseModel):
         """
         Returns the tag extracted from the file name.
         """
-        return os.path.basename(self.file_path).split('.')[0]
+        #return os.path.basename(self.file_path).split('.')[0]
+        return os.path.basename(self.file_path).rsplit('.', 1)[0]
 
     @property
     def is_exists(self,):
@@ -120,6 +122,12 @@ class ProcFile(BaseModel):
                 g_name = '_'.join(_n).strip("_") + f'_{pattern}'
         elif self.tech == TechType.IF:
             g_name = self.tag + f'_{pattern}'
+        elif self.tech == TechType.Transcriptomics:
+            if sn in self.tag:
+                _n = self.tag.split(sn)
+                g_name = '_'.join(_n).strip("_").strip(".")+ f'_{pattern}'
+            else:
+                g_name = self.tag + f'_{pattern}'
         else:
             g_name = self.tech.name
         return g_name
