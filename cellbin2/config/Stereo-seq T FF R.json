@@ -70,9 +70,11 @@
         "trackline": true,
         "reuse": -1
       },
+      
       "tissue_segmentation": true,
-      "cell_segmentation": true,
-      "channel_align": -1
+      "cell_segmentation": false,
+      "channel_align": -1,
+      "magnification": 10
     }
   },
   "molecular_classify": {

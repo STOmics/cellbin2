@@ -51,6 +51,7 @@ class cMatrix(object):
 
     def __init__(self) -> None:
         self._gene_mat = np.array([])
+        self.binx = 1
         self.x_start = 65535
         self.y_start = 65535
         self.h_x_start = 0
@@ -60,7 +61,7 @@ class cMatrix(object):
         self._chip_box: ChipBoxInfo = ChipBoxInfo()
         self.file_path: str = ''
 
-    def read(self, file_path: Path, binx=1, chunk_size=1024 * 1024 * 10):
+    def read(self, file_path: Path, chunk_size=1024 * 1024 * 10):
         """
         this function copy from,
             https://dcscode.genomics.cn/stomics/saw/register/-/blob/main/register/utils/matrixloader.py?ref_type=heads
@@ -68,12 +69,10 @@ class cMatrix(object):
         :param chunk_size:
         :return:
         """
-        ## reset binx
-        binx = 100
         suffix = file_path.suffix
         assert suffix in ['.gz', '.gef', '.gem']
         if suffix == ".gef":
-            self.x_start, self.y_start, self._gene_mat = self._load_gef(file_path, binx=binx)
+            self.binx, self.x_start, self.y_start, self._gene_mat = self._load_gef(file_path)
             return
 
         img = np.zeros((1, 1), np.uint8)
@@ -127,6 +126,7 @@ class cMatrix(object):
             chunksize=chunk_size,
         )
 
+        # TODO: parse header info of the gem and gem.gz
         _list = header.split("\n#")[-2:]
         self.h_x_start = int(_list[0].split("=")[1])
         self.h_y_start = int(_list[1].split("=")[1])
@@ -178,156 +178,54 @@ class cMatrix(object):
         df.close()
         self._gene_mat = img[self.y_start:, self.x_start:]
 
-    # @staticmethod
-    # def _load_gef(file,bin_size=1):
-    #     """
-    #     Speedup version that only for gef file format
-    #     Automatically selects the smallest possible unsigned integer type based on max value:
-    #     - uint8 if max < 256
-    #     - uint16 if max < 65536
-    #     - uint32 otherwise
-    #     """
-    #     chunk_size = 512 * 1024
-    #     with h5py.File(file, "r") as fh:
-    #         dataset = fh[f"/geneExp/bin{bin_size}/expression"]
-
-    #         if not dataset[...].size:
-    #             clog.error("The sequencing data is empty, please confirm the {} file.".format(file))
-    #             raise Exception("The sequencing data is empty, please confirm the {} file.".format(file))
-
-    #         min_x, max_x = dataset.attrs["minX"][0], dataset.attrs["maxX"][0]
-    #         min_y, max_y = dataset.attrs["minY"][0], dataset.attrs["maxY"][0]
-    #         width = max_x - min_x + 1
-    #         height = max_y - min_y + 1
-
-    #         # find the maximum value to determine dtype
-    #         max_val = 0
-    #         for step in range(dataset.size // chunk_size+1):
-    #             data = dataset[step * chunk_size: (step + 1) * chunk_size]
-    #             tmp_max = np.max(data['count']) if data.size>0 else 0
-    #             if tmp_max > max_val:
-    #                 max_val = tmp_max
-
-    #         if max_val <= 255:
-    #             _dtype = np.uint8
-    #         elif max_val <= 65535:
-    #             _dtype = np.uint16
-    #         else:
-    #             _dtype = np.uint32
-
-    #         img = np.zeros((height, width), dtype = _dtype)
-    #         img.fill(0)
-
-    #         for step in range(dataset.size // chunk_size + 1):
-    #             data = dataset[step * chunk_size: (step + 1) * chunk_size]
-    #             parse_gef_line(data, img, _dtype)
-
-    #     return (
-    #         min_x,
-    #         min_y,
-    #         img,
-    #     )
     @staticmethod
-    def _load_gef(file, binx=1):
+    def _load_gef(file):
         """
-        Process GEF files with any bin_size
-        Automatically selects the smallest possible unsigned integer type based on max value:
-        - uint8 if max < 256
-        - uint16 if max < 65536
-        - uint32 otherwise
+        Sepeedup version that for gef file format of all the bin_size
         """
         chunk_size = 512 * 1024
         with h5py.File(file, "r") as fh:
-            dataset = fh[f"/geneExp/bin{binx}/expression"]
+            dataset = fh["/geneExp/bin1/expression"]
 
             if not dataset[...].size:
                 clog.error("The sequencing data is empty, please confirm the {} file.".format(file))
                 raise Exception("The sequencing data is empty, please confirm the {} file.".format(file))
 
+            binx = int(dataset.attrs["resolution"][0]/dataset.attrs["dnbPitch"][0]) # binx标识
             min_x, max_x = dataset.attrs["minX"][0], dataset.attrs["maxX"][0]
             min_y, max_y = dataset.attrs["minY"][0], dataset.attrs["maxY"][0]
-            
-            # For binx > 1, need to consider actual width and height
-            if binx > 1:
-                width = (max_x - min_x) // binx + 1
-                height = (max_y - min_y) // binx + 1
-                
-                # Convert to DataFrame for processing
-                all_data = []
-                for step in range(dataset.size // chunk_size + 1):
-                    data = dataset[step * chunk_size: (step + 1) * chunk_size]
-                    if data.size > 0:
-                        all_data.append(data)
-                
-                if not all_data:
-                    return min_x, min_y, np.zeros((0, 0))
-                    
-                df = pd.DataFrame(np.concatenate(all_data), columns=['x', 'y', 'count'])
-                
-                # Calculate binned coordinates
-                df['x'] = (df['x'] - min_x) // binx
-                df['y'] = (df['y'] - min_y) // binx
-                
-                # Aggregate counts within the same bin
-                new_df = df.groupby(['x', 'y']).agg(count_sum=('count', 'sum')).reset_index()
-                
-                # Determine data type
-                max_val = new_df['count_sum'].max() if len(new_df) > 0 else 0
-                if max_val <= 255:
-                    _dtype = np.uint8
-                elif max_val <= 65535:
-                    _dtype = np.uint16
-                else:
-                    _dtype = np.uint32
-                    
-                # Create image
-                img = np.zeros((height, width), dtype=_dtype)
-                if len(new_df) > 0:
-                    img[new_df['y'], new_df['x']] = new_df['count_sum']
-                    
-                return min_x, min_y, img
-            else:
-                # Original logic for bin_size=1
-                width = max_x - min_x + 1
-                height = max_y - min_y + 1
+            width = max_x - min_x + 1
+            height = max_y - min_y + 1
+            # img = np.zeros((height, width), np.uint8)
+            img = np.zeros((height, width), np.uint16)
+            img.fill(0)
 
-                # Find maximum value to determine dtype
-                max_val = 0
-                for step in range(dataset.size // chunk_size + 1):
-                    data = dataset[step * chunk_size: (step + 1) * chunk_size]
-                    tmp_max = np.max(data['count']) if data.size > 0 else 0
-                    if tmp_max > max_val:
-                        max_val = tmp_max
+            for step in range(dataset.size // chunk_size + 1):
+                data = dataset[step * chunk_size: (step + 1) * chunk_size]
+                parse_gef_line(data, img, np.uint16)
 
-                if max_val <= 255:
-                    _dtype = np.uint8
-                elif max_val <= 65535:
-                    _dtype = np.uint16
-                else:
-                    _dtype = np.uint32
-
-                img = np.zeros((height, width), dtype=_dtype)
-                
-                for step in range(dataset.size // chunk_size + 1):
-                    data = dataset[step * chunk_size: (step + 1) * chunk_size]
-                    parse_gef_line(data, img, _dtype)
-
-            return min_x, min_y, img
+        return (
+            binx,
+            min_x,
+            min_y,
+            img,
+        )
 
     @staticmethod
-    def gef_gef_shape(file, bin_size=1):
+    def gef_gef_shape(file):
         with h5py.File(file, "r") as fh:
-            dataset = fh[f"/geneExp/bin{bin_size}/expression"]
+            dataset = fh[f"/geneExp/bin1/expression"]
 
             if not dataset[...].size:
                 clog.error("The sequencing data is empty, please confirm the {} file.".format(file))
                 raise Exception("The sequencing data is empty, please confirm the {} file.".format(file))
-
+            
+            binx = int(dataset.attrs["resolution"][0]/dataset.attrs["dnbPitch"][0]) # binx标识
             min_x, max_x = dataset.attrs["minX"][0], dataset.attrs["maxX"][0]
             min_y, max_y = dataset.attrs["minY"][0], dataset.attrs["maxY"][0]
-            width = max_x - min_x + bin_size
-            height = max_y - min_y + bin_size
-            return width, height
+            width = max_x - min_x + 1
+            height = max_y - min_y + 1
+            return binx, width, height
 
     def detect_feature(self, ref: list, chip_size: float):
         """ track lines detection, matrix data: chip area recognition for registration """
@@ -357,16 +255,28 @@ class cMatrix(object):
 
 
 def adjust_mask_shape(gef_path, mask_path):
-    #TODO: add bin size param
-    bin_size = 100
-    m_width, m_height = cMatrix.gef_gef_shape(gef_path, bin_size)
-    mask = cbimread(mask_path)
-    if mask.width == m_width and mask.height == m_height:
-        return mask_path
-    mask_adjust = mask.trans_image(offset=[0, 0], dst_size=(m_height, m_width))
-    path_no_ext, ext = os.path.splitext(mask_path)
-    new_path = path_no_ext + "_adjust" + ".tif"
-    cbimwrite(new_path, mask_adjust)
+    binx, m_width, m_height = cMatrix.gef_gef_shape(gef_path)
+    if binx==1:
+        mask = cbimread(mask_path)
+        if mask.width == m_width and mask.height == m_height:
+            return mask_path
+        mask_adjust = mask.trans_image(offset=[0, 0], dst_size=(m_height, m_width))
+        path_no_ext, ext = os.path.splitext(mask_path)
+        new_path = path_no_ext + "_adjust" + ".tif"
+        cbimwrite(new_path, mask_adjust)
+    else:
+        mask = cbimread(mask_path)
+        mask_binx = mask.trans_image(scale=1/binx)
+        path_no_ext, ext = os.path.splitext(mask_path)
+        
+        if mask_binx.width == m_width and mask_binx.height == m_height:
+            new_path = path_no_ext + f"_bin{binx}" + ".tif"
+            cbimwrite(new_path, mask_binx)
+            return new_path
+        mask_adjust = mask.trans_image(offset=[0, 0], dst_size=(m_height, m_width))
+        new_path = path_no_ext + "_adjust" + ".tif"
+        cbimwrite(new_path, mask_adjust)
+        
     return new_path
 
 

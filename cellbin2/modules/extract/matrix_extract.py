@@ -34,10 +34,8 @@ def extract4stitched(
 
     """
     cm = cMatrix()
-    binx = 100
-    cm.read(file_path=Path(image_file.file_path), binx=binx)
-    # TODO
-    # bin_size = cm.bin_size
+    cm.read(file_path=Path(image_file.file_path))
+    binx = cm.binx
 
     cm.check_standards(config.genetic_standards)
 
@@ -89,29 +87,21 @@ def extract4matrix(
         m_naming (naming.DumpMatrixFileNaming): Naming convention for matrix files.
     """
     # Check if tissue mask is considered for cell matrix extraction, needs confirmation
-    from cellbin2.matrix.matrix import save_cell_bin_data, save_tissue_bin_data
+    from cellbin2.matrix.matrix import save_cell_bin_data, save_tissue_bin_data, cMatrix
     cell_mask_path = p_naming.final_nuclear_mask
     tissue_mask_path = p_naming.final_tissue_mask
     cell_correct_mask_path = p_naming.final_cell_mask
     c_inp = None
-    BIN100_flag = 1
 
-    bin100_flag = BIN100_flag
+    binx, _, _ = cMatrix.gef_gef_shape(image_file.file_path)
 
     if Path(tissue_mask_path).exists():
-        if bin100_flag == 0:
-            save_tissue_bin_data(
-                image_file.file_path,
-                str(m_naming.tissue_bin_matrix),
-                tissue_mask_path,
-            )
-        else:
-            save_tissue_bin_data(
-                image_file.file_path,
-                str(m_naming.tissue_bin_matrix),
-                tissue_mask_path,
-                bin_siz=100
-            )
+        save_tissue_bin_data(
+            image_file.file_path,
+            str(m_naming.tissue_bin_matrix),
+            tissue_mask_path,
+            bin_siz=binx
+        )
         c_inp = m_naming.tissue_bin_matrix
         if image_file.tech == TechType.Transcriptomics:
             generate_stereo_file(
