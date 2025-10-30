@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/images/framework_final_02.jpg"><br/>
+  <img src="docs/images/framework_final.png"><br/>
   <h1 align="center">
     CellBin: a generalist framework to process spatial omics data to cell level
   </h1>
