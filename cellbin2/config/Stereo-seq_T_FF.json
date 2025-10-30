@@ -91,7 +91,7 @@
   "run": {
     "qc": true,
     "alignment": true,
-    "matrix_extract": false,
+    "matrix_extract": true,
     "report": true,
     "annotation": false
   }
