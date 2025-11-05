@@ -1,0 +1,72 @@
+{
+  "image_process": {
+    "0": {
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/Q00148CA/raw_images/stitch/Q00148CA.tif",
+      "tech_type": "DAPI",
+      "chip_detect": true,
+      "quality_control": false,
+      "registration": {
+        "fixed_image": -1,
+        "trackline": true,
+        "reuse": -1
+      },
+      "tissue_segmentation": false,
+      "cell_segmentation": true,
+      "magnification": 10,
+      "channel_align": -1,
+      "tissue_filter": -1
+    },
+    "2": {
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/Q00148CA/raw_images/stitch/Q00148CA_CY5_IF.tif",
+      "tech_type": "IF",
+      "chip_detect": false,
+      "quality_control": false,
+      "registration": {
+        "fixed_image": -1,
+        "trackline": false,
+        "reuse": -1
+      },
+      "tissue_segmentation": false,
+      "cell_segmentation": true,
+      "magnification": 10,
+      "channel_align": 0,
+      "tissue_filter": 0
+    },
+    "3": {
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/Q00148CA/raw_images/stitch/Q00148CA_TRITC_IF.tif",
+      "tech_type": "IF",
+      "chip_detect": false,
+      "quality_control": false,
+      "registration": {
+        "fixed_image": -1,
+        "trackline": true,
+        "reuse": -1
+      },
+      "tissue_segmentation": false,
+      "cell_segmentation": true,
+      "magnification": 10,
+      "channel_align": 0,
+      "tissue_filter": 0
+    }
+  },
+  "molecular_classify": {
+    "0": {
+      "exp_matrix": 0,
+      "cell_mask": {
+        "nuclei":[0],
+        "interior": [],
+        "boundary":[2],
+        "matrix":[]
+      },
+      "extra_method": "",
+      "correct_r":10
+    }
+  },
+  "run": {
+      "qc": false,
+      "alignment": true,
+      "matrix_extract": false,
+      "report": false,
+      "annotation": false
+  }
+}

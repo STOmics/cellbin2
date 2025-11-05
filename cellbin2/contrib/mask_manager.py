@@ -73,9 +73,33 @@ class BestTissueCellMask:
 
     @staticmethod
     def best_cell_mask(tissue_mask: np.ndarray, cell_mask: np.ndarray) -> np.ndarray:
+        """
+        Filter cells by contours, removing cells not within the tissue region
+        
+        Parameters:
+        tissue_mask (numpy.ndarray): Tissue mask image
+        cell_mask (numpy.ndarray): Cell mask image
+        
+        Returns:
+        numpy.ndarray: Filtered cell mask image
+        """
         clog.info(f"calling function: best_cell_mask() ")
-        cell_mask_filter = cv2.bitwise_and(cell_mask, tissue_mask)
-        return cell_mask_filter
+        contours, _ = cv2.findContours(cell_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        for contour in contours:
+            x, y, w, h = cv2.boundingRect(contour)
+            tissue_roi = tissue_mask[y:y+h, x:x+w]
+            contour_roi = contour - np.array([x, y])
+
+            roi_mask = np.zeros(shape=(h, w), dtype=np.uint8)
+            cv2.fillPoly(roi_mask, pts=[contour_roi], color=(1,))
+
+            cell_and_tissue = cv2.bitwise_and(roi_mask, tissue_roi)
+
+            if not np.array_equal(cell_and_tissue, roi_mask):
+                cv2.fillPoly(cell_mask, pts=[contour], color=(0,))
+
+        return cell_mask
 
     @staticmethod
     def best_tissue_mask(tissue_mask: np.ndarray, cell_mask: np.ndarray, kernel_size: int) -> np.ndarray:
@@ -189,8 +213,8 @@ class BestTissueCellMask:
 
 def instance2semantics(ins: np.ndarray) -> np.ndarray:
     """
-    :param ins: 实例mask（0-N）
-    :return: 语义mask（0-1）
+    :param ins: Instance mask (0-N)
+    :return: Semantics mask (0-1)
     """
     ins_ = ins.copy()
     h, w = ins_.shape[:2]
@@ -259,9 +283,8 @@ def merge_cell_mask(
         nuclear_mask_sem = instance2semantics(nuclear_mask_ins)
         del nuclear_mask_ins
 
-    _ = membrane_mask_sem * 2 + nuclear_mask_sem * 1
-
-    return CBImage(_)
+    _ = membrane_mask_sem * 2 + nuclear_mask_sem * 1 #0 background，1 nuclei，2 cell
+    return CBImage(membrane_mask_sem)
 
 
 if __name__ == '__main__':

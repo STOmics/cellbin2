@@ -34,7 +34,7 @@ DEMO_DATA = {
             "SS200000135TL_D1_fov_stitched_ssDNA.tif": "/storeData/USER/data/01.CellBin/01.data/04.dataset/05.other_database/03.external_data/09.StitchImage/SS200000135TL_D1/SS200000135TL_D1_fov_stitched_ssDNA.tif"
         },
         "stain_type": "ssDNA",
-        "kit_type": "Stereo-seq T FF V1.2"
+        "kit_type": "Stereo-seq_T_FF_V1.2"
     },
     "A02677B5": {
         "data": {
@@ -43,7 +43,7 @@ DEMO_DATA = {
             "A02677B5.raw.gef": "/storeData/USER/data/01.CellBin/01.data/04.dataset/05.other_database/03.external_data/10.TestGem/A02677B5.raw.gef"
         },
         "stain_type": "DAPI",
-        "kit_type": "Stereo-CITE T FF V1.1 R"
+        "kit_type": "Stereo-CITE_T_FF_V1.1_R"
     },
     "B02210A5": {
         "data": {
@@ -51,7 +51,7 @@ DEMO_DATA = {
             "B02210A5.protein.raw.gef": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/B02210A5/gem/B02210A5.protein.raw.gef"
         },
         "stain_type": "DAPI",
-        "kit_type": "Stereo-CITE T FF V1.1 R"
+        "kit_type": "Stereo-CITE_T_FF_V1.1_R"
     },
     "A02677B4": {
         "data": {
@@ -61,7 +61,7 @@ DEMO_DATA = {
             "A02677B4.protein.raw.gef": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/A02677B4/gem/A02677B4.protein.raw.gef"
         },
         "stain_type": "DAPI",
-        "kit_type": "Stereo-CITE T FF V1.1 R"
+        "kit_type": "Stereo-CITE_T_FF_V1.1_R"
     },
     "B01715B4": {
         "json_path": os.path.join(CURR_PATH, "config", "case5.json")

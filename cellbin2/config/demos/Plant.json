@@ -7,7 +7,9 @@
       "quality_control": false,
       "tissue_segmentation": false,
       "cell_segmentation": false,
+      "magnification": 10,
       "channel_align": -1,
+      "tissue_filter": -1,
       "registration": {
         "fixed_image": 1,
         "trackline": true,
@@ -21,7 +23,9 @@
       "quality_control": false,
       "tissue_segmentation": false,
       "cell_segmentation": false,
+      "magnification": 10,
       "channel_align": -1,
+      "tissue_filter": -1,
       "registration": {
         "fixed_image": -1,
         "trackline": false,
@@ -35,7 +39,9 @@
       "quality_control": false,
       "tissue_segmentation": false,
       "cell_segmentation": true,
+      "magnification": 10,
       "channel_align": 0,
+      "tissue_filter": -1,
       "registration": {
         "fixed_image": -1,
         "trackline": false,
@@ -46,9 +52,12 @@
   "molecular_classify": {
     "0": {
       "exp_matrix": 1,
-      "cell_mask": [
-        2
-      ],
+      "cell_mask": {
+        "nuclei":[0],
+        "interior": [],
+        "boundary":[],
+        "matrix":[]
+      },
       "correct_r": 0,
       "extra_method": ""
     }

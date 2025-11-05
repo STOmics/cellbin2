@@ -48,24 +48,24 @@
 * #### <li id='1'>**step1**</li>
     **将图片拖入QuPath中，选择Fluorescence，点击Apply**
 
-<img src="../../images/QuPath_cellbin_SOP/img1.png" alt="img1" style="zoom:80%;" />
+<img src="../../../images/QuPath_cellbin_SOP/img1.png" alt="img1" style="zoom:80%;" />
 
 * #### **step2**
     **使用矩阵框将图片全部框出（也可以局部框选需要部分）**
 
-![img1](../../images/QuPath_cellbin_SOP/img2.png)
+![img1](../../../images/QuPath_cellbin_SOP/img2.png)
 
-<img src="../../images/QuPath_cellbin_SOP/框出图片.png" alt="框出图片" style="zoom:80%;" />
+<img src="../../../images/QuPath_cellbin_SOP/框出图片.png" alt="框出图片" style="zoom:80%;" />
 
 * #### **step3**
     **点击Analyze>Cell detection>cell detection调整参数**
 
-  ![img3](../../images/QuPath_cellbin_SOP/img3.png)
+  ![img3](../../../images/QuPath_cellbin_SOP/img3.png)
 
 * #### **step4**
     **调整合适的参数，使得细胞分割满足要求**
 
-![img4](../../images/QuPath_cellbin_SOP/img4.png)
+![img4](../../../images/QuPath_cellbin_SOP/img4.png)
 
 （1）Requested pixel size：请求的像素大小。将其调大，每个像素代表的实际物理面积变大，图像的细节看起来更模糊，相当于以较低的分辨率查看图像。调小则每个像素代表的实际物理面积变小，图像的细节会更加清晰，相当于以较高的分辨率查看图像。
 
@@ -85,59 +85,59 @@
 
 效果如下：
 
-<img src="../../images/QuPath_cellbin_SOP/ssDNA调参示例.png" alt="ssDNA调参示例" style="zoom:80%;" />
+<img src="../../../images/QuPath_cellbin_SOP/ssDNA调参示例.png" alt="ssDNA调参示例" style="zoom:80%;" />
 
 * #### **step5**
     **删除矩阵框**
 
-  <img src="../../images/QuPath_cellbin_SOP/删除矩阵框.png" alt="删除矩阵框" style="zoom:80%;" />
+  <img src="../../../images/QuPath_cellbin_SOP/删除矩阵框.png" alt="删除矩阵框" style="zoom:80%;" />
 
 * #### <li id='6'>**step6**</li>
     **将图片发送到ImageJ**
 
-![img5](../../images/QuPath_cellbin_SOP/img5.png)
+![img5](../../../images/QuPath_cellbin_SOP/img5.png)
 
 
 
 * #### **step7**
     **取消第一项，点击OK**
 
-![cancel_first](../../images/QuPath_cellbin_SOP/cancel_first.png)
+![cancel_first](../../../images/QuPath_cellbin_SOP/cancel_first.png)
 
 * #### **step8**
     **点击Edit>Selection>Create Mask生成mask图**
 
-  <img src="../../images/QuPath_cellbin_SOP/create_mask.png" alt="create_mask" style="zoom:80%;" />
+  <img src="../../../images/QuPath_cellbin_SOP/create_mask.png" alt="create_mask" style="zoom:80%;" />
 
 * #### **step9（optional）**
     **设置分水岭**
 
 若细胞之间挨得紧密，会出现细胞之间没有完全分开
 
-<img src="../../images/QuPath_cellbin_SOP/设置分水岭.png" alt="设置分水岭" style="zoom: 50%;" />
+<img src="../../../images/QuPath_cellbin_SOP/设置分水岭.png" alt="设置分水岭" style="zoom: 50%;" />
 
 点击Process>Binary>Watershed
 
-<img src="../../images/QuPath_cellbin_SOP/分水岭步骤.png" alt="分水岭步骤" style="zoom:80%;" />
+<img src="../../../images/QuPath_cellbin_SOP/分水岭步骤.png" alt="分水岭步骤" style="zoom:80%;" />
 
 细胞就会分开
 
-<img src="../../images/QuPath_cellbin_SOP/分水岭图例.png" alt="分水岭图例" style="zoom:50%;" />
+<img src="../../../images/QuPath_cellbin_SOP/分水岭图例.png" alt="分水岭图例" style="zoom:50%;" />
 
 * #### **step10**
     **点击File>Save As>Tiff将mask保存为tiff格式**
 
-![save_image](../../images/QuPath_cellbin_SOP/save_image.png)
+![save_image](../../../images/QuPath_cellbin_SOP/save_image.png)
 
 ### 2. H&E染色
 
 2.1 [与上述方法相同。](#1)第一步导入图片时选择H&E染色，点击Apply
 
-<img src="../../images/QuPath_cellbin_SOP/HE导入.png" alt="HE导入" style="zoom:50%;" />
+<img src="../../../images/QuPath_cellbin_SOP/HE导入.png" alt="HE导入" style="zoom:50%;" />
 
 2.2 H&E自动分割参数示例：
 
-<img src="../../images/QuPath_cellbin_SOP/HE参数示例.png" alt="HE参数示例" style="zoom: 80%;" />
+<img src="../../../images/QuPath_cellbin_SOP/HE参数示例.png" alt="HE参数示例" style="zoom: 80%;" />
 
 ## 批量删除不需要的细胞分割mask
 
@@ -148,36 +148,36 @@
 * #### **<li id='2'>step1</li>**
   **将mask图与原图拖进ImageJ中，选中一张图片，点击Image>Type，确保两张图片的位深一致**
 
-<img src="../../images/QuPath_cellbin_SOP/设置位深.png" alt="设置位深" style="zoom:80%;" />				
+<img src="../../../images/QuPath_cellbin_SOP/设置位深.png" alt="设置位深" style="zoom:80%;" />				
 
 * #### **step2**
   **点击Color>Merge Channels，将mask图与原图merge在一起**
 
-<img src="../../images/QuPath_cellbin_SOP/merge_mask.png" alt="merge_mask" style="zoom: 80%;" />		
+<img src="../../../images/QuPath_cellbin_SOP/merge_mask.png" alt="merge_mask" style="zoom: 80%;" />		
 
 * #### **step3**
   **将mask图与原图选择合适的颜色，建议mask图选红色，原图选灰色。选择Keep source images会保留来源图片，点击OK，观察需要删除的区域**
 
-<img src="../../images/QuPath_cellbin_SOP/设置merge颜色.png" alt="设置merge颜色" style="zoom:80%;" />			
+<img src="../../../images/QuPath_cellbin_SOP/设置merge颜色.png" alt="设置merge颜色" style="zoom:80%;" />			
 
 * #### **step4**
   **使用合适工具框出需要删除的部位，按键盘Delete进行删除**
 
-  ![delete_useless](../../images/QuPath_cellbin_SOP/delete_useless.png)
+  ![delete_useless](../../../images/QuPath_cellbin_SOP/delete_useless.png)
 
-  <img src="../../images/QuPath_cellbin_SOP/delete_before.png" alt="delete_before" style="zoom: 40%;" />
+  <img src="../../../images/QuPath_cellbin_SOP/delete_before.png" alt="delete_before" style="zoom: 40%;" />
 
-  <img src="../../images/QuPath_cellbin_SOP/delete_after.png" alt="delete_after" style="zoom:40%;" />
+  <img src="../../../images/QuPath_cellbin_SOP/delete_after.png" alt="delete_after" style="zoom:40%;" />
 
 * #### **step5**
   **操作完成后，点击Image>Color>Split Channels将merge图分离**
   
-  <img src="../../images/QuPath_cellbin_SOP/split_channels.png" alt="split_channels" style="zoom:67%;" />
+  <img src="../../../images/QuPath_cellbin_SOP/split_channels.png" alt="split_channels" style="zoom:67%;" />
 
 * #### **step6**
   **将该图转回8bit图像并保存**
   
-  <img src="../../images/QuPath_cellbin_SOP/转为8位深.png" alt="转为8位深" style="zoom:40%;" />
+  <img src="../../../images/QuPath_cellbin_SOP/转为8位深.png" alt="转为8位深" style="zoom:40%;" />
 
 * #### **step7(optional)**
   **将保存后的mask图进一步修改**
@@ -201,7 +201,7 @@
 
 （1）使用笔刷工具
 
-[视频链接](../../images/QuPath_cellbin_SOP/brushes.mp4)
+[视频链接](../../../images/QuPath_cellbin_SOP/brushes.mp4)
 
 按住鼠标左键扩大mask范围
 
@@ -209,25 +209,25 @@
 
 （2）使用多边形工具
 
-[视频链接](../../images/QuPath_cellbin_SOP/polygon.mp4)
+[视频链接](../../../images/QuPath_cellbin_SOP/polygon.mp4)
 
 鼠标左键点击生成节点，连接到最后一个节点双击即可完成框选
 
 （3）对于多分，选定后按鼠标右键选删除
 
-![img7](../../images/QuPath_cellbin_SOP/img7.png)
+![img7](../../../images/QuPath_cellbin_SOP/img7.png)
 
 （4）移动节点修改mask
 
-![img8](../../images/QuPath_cellbin_SOP/img8.png)
+![img8](../../../images/QuPath_cellbin_SOP/img8.png)
 
 双击选定
 
-<img src="../../images/QuPath_cellbin_SOP/img6.png" alt="img6" style="zoom:50%;" />
+<img src="../../../images/QuPath_cellbin_SOP/img6.png" alt="img6" style="zoom:50%;" />
 
 拖动节点修改mask
 
-[视频链接](../../images/QuPath_cellbin_SOP/grag_node.mp4)
+[视频链接](../../../images/QuPath_cellbin_SOP/grag_node.mp4)
 
 * #### 分割完成后接回[自动分割中的step6](#6)
 
