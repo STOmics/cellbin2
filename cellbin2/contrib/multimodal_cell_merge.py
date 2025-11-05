@@ -279,6 +279,8 @@ def overlap_v2(secondary_mask_raw, primary_mask_raw, overlap_threshold=0.2, save
     save_primary_mask = remove_small_objects(save_primary_mask, min_size=15)
     save_primary_mask = np.where(secondary_boundary > 0, 0, save_primary_mask)
     save_primary_mask = save_primary_mask.astype(np.uint8)
+    save_primary_mask = instance2semantics(save_primary_mask)
+    secondary_mask_final = instance2semantics(secondary_mask_final)
     return secondary_mask_final, save_primary_mask
         # partial_metrics,
     
@@ -448,9 +450,10 @@ def multimodal_merge(nuclei_mask_path, cell_mask_path, interior_mask_path, overl
     #-----------------------------start merging nuclei---------------------------------------------------------
     
     output_nuclei_mask, final_mask = overlap_v2(nuclei_mask_raw, cell_add_interior, overlap_threshold=0.5, save_path=save_path)
+    final_mask = instance2semantics(final_mask)
     if save_path != "":
         cbimwrite(join(save_path, f"output_nuclei_mask.tif"), instance2semantics(output_nuclei_mask) * 255)
-        cbimwrite(join(save_path, f"cell_mask_add_interior_add_nuclei.tif"), instance2semantics(final_mask) * 255)
+        cbimwrite(join(save_path, f"cell_mask_add_interior_add_nuclei.tif"), final_mask * 255)
     final_mask = final_mask.astype(np.uint8)
     return final_mask
 

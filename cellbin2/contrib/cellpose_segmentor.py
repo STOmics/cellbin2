@@ -16,7 +16,16 @@ from cellbin2.utils import clog
 
 
 # os.environ['CELLPOSE_LOCAL_MODELS_PATH'] = "/media/Data/dzh/weights"
+def instance2semantics(ins):
+    """
+    instance to semantics
+    Args:
+        ins(ndarray):labeled instance
 
+    Returns(ndarray):mask
+    """
+    ins[np.where(ins > 0)] = 1
+    return np.array(ins, dtype=np.uint8)
 
 def asStride(arr, sub_shape, stride):
     """

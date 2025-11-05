@@ -1,23 +1,24 @@
 {
   "image_process": {
     "0": {
-      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/Q00148CA/raw_images/stitch/Q00148CA.tif",
+      "file_path": "/storeData/USER/data/01.CellBin/00.user/wangaoli/data/raw_data/时空多蛋白数据/2025_oct/Y10396E6-DAPI/Y10396E6-DAPI.tif",
       "tech_type": "DAPI",
-      "chip_detect": true,
+      "chip_detect": false,
       "quality_control": false,
       "registration": {
         "fixed_image": -1,
-        "trackline": false,
+        "trackline": true,
         "reuse": -1
       },
       "tissue_segmentation": false,
       "cell_segmentation": true,
       "magnification": 10,
+      "chip_matching": -1,
       "channel_align": -1,
-      "tissue_filter": -1
+      "tissue_filter": 0
     },
     "2": {
-      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/Q00148CA/raw_images/stitch/Q00148CA_CY5_IF.tif",
+      "file_path": "/storeData/USER/data/01.CellBin/00.user/wangaoli/data/raw_data/时空多蛋白数据/2025_oct/Y10396E6-CY5/Y10396E6-CY5.tif",
       "tech_type": "IF",
       "chip_detect": false,
       "quality_control": false,
@@ -29,11 +30,12 @@
       "tissue_segmentation": false,
       "cell_segmentation": true,
       "magnification": 10,
+      "chip_matching": -1,
       "channel_align": 0,
       "tissue_filter": 0
     },
     "3": {
-      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/Q00148CA/raw_images/stitch/Q00148CA_TRITC_IF.tif",
+      "file_path": "/storeData/USER/data/01.CellBin/00.user/wangaoli/data/raw_data/时空多蛋白数据/2025_oct/Y10396E6-TRITC/Y10396E6-TRITC.tif",
       "tech_type": "IF",
       "chip_detect": false,
       "quality_control": false,
@@ -45,7 +47,25 @@
       "tissue_segmentation": false,
       "cell_segmentation": true,
       "magnification": 10,
+      "chip_matching": -1,
       "channel_align": 0,
+      "tissue_filter": 0
+    },
+    "HE": {
+      "file_path": "/media/Data/dzh/data/cellbin2/demo_data/C04042E3/C04042E3_fov_stitched.tif",
+      "tech_type": "HE",
+      "chip_detect": false,
+      "quality_control": false,
+      "registration": {
+        "fixed_image": -1,
+        "trackline": false,
+        "reuse": -1
+      },
+      "tissue_segmentation": false,
+      "cell_segmentation": false,
+      "channel_align": -1,
+      "magnification": 20,
+      "chip_matching": 0,
       "tissue_filter": 0
     }
   },

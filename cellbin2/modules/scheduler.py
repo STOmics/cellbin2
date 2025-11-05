@@ -464,9 +464,15 @@ class Scheduler(object):
                 )
                 if self._channel_images is not None and self._ipr is not None:
                     if f.registration.fixed_image == -1 and f.registration.reuse == -1:
+                        transform_to_register(
+                        cur_f_name=cur_f_name
+                        )
                         continue
                     if f.registration.fixed_image == -1 and self._files[
                         f.registration.reuse].registration.fixed_image == -1:
+                        transform_to_register(
+                        cur_f_name=cur_f_name
+                        )
                         continue
                     run_register(
                         image_file=f,
