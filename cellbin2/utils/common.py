@@ -30,9 +30,13 @@ iPlaceHolder = -999
 sPlaceHolder = '-'
 
 FILES_TO_KEEP = (
+    # image related
     naming.DumpImageFileNaming.registration_image,
     naming.DumpImageFileNaming.tissue_mask,
     naming.DumpImageFileNaming.cell_mask,
+    
+    # matrix file related
+    naming.DumpMatrixFileNaming.heatmap,
     naming.DumpPipelineFileNaming.ipr,
     naming.DumpPipelineFileNaming.final_nuclear_mask,
     naming.DumpPipelineFileNaming.final_cell_mask,

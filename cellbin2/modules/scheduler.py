@@ -130,9 +130,24 @@ class Scheduler(object):
                         data[g_name]['TissueMaskRawTransform'] = n.transform_tissue_mask_raw
             else:
                 if g_name == 'Transcriptomics' and not f.is_image and f.cell_segmentation:
+                    m_naming = naming.DumpMatrixFileNaming(sn=self.param_chip.chip_name, m_type=g_name, save_dir=self._output_path)
                     data[g_name] = {} 
-                    if os.path.exists(n.cell_mask):
-                        data[g_name]['CellMask'] = n.cell_mask
+
+                    # check cell mask
+                    if f.cell_segmentation and os.path.exists(m_naming.cell_mask):
+                        data[g_name]['CellMask'] = m_naming.cell_mask
+                        clog.info(f'Added matrix cell mask to RPI: {m_naming.cell_mask}')
+
+                    # check tissue mask
+                    if f.tissue_segmentation and os.path.exists(m_naming.tissue_mask):
+                        data[g_name]['TissueMask'] = m_naming.tissue_mask
+                        clog.info(f'Added matrix tissue mask to RPI: {m_naming.tissue_mask}')
+
+                    # check heatmap
+                    if os.path.exists(m_naming.heatmap):
+                        data[g_name]['Image'] = m_naming.heatmap
+                        clog.info(f'Added matrix heatmap to RPI: {m_naming.heatmap}')
+                    
         data['final'] = {}
         data['final']['CellMask'] = self.p_naming.final_nuclear_mask
         data['final']['TissueMask'] = self.p_naming.final_tissue_mask
