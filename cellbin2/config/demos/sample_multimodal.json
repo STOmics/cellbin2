@@ -4,13 +4,13 @@
       "file_path": "/storeData/USER/data/01.CellBin/00.user/wangaoli/data/raw_data/时空多蛋白数据/2025_oct/Y10396E6-DAPI/Y10396E6-DAPI.tif",
       "tech_type": "DAPI",
       "chip_detect": false,
-      "quality_control": false,
+      "quality_control": true,
       "registration": {
         "fixed_image": -1,
         "trackline": true,
         "reuse": -1
       },
-      "tissue_segmentation": false,
+      "tissue_segmentation": true,
       "cell_segmentation": true,
       "magnification": 10,
       "chip_matching": -1,
@@ -25,7 +25,7 @@
       "registration": {
         "fixed_image": -1,
         "trackline": false,
-        "reuse": -1
+        "reuse": 0
       },
       "tissue_segmentation": false,
       "cell_segmentation": true,
@@ -42,30 +42,13 @@
       "registration": {
         "fixed_image": -1,
         "trackline": true,
-        "reuse": -1
+        "reuse": 0
       },
       "tissue_segmentation": false,
       "cell_segmentation": true,
       "magnification": 10,
       "chip_matching": -1,
       "channel_align": 0,
-      "tissue_filter": 0
-    },
-    "HE": {
-      "file_path": "/media/Data/dzh/data/cellbin2/demo_data/C04042E3/C04042E3_fov_stitched.tif",
-      "tech_type": "HE",
-      "chip_detect": false,
-      "quality_control": false,
-      "registration": {
-        "fixed_image": -1,
-        "trackline": false,
-        "reuse": -1
-      },
-      "tissue_segmentation": false,
-      "cell_segmentation": false,
-      "channel_align": -1,
-      "magnification": 20,
-      "chip_matching": 0,
       "tissue_filter": 0
     }
   },
@@ -83,7 +66,7 @@
     }
   },
   "run": {
-      "qc": false,
+      "qc": true,
       "alignment": true,
       "matrix_extract": false,
       "report": false,

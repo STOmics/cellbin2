@@ -3,7 +3,7 @@
     "0": {
       "file_path": "/Path/to/SN.tif",
       "tech_type": "DAPI",
-      "chip_detect": true,
+      "chip_detect": false,
       "quality_control": true,
       "registration": {
         "fixed_image": 1,
@@ -15,7 +15,7 @@
       "magnification": 10,
       "chip_matching": -1,
       "channel_align": -1,
-      "tissue_filter": -1
+      "tissue_filter": 0
     },
     "1": {
       "file_path": "/Path/to/SN.raw.gef",
@@ -27,7 +27,7 @@
         "trackline": true,
         "reuse": -1
       },
-      "tissue_segmentation": true,
+      "tissue_segmentation": false,
       "cell_segmentation": false,
       "magnification": 10,
       "chip_matching": -1,
@@ -42,9 +42,9 @@
       "registration": {
         "fixed_image": -1,
         "trackline": false,
-        "reuse": 0
+        "reuse": 0  
       },
-      "tissue_segmentation": true,
+      "tissue_segmentation": false,
       "cell_segmentation": true,
       "magnification": 10,
       "chip_matching": -1,
@@ -61,49 +61,15 @@
         "trackline": false,
         "reuse": 0
       },
-      "tissue_segmentation": true,
+      "tissue_segmentation": false,
       "cell_segmentation": true,
       "magnification": 10,
       "chip_matching": -1,
       "channel_align": 0,
       "tissue_filter": 0
-    },
-    "4": {
-      "file_path": "/Path/to/SN.protein.raw.gef",
-      "tech_type": "Protein",
-      "chip_detect": false,
-      "quality_control": false,
-      "registration": {
-        "fixed_image": -1,
-        "trackline": true,
-        "reuse": -1
-      },
-      "tissue_segmentation": true,
-      "cell_segmentation": false,
-      "magnification": 10,
-      "chip_matching": -1,
-      "channel_align": 0,
-      "tissue_filter": 0
-    },
-    "5": {
-      "file_path": "/Path/to/SN.tif",
-      "tech_type": "ssDNA",
-      "chip_detect": true,
-      "quality_control": true,
-      "registration": {
-        "fixed_image": -1,
-        "trackline": true,
-        "reuse": -1
-      },
-      "tissue_segmentation": true,
-      "cell_segmentation": false,
-      "magnification": 10,
-      "chip_matching": -1,
-      "channel_align": -1,
-      "tissue_filter": 5
     }
     ,
-    "6": {
+    "4": {
       "file_path": "/Path/to/SN.tif",
       "tech_type": "HE",
       "chip_detect": false,
@@ -126,27 +92,16 @@
         "exp_matrix": 1,
         "cell_mask": {
           "nuclei":[0],
-          "interior": [1],
-          "boundary":[2],
-          "matrix":[]
-        },
-        "correct_r": 10,
-        "extra_method": ""
-      },
-      "1": {
-        "exp_matrix": 3,
-        "cell_mask": {
-          "nuclei":[0],
           "interior": [2],
           "boundary":[3],
-          "matrix":[1]
+          "matrix":[]
         },
         "correct_r": 10,
         "extra_method": ""
       }
     },
   "run": {
-      "qc": false,
+      "qc": true,
       "alignment": true,
       "matrix_extract": true,
       "report": false,
