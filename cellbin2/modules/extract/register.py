@@ -226,7 +226,7 @@ def run_register(
     )
 
     # create 20X original image
-    if image_file.magnification != 10:
+    '''if image_file.magnification != 10:
         clog.info(f'Create  register image')
         height, weight = info.dst_shape
         offx, offy = info.offset
@@ -240,4 +240,11 @@ def run_register(
             scale=[scale / param1.Register.ScaleX, scale / param1.Register.ScaleX])
 
         cbimwrite(os.path.join(output_path, f"{image_file.magnification}X_regist.tif"), dst_image)
+        clog.info(f'{image_file.magnification}X register image has been created')'''
+    if image_file.magnification != 10:
+        clog.info(f'Create  register image')
+        _new_mi = cbimread(cur_f_name.registration_image)
+        scale = int(image_file.magnification / 10)
+        _new_mi = _new_mi.resize_image(scale)
+        cbimwrite(os.path.join(output_path, f"{image_file.magnification}X_regist.tif"), _new_mi)
         clog.info(f'{image_file.magnification}X register image has been created')
