@@ -4,9 +4,10 @@ import numpy as np
 import numpy.typing as npt
 from skimage.measure import label, regionprops
 import cv2
+import tifffile
 
 from cellbin2.image.mask import f_instance2semantics
-from cellbin2.image.morphology import f_deep_watershed
+from cellbin2.image.morphology import f_deep_watershed, vincent_soille_watershed
 from cellbin2.dnn.segmentor.utils import SUPPORTED_MODELS
 from cellbin2.utils.common import TechType
 from cellbin2.utils import clog
@@ -41,6 +42,57 @@ def f_postprocess_v2(pred):
                             maxima_algorithm='h_maxima')
     pred = f_postpocess(pred)
     return pred
+
+def f_postprocess_transcriptomics(pred):
+    if isinstance(pred, list):
+        pred = pred[0]
+    pred = np.expand_dims(pred, axis=(0, -1))
+    # pred = np.uint64(np.multiply(np.around(pred, decimals=2), 100))
+    # pred = np.uint8(normalize_to_0_255(pred))
+
+    pred = f_deep_watershed([pred],
+                            maxima_threshold=round(0.1 * 255),
+                            maxima_smooth=0,
+                            interior_threshold=round(0.2 * 255),
+                            interior_smooth=0,
+                            fill_holes_threshold=15,
+                            small_objects_threshold=0,
+                            radius=2,
+                            watershed_line=0,
+                            maxima_algorithm='h_maxima')
+    pred = pred[0, :, :, 0]
+
+    # pred[pred > 0] = 1
+    # pred = np.uint8(pred)
+
+    pred = f_instance2semantics(pred)
+    img = np.where(pred > 1, 1, 0).astype(np.uint8)
+
+
+    kernel_small = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))  
+    kernel_large = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))  
+    
+
+    img = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel_small)
+    img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel_large)
+    contours, _ = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    for contour in contours:
+        cv2.fillPoly(img, [contour], color=1)
+    return img
+    return pred
+    img = np.where(pred > 1, 1, 0).astype(np.uint8)
+
+
+    kernel_small = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))  
+    kernel_large = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))  
+    
+
+    img = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel_small)
+    img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel_large)
+    contours, _ = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    for contour in contours:
+        cv2.fillPoly(img, [contour], color=1)
+    return img
 
 
 def f_watershed(mask):
@@ -196,13 +248,16 @@ model_postprocess = {
     SUPPORTED_MODELS[0]: {
         TechType.ssDNA: f_postprocess_v2,
         TechType.DAPI: f_postprocess_v2,
-        TechType.HE: f_postprocess_v2
+        TechType.HE: f_postprocess_v2,
+        TechType.Transcriptomics: f_postprocess_transcriptomics,
+        TechType.Protein: f_postprocess_transcriptomics
     },
     SUPPORTED_MODELS[1]: {
         TechType.HE: f_postprocess_v2,
     },
     SUPPORTED_MODELS[2]: {
-        TechType.Transcriptomics: f_postprocess_rna
+        TechType.Transcriptomics: f_postprocess_rna,
+        TechType.Stereocell: f_postprocess_rna
     }
 }
 

@@ -209,6 +209,20 @@ def f_resize(img, shape=(1024, 2048), mode="NEAREST"):
     img = np.array(img).astype(np.uint8)
     return img
 
+def f_filter(img):
+    blurred = cv2.GaussianBlur(img, (5, 5), 1.0)
+
+
+    kernel_small = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))  
+    kernel_large = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))  
+    blurred = cv2.morphologyEx(blurred, cv2.MORPH_OPEN, kernel_small)
+    blurred = cv2.morphologyEx(blurred, cv2.MORPH_CLOSE, kernel_large)
+    
+    contours, _ = cv2.findContours(blurred, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    for contour in contours:
+        cv2.fillPoly(blurred, [contour], color=1)
+
+    return blurred
 
 def f_percentile_threshold(img, percentile=99.9):
     """

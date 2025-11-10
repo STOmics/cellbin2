@@ -356,7 +356,7 @@ class Scheduler(object):
                 print('Cell segmentation enabled: {}'.format(f.cell_segmentation))
                 
                 if f.tissue_segmentation or f.cell_segmentation:
-                    g_name = f.get_group_name(sn=self.param_chip.chip_name, pattern="Transcriptomics")
+                    g_name = f.get_group_name(sn=self.param_chip.chip_name, pattern=f.tech.name)
                     cur_m_naming = naming.DumpMatrixFileNaming(
                         sn=self.param_chip.chip_name,
                         m_type=g_name,
@@ -564,7 +564,7 @@ class Scheduler(object):
                     )
                     cbimwrite(final_cell_mask_path, fast_mask)
             # --------------------nuclei cell merge----------------------
-            elif len(interior_mask) == 0 and len(cell_mask) != 0:
+            elif len(interior_mask) == 0 and len(cell_mask) != 0 and len(core_mask) != 0:
                 from cellbin2.contrib.mask_manager import merge_cell_mask
                 save_path = os.path.join(self._output_path, "multimodal_mid_file")
                 os.makedirs(save_path, exist_ok=True)
@@ -587,7 +587,7 @@ class Scheduler(object):
                 secondary_mask_final, final_mask = overlap_v2(expand_nuclei, merged_cell_mask, overlap_threshold=0.9, save_path="")
                 cbimwrite(final_cell_mask_path, final_mask)
             # --------------------multimodal merge--------------------
-            elif len(interior_mask) != 0 and len(cell_mask) != 0:
+            elif len(interior_mask) != 0 and len(cell_mask) != 0 and len(core_mask) != 0:
                 save_path = os.path.join(self._output_path, "multimodal_mid_file")
                 os.makedirs(save_path, exist_ok=True)
                 merged_mask = multimodal_merge(merged_core_mask, merged_cell_mask, merged_interior_mask, overlap_threshold=0.5, save_path = save_path)
@@ -616,27 +616,28 @@ class Scheduler(object):
 
                 ma_naming = naming.DumpMatrixFileNaming(
                 sn=self.param_chip.chip_name,
-                m_type=self._files[matrix_mask[0]].get_group_name(sn=self.param_chip.chip_name, pattern = 'Transcriptomics'),
+                m_type=self._files[matrix_mask[0]].get_group_name(sn=self.param_chip.chip_name, pattern=self._files[0].tech.name),
                 save_dir=self._output_path,
             )
                 pri_mask_path = ma_naming.cell_mask
                 print(pri_mask_path)
+                exit()
                 if len(matrix_mask) == 1:
-                    shutil.copy2(pri_mask_path, final_matrix_mask_path)
+                    if pri_mask_path.exists():
+                        shutil.copy2(pri_mask_path, final_matrix_mask_path)
                 else:
                     pri_mask = cbimread(pri_mask_path, only_np=True)
                     for i in matrix_mask[1:]:
                         ma_naming = naming.DumpMatrixFileNaming(
                         sn=self.param_chip.chip_name,
-                        m_type=self._files[i].get_group_name(sn=self.param_chip.chip_name, pattern = 'Transcriptomics'),
+                        m_type=self._files[i].get_group_name(sn=self.param_chip.chip_name, pattern=self._files[i].tech.name),
                         save_dir=self._output_path,
                         )
                         sed_mask_path = ma_naming.cell_mask
-                        print(sed_mask_path)
                         sed_mask = cbimread(sed_mask_path, only_np=True)
                         _, pri_mask = merge_cell_mask(pri_mask, sed_mask)
                     cbimwrite(final_matrix_mask_path, pri_mask)
-                if final_nuclear_path.exists():
+                if final_nuclear_path.exists() and final_matrix_mask_path.exists():
                     cmf=CellMaskFixer(source_imge=str(final_matrix_mask_path),refer_image=str(final_nuclear_path),sn=self.param_chip.chip_name)
                     cmf.fix_notsinglecell2mask(out_path=self._output_path, save=True)   
             if final_nuclear_path.exists() and final_cell_mask_path.exists():

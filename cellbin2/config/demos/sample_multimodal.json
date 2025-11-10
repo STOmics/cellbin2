@@ -1,7 +1,7 @@
 {
   "image_process": {
     "0": {
-      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/Q00148CA/raw_images/stitch/Q00148CA.tif",
+      "file_path": "/storeData/USER/data/01.CellBin/00.user/wangaoli/data/raw_data/anno/Y00038H1-29300_13048_256_256-dapi.tif",
       "tech_type": "DAPI",
       "chip_detect": true,
       "quality_control": false,
@@ -17,7 +17,7 @@
       "tissue_filter": -1
     },
     "2": {
-      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/Q00148CA/raw_images/stitch/Q00148CA_CY5_IF.tif",
+      "file_path": "/storeData/USER/data/01.CellBin/00.user/wangaoli/data/raw_data/anno/Y00038H1-29300_13048_256_256-cell.tif",
       "tech_type": "IF",
       "chip_detect": false,
       "quality_control": false,
@@ -33,7 +33,7 @@
       "tissue_filter": 0
     },
     "3": {
-      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/Q00148CA/raw_images/stitch/Q00148CA_TRITC_IF.tif",
+      "file_path": "/storeData/USER/data/01.CellBin/00.user/wangaoli/data/raw_data/anno/Y00038H1-29300_13048_256_256-tritc.tif",
       "tech_type": "IF",
       "chip_detect": false,
       "quality_control": false,

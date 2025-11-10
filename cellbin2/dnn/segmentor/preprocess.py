@@ -5,7 +5,7 @@ from skimage.exposure import rescale_intensity
 
 from cellbin2.dnn.segmentor.utils import SUPPORTED_MODELS
 from cellbin2.image.augmentation import f_rgb2gray, f_ij_auto_contrast_v3, f_ij_16_to_8_v2
-from cellbin2.image.augmentation import f_percentile_threshold, f_histogram_normalization, f_equalize_adapthist
+from cellbin2.image.augmentation import f_percentile_threshold, f_histogram_normalization, f_equalize_adapthist, f_filter
 from cellbin2.image.augmentation import f_clahe_rgb
 from cellbin2.utils.common import TechType
 from cellbin2.image import cbimread
@@ -14,6 +14,16 @@ from cellbin2.image import cbimread
 def f_pre_ssdna(img: npt.NDArray, enhance_times: int) -> npt.NDArray:
     if img.ndim == 3:
         img = f_rgb2gray(img, False)
+    img = f_percentile_threshold(img)
+    img = f_equalize_adapthist(img, 128, enhance_times)
+    img = f_histogram_normalization(img)
+    return img
+
+def f_pre_transcriptomics(img: npt.NDArray, enhance_times: int) -> npt.NDArray:
+    img = np.where(img < 3, 0, img)
+    if img.ndim == 3:
+        img = f_rgb2gray(img, False)
+    img = f_filter(img)
     img = f_percentile_threshold(img)
     img = f_equalize_adapthist(img, 128, enhance_times)
     img = f_histogram_normalization(img)
@@ -45,13 +55,16 @@ model_preprocess = {
     SUPPORTED_MODELS[0]: {
         TechType.ssDNA: f_pre_ssdna,
         TechType.DAPI: f_pre_ssdna,
-        TechType.HE: f_pre_he_invert
+        TechType.HE: f_pre_he_invert,
+        TechType.Transcriptomics: f_pre_transcriptomics,
+        TechType.Protein: f_pre_transcriptomics
     },
     SUPPORTED_MODELS[1]: {
         TechType.HE: f_pre_he,
     },
     SUPPORTED_MODELS[2]: {
-        TechType.Transcriptomics: f_pre_rna
+        TechType.Transcriptomics: f_pre_rna,
+        TechType.Stereocell: f_pre_rna
     }
 }
 

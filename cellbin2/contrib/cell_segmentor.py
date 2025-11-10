@@ -27,10 +27,11 @@ class CellSegParam(BaseModel, BaseModule):
     DAPI_weights_path: str = Field("cellseg_bcdu_SHDI_221008_tf.onnx", description="name of the model")
     HE_weights_path: str = Field("cellseg_bcdu_H_240823_tf.onnx", description="name of the model")
     IF_weights_path: str = Field("cyto2torch_0", description="name of the model")
-    Transcriptomics_weights_path: str = Field("cellseg_unet_RNA_20230606.onnx", description="name of the model")
-    Protein_weights_path: str = Field("cellseg_unet_RNA_20230606.onnx", description="name of the model")
+    Transcriptomics_weights_path: str = Field("cellseg_bcdu_SHDI_221008_tf.onnx", description="name of the model")
+    Stereocell_weights_path: str = Field("cellseg_unet_RNA_20230606.onnx", description="name of the model")
+    Protein_weights_path: str = Field("cellseg_bcdu_SHDI_221008_tf.onnx", description="name of the model")
     num_threads: int = Field(1, description="name of the model")
-    GPU: int = Field(0, description="name of the model")
+    GPU: int = Field(2, description="name of the model")
     enhance_times: int = Field(1, description="number of times to enhance the image")
 
     # def get_weights_path(self, stain_type):
@@ -85,7 +86,7 @@ class CellSegmentation:
                 f"{[i.name for i in SUPPORTED_STAIN_TYPE_BY_MODEL[self.model_name]]}"
             )
             return
-        if self.stain_type == TechType.Transcriptomics:
+        if self.stain_type == TechType.Stereocell:
             self._WIN_SIZE = (512, 512)
             self._OVERLAP = 0.1
         else:

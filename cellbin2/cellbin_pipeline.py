@@ -74,6 +74,7 @@ class CellBinPipeline(object):
         self._if_report = False
         self.more_images: Optional[Dict] = None
         self._protein_matrix_path: str = ''
+        self._stereocell_matrix_path: str = ''
         self.research: bool = False
 
     def image_quality_control(self, ):
@@ -272,6 +273,7 @@ class CellBinPipeline(object):
             # track image (ssDNA, HE, DAPI)
             im_count = 0
             trans_exp_idx = -1
+            stereocell_exp_idx = -1
             protein_exp_idx = -1
             nuclear_cell_idx = -1
 
@@ -288,6 +290,16 @@ class CellBinPipeline(object):
                 new_pp.image_process[str(im_count)] = trans_tp
                 trans_exp_idx = im_count
                 new_pp.image_process[str(nuclear_cell_idx)].registration.fixed_image = trans_exp_idx
+                im_count += 1
+
+            # Stereocell matrix 
+            if self._stereocell_matrix_path is not None:
+                stereocell_tp = pp.image_process[TechType.Stereocell.name]
+                stereocell_tp.file_path = self._stereocell_matrix_path
+                new_pp.image_process[str(im_count)] = stereocell_tp
+                stereocell_exp_idx = im_count
+                if new_pp.image_process[str(nuclear_cell_idx)].registration.fixed_image == -1:
+                    new_pp.image_process[str(nuclear_cell_idx)].registration.fixed_image = stereocell_exp_idx
                 im_count += 1
 
             # more images, IF, H&E
@@ -332,13 +344,23 @@ class CellBinPipeline(object):
                 trans_m_tp = pp.molecular_classify[TechType.Transcriptomics.name]
                 trans_m_tp.exp_matrix = trans_exp_idx
                 trans_m_tp.cell_mask["nuclei"] = [nuclear_cell_idx]
+                trans_m_tp.cell_mask["matrix"] = [trans_exp_idx]
                 trans_m_tp.correct_r = pp.molecular_classify[TechType.Transcriptomics.name].correct_r
                 new_pp.molecular_classify['0'] = trans_m_tp
+            
+            if stereocell_exp_idx != -1:
+                sc_m_tp = pp.molecular_classify[TechType.Stereocell.name]
+                sc_m_tp.exp_matrix = stereocell_exp_idx
+                sc_m_tp.cell_mask["nuclei"] = [nuclear_cell_idx]
+                sc_m_tp.cell_mask["matrix"] = [stereocell_exp_idx]
+                sc_m_tp.correct_r = pp.molecular_classify[TechType.Stereocell.name].correct_r
+                new_pp.molecular_classify['0'] = sc_m_tp
 
             if protein_exp_idx != -1:
                 protein_m_tp = pp.molecular_classify[TechType.Protein.name]
                 protein_m_tp.exp_matrix = protein_exp_idx
                 protein_m_tp.cell_mask["nuclei"] = [nuclear_cell_idx]
+                protein_m_tp.cell_mask["matrix"] = [protein_exp_idx]
                 protein_m_tp.correct_r = pp.molecular_classify[TechType.Protein.name].correct_r
                 new_pp.molecular_classify['1'] = protein_m_tp
             if new_pp.run.report is False and self._if_report is True:
@@ -356,7 +378,7 @@ class CellBinPipeline(object):
 
     def run(self, chip_no: str, input_image: str, more_images: str,
             stain_type: str, param_file: str,
-            output_path: str, matrix_path: str, protein_matrix_path: str, kit: str, if_report: bool, debug: bool):
+            output_path: str, matrix_path: str, stereocell_matrix_path: str, protein_matrix_path: str, kit: str, if_report: bool, debug: bool):
         """
         Run the full analysis pipeline.
 
@@ -391,6 +413,7 @@ class CellBinPipeline(object):
         self._param_file = param_file
         self._output_path = output_path
         self._matrix_path = matrix_path
+        self._stereocell_matrix_path = stereocell_matrix_path
         self._protein_matrix_path = protein_matrix_path
         self._kit = kit
         self._if_report = if_report
@@ -415,6 +438,7 @@ def pipeline(
         param_file,
         output_path,
         matrix_path,
+        stereocell_matrix_path,
         protein_matrix_path,
         kit,
         if_report,
@@ -459,6 +483,7 @@ def pipeline(
             param_file=param_file,
             output_path=output_path,
             matrix_path=matrix_path,
+            stereocell_matrix_path=stereocell_matrix_path,
             protein_matrix_path=protein_matrix_path,
             kit=kit,
             if_report=if_report,
@@ -493,6 +518,7 @@ def main(args, para):
     param_file = args.param_file
     output_path = args.output_path
     matrix_path = args.matrix_file
+    stereocell_matrix_path = args.stereocell_matrix_file
     protein_matrix_path = args.protein_matrix_file
     kit = args.kit
     weights_root = args.weights_root
@@ -507,6 +533,7 @@ def main(args, para):
         param_file,
         output_path,
         matrix_path,
+        stereocell_matrix_path,
         protein_matrix_path,
         kit,
         if_report,
@@ -568,6 +595,8 @@ if __name__ == '__main__':  # main()
                         help="The path of other image input file.", metavar="{STAIN_TYPE}={FILE_PATH}")
     parser.add_argument("-m", action="store", type=str, metavar="TRANSCRIPTOMICS_MATRIX_FILE", dest="matrix_file",
                         help="The path of transcriptomics matrix file.")
+    parser.add_argument("-sc", action="store", type=str, metavar="STEREOCELL_MATRIX_FILE", dest="stereocell_matrix_file",
+                        help="The path of stereocell matrix file.")
     parser.add_argument("-pr", action="store", type=str, metavar="PROTEIN_MATRIX_FILE", dest="protein_matrix_file",
                         help="The path of protein matrix file.")
     parser.add_argument("-k", action="store", type=str, default="Stereo-CITE_T_FF V1.0 R", metavar="KIT_VERSION",

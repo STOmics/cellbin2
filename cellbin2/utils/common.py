@@ -10,6 +10,7 @@ class TechType(Enum):
     Transcriptomics = 5
     Protein = 6
     Null = 7
+    Stereocell = 8
     UNKNOWN = 10
     # Metabolome = 7
 

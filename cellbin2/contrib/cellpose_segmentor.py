@@ -6,6 +6,8 @@ import tqdm
 import numpy.typing as npt
 import numpy as np
 from skimage.morphology import remove_small_objects
+import logging
+import tifffile
 
 from cellbin2.image.augmentation import f_ij_16_to_8_v2 as f_ij_16_to_8
 from cellbin2.image.augmentation import f_rgb2gray
@@ -89,6 +91,16 @@ def poolingOverlap(mat, ksize, stride=None, method='max', pad=False):
     result = np.nan_to_num(result)
     return result
 
+def instance2semantics(ins):
+    """
+    instance to semantics
+    Args:
+        ins(ndarray):labeled instance
+
+    Returns(ndarray):mask
+    """
+    ins[np.where(ins > 0)] = 1
+    return np.array(ins, dtype=np.uint8)
 
 def f_instance2semantics_max(ins):
     """
@@ -146,7 +158,6 @@ def main(
         pip.main(['install', 'patchify==0.2.3'])
     from cellpose import models
     import patchify
-    import logging
     overlap = photo_size - photo_step
     if (overlap % 2) == 1:
         overlap = overlap + 1
@@ -214,8 +225,9 @@ def segment4cell(input_path: str, cfg: CellSegParam, gpu: int) -> npt.NDArray[np
         gpu=gpu,
         model_dir=os.path.dirname(cfg.IF_weights_path)
     )
+    semantics = instance2semantics(mask)
 
-    return mask
+    return semantics
 
 
 if __name__ == '__main__':

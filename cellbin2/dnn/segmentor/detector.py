@@ -45,9 +45,12 @@ class Segmentation:
         self._num_threads = num_threads
         self.stain_type = stain_type
 
-        if self.stain_type == TechType.Transcriptomics:
+        if  self.stain_type == TechType.Stereocell:
             self.pre_fomat = f_preformat_rna
             self.post_format = f_postformat_rna
+        elif self.stain_type == TechType.Transcriptomics:
+            self.pre_fomat = f_preformat
+            self.post_format = f_postformat
         else:
             self.pre_fomat = f_preformat
             self.post_format = f_postformat
@@ -78,6 +81,7 @@ class Segmentation:
         2023/09/21 @fxzhao set need_fun_ret as False, this result is not ued in current version 
         """
         # 1. preprocess image
+        print(self.stain_type)
         img = self.preprocess(
             img=img,
             stain_type=self.stain_type

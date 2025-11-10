@@ -85,10 +85,14 @@ tissueSegmentation:
 cellSegmentation:
   ssDNA_weights_path: cellseg_bcdu_SHDI_221008_tf.onnx
   DAPI_weights_path: cellseg_bcdu_SHDI_221008_tf.onnx
+  #DAPI_weights_path: cyto2torch_0
+  #DAPI_weights_path: cellpose3
   HE_weights_path: cellseg_bcdu_H_240823_tf.onnx
-  IF_weights_path: cyto2torch_0
-  Transcriptomics_weights_path: cellseg_unet_RNA_20230606.onnx
-  Protein_weights_path: cellseg_unet_RNA_20230606.onnx
+  #IF_weights_path: cyto2torch_0
+  IF_weights_path: cellpose3
+  Transcriptomics_weights_path: cellseg_bcdu_SHDI_221008_tf.onnx
+  Stereocell_weights_path: cellseg_unet_RNA_20230606.onnx
+  Protein_weights_path: cellseg_bcdu_SHDI_221008_tf.onnx
   GPU: 0
   num_threads: 0
   enhance_times: 1
@@ -113,5 +117,3 @@ geneticStandards:
   bin20_thr: -1
   bin50_thr: -1
   bin200_thr: -1
-
-

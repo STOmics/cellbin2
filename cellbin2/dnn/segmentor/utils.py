@@ -8,9 +8,9 @@ SUPPORTED_MODELS = [
     f'cellseg_unet_RNA_20230606',
 ]
 SUPPORTED_STAIN_TYPE_BY_MODEL = {
-    SUPPORTED_MODELS[0]: [TechType.ssDNA, TechType.HE, TechType.DAPI],
+    SUPPORTED_MODELS[0]: [TechType.ssDNA, TechType.HE, TechType.DAPI, TechType.Transcriptomics, TechType.Protein],
     SUPPORTED_MODELS[1]: [TechType.HE],
-    SUPPORTED_MODELS[2]: [TechType.Transcriptomics]
+    SUPPORTED_MODELS[2]: [TechType.Transcriptomics, TechType.Stereocell]
 }
 weight_name_ext = '_weights_path'
 TechToWeightName = {}

@@ -32,6 +32,22 @@
       "channel_align": -1,
       "tissue_filter": -1
     },
+    "Stereocell": {
+      "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000045_M5/SS200000045_M5.raw.gef",
+      "tech_type": "Stereocell",
+      "chip_detect": false,
+      "quality_control": false,
+      "registration": {
+        "fixed_image": -1,
+        "trackline": true,
+        "reuse": -1
+      },
+      "tissue_segmentation": true,
+      "cell_segmentation": true,
+      "magnification": 10,
+      "channel_align": -1,
+      "tissue_filter": -1
+    },
     "IF": {
       "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000045_M5/SS200000045_M5_ATP_IF_fov_stitched.tif",
       "tech_type": "IF",
@@ -100,6 +116,17 @@
   "molecular_classify": {
     "Transcriptomics": {
       "exp_matrix": 1,
+      "cell_mask": {
+        "nuclei":[0],
+        "interior": [],
+        "boundary":[],
+        "matrix":[]
+      },
+      "correct_r": 10,
+      "extra_method": ""
+    },
+    "Stereocell": {
+      "exp_matrix": 2,
       "cell_mask": {
         "nuclei":[0],
         "interior": [],
