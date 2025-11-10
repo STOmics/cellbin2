@@ -83,7 +83,7 @@ def transform_to_register(
 
                     if os.path.basename(dst_path).count('_regist.') > 0:
                         _dst_image = dst_image.trans_image(scale=1 / binx)
-                        cbimwrite(str(dst_path).replace("regist", f"regist_bin{binx}"), _dst_image)
+                        cbimwrite(str(dst_path).replace("regist.tif", f"regist_bin{binx}.tif"), _dst_image)
 
 
         if os.path.exists(cur_f_name.tissue_mask):

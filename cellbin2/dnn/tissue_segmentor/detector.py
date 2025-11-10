@@ -78,7 +78,7 @@ class TissueSegmentationBcdu(object):
             pred_out.threshold_list = threshold_list
             return pred_out
         src_shape = img.shape[:2]
-        img = self.pre_format(self.preprocess(img=img, stain_type=self.stain_type, input_size=self.INPUT_SIZE))
+        img = self.pre_format(self.preprocess(img=img, stain_type=self.stain_type, input_size=self.INPUT_SIZE, binx=binx))
 
         pred = self.model.f_predict(img)
         pred = self.postprocess(self.post_format(pred), stain_type=self.stain_type, src_shape=src_shape)

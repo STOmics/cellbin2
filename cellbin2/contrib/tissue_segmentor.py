@@ -227,6 +227,7 @@ def segment4tissue(input_data: TissueSegInputInfo) -> TissueSegOutputInfo:
     binx = input_data.binx
 
     clog.info(f"input stain type:{s_type}")
+    clog.info(f"input bin_size:{binx}")
 
     support_model = SupportModel()
 
