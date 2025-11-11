@@ -329,17 +329,22 @@ class StereoChip(object):
                     if _w in self.chip_name[-4:]:
                         return False
 
-                if self.is_from_S13:
-                    if int(self.chip_name[1: 1 + 5]) >= s13_min_num:
-                        return True
+                    prefix = self.chip_name[0]
+                    num_str = self.chip_name[1:6]
+                    # determine if SN[1:6] consists entirely of numbers
+                    if num_str.isdigit():
+                        num_val = int(num_str)
+                        if prefix in ['A', 'B', 'C', 'D']:  # 'A00025A1','A00025A111','A03025A1',
+                            return num_val >= s6_min_num
+                        elif prefix == 'Y':
+                            return num_val >= s13_min_num
+                        else:
+                            # SN[0] support [E, F, G, H, Q, ...] + serial number supports [any 5-digit number], valid
+                            return True
                     else:
-                        return False
-                else:
-                    if int(self.chip_name[1: 1 + 5]) >= s6_min_num:
+                        # SN[0] support [E, F, G, H, Q, ...] + any 5 digits and letters, valid
                         return True
-                    else:
-                        return False
-            else:  # long code cannot be determined yet, considered it as old data
+            else:  # do not support long code for now
                 return False
         except ValueError:
             return False
@@ -401,7 +406,7 @@ class StereoChip(object):
         )
         clog.info(f"\n{tb}")
 
-    def parse_info(self, chip_no: str, print_flag = False):
+    def parse_info(self, chip_no: str, print_flag = True):
         """
         Args:
             chip_no:
@@ -456,7 +461,7 @@ if __name__ == '__main__':
     # main()
     curr_path = os.path.dirname(os.path.realpath(__file__))
     sc = StereoChip(chip_mask_file = os.path.join(curr_path, r'../config/chip_mask.json'))
-    sc.parse_info(chip_no = 'E40009G6', print_flag=True)
+    sc.parse_info(chip_no = 'Y40320PA', print_flag=True)
     print(1)
     # word = 'ACDEFGHJKLMNP'
     # num = '123456789ACDE'
