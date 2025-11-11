@@ -370,11 +370,11 @@ class StereoChip(object):
         if self._name[0] not in CHIP_TITLE_NAME: return 0
 
         if name_len in [8, 10]:
-            if not self._name[1: 6].isdigit(): return 0
-            if not 97 <= ord(self._name[6].lower()) <= 122: return 0
-
-            if name_len == 8:
-                if not self._name[7].isdigit(): return 0
+            if not self._name[6].isalpha():
+                return 0
+            if (name_len == 8) and (self._name[0] not in self._s13_label):
+                if not self._name[7].isdigit():
+                    return 0
             self.name_type = ChipNameType.SHORT
         elif name_len in [14, 16, 17, 18]:
             self.name_type = ChipNameType.LONG
