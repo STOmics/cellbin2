@@ -16,9 +16,9 @@ from glob import glob
 from typing import Union
 from prettytable import PrettyTable
 
-from mfws.modules.scan_method import ScanMethod, Scanning, StitchingMethod
-from mfws.modules.stitching import Stitching
-from mfws import version
+from .modules.scan_method import ScanMethod, Scanning, StitchingMethod
+from .modules.stitching import Stitching
+from . import version
 
 
 def _stitch_info_print(**kwargs):
