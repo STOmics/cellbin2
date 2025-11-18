@@ -248,8 +248,8 @@ def template_00pt_check(
             mat=f_rgb2hsv(moving_image.mat.image, channel=1, need_not=False)
         )
 
-    # TODO: now ,binX use the Template00Pt register offset directly without calibration.  Further calibration is required.
-    if not rot90_flag or fixed_image.binX != 1:
+    # TODO: now ,binx use the Template00Pt register offset directly without calibration.  Further calibration is required.
+    if not rot90_flag or fixed_image.binx != 1:
         return {
             'offset': (offset_info[0]["offset"] - np.array(fixed_offset)).tolist(),
             'flip': flip_flag,

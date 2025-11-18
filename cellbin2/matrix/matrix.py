@@ -52,6 +52,7 @@ class cMatrix(object):
     def __init__(self) -> None:
         self._gene_mat = np.array([])
         self.binx = 1
+        self.dtype = np.uint8
         self.x_start = 65535
         self.y_start = 65535
         self.h_x_start = 0
@@ -72,10 +73,9 @@ class cMatrix(object):
         suffix = file_path.suffix
         assert suffix in ['.gz', '.gef', '.gem']
         if suffix == ".gef":
-            self.binx, self.x_start, self.y_start, self._gene_mat = self._load_gef(file_path)
+            self.binx, self.x_start, self.y_start, self._gene_mat = self._load_gef(self, file_path)
             return
 
-        img = np.zeros((1, 1), np.uint8)
         if suffix == ".gz":
             fh = gzip.open(file_path, "rb")
         else:
@@ -126,10 +126,15 @@ class cMatrix(object):
             chunksize=chunk_size,
         )
 
-        # TODO: parse header info of the gem and gem.gz
         _list = header.split("\n#")[-2:]
         self.h_x_start = int(_list[0].split("=")[1])
         self.h_y_start = int(_list[1].split("=")[1])
+        import re
+        m_bin = re.search(r'(?im)^#.*\b(?:bin(?:size|_size|x)?)[\s:=]*([0-9]+)', header)
+        if m_bin:
+            self.binx = int(m_bin.group(1))
+        else:
+            self.binx = 1
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -179,7 +184,7 @@ class cMatrix(object):
         self._gene_mat = img[self.y_start:, self.x_start:]
 
     @staticmethod
-    def _load_gef(file):
+    def _load_gef(self, file):
         """
         Sepeedup version that for gef file format of all the bin_size
         """
@@ -192,17 +197,17 @@ class cMatrix(object):
                 raise Exception("The sequencing data is empty, please confirm the {} file.".format(file))
 
             binx = int(dataset.attrs["resolution"][0]/dataset.attrs["dnbPitch"][0]) # binx标识
+            if binx != 1: 
+                self.dtype = np.uint16
             min_x, max_x = dataset.attrs["minX"][0], dataset.attrs["maxX"][0]
             min_y, max_y = dataset.attrs["minY"][0], dataset.attrs["maxY"][0]
             width = max_x - min_x + 1
             height = max_y - min_y + 1
-            # img = np.zeros((height, width), np.uint8)
-            img = np.zeros((height, width), np.uint16)
+            img = np.zeros((height, width), self.dtype)
             img.fill(0)
-
             for step in range(dataset.size // chunk_size + 1):
                 data = dataset[step * chunk_size: (step + 1) * chunk_size]
-                parse_gef_line(data, img, np.uint16)
+                parse_gef_line(data, img, self.dtype)
 
         return (
             binx,
