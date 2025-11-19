@@ -11,29 +11,31 @@ from cellbin2.utils.common import TechType
 from cellbin2.image import cbimread
 
 
-def f_pre_ssdna(img: npt.NDArray) -> npt.NDArray:
+def f_pre_ssdna(img: npt.NDArray, enhance_times: int) -> npt.NDArray:
     if img.ndim == 3:
         img = f_rgb2gray(img, False)
     img = f_percentile_threshold(img)
-    img = f_equalize_adapthist(img, 128)
+    img = f_equalize_adapthist(img, 128, enhance_times)
     img = f_histogram_normalization(img)
     return img
 
 
-def f_pre_rna(img: npt.NDArray) -> npt.NDArray:
+def f_pre_rna(img: npt.NDArray, enhance_times: int) -> npt.NDArray:
     img = f_ij_auto_contrast_v3(img)
     return img
 
 
-def f_pre_he(img: npt.NDArray) -> npt.NDArray:
-    img = f_clahe_rgb(img)
+def f_pre_he(img: npt.NDArray, enhance_times: int) -> npt.NDArray:
+    for _ in range(enhance_times or 1):
+        img = f_clahe_rgb(img)
+
     if img.dtype != np.float32:
         img = np.array(img).astype(np.float32)
     img = rescale_intensity(img, out_range=(0.0, 1.0))
     return img
 
 
-def f_pre_he_invert(img: npt.NDArray) -> npt.NDArray:
+def f_pre_he_invert(img: npt.NDArray, enhance_times: int) -> npt.NDArray:
     img = f_rgb2gray(img, True)
     img = f_pre_ssdna(img)
     return img
@@ -53,11 +55,13 @@ model_preprocess = {
     }
 }
 
+import tifffile as tif
 
 class CellSegPreprocess:
-    def __init__(self, model_name):
+    def __init__(self, model_name, enhance_times):
         self.model_name = model_name
         self.m_preprocess: dict = model_preprocess[self.model_name]
+        self.enhance_times = enhance_times
 
     def __call__(self, img: Union[str, npt.NDArray], stain_type):
         # support image reading 
@@ -71,7 +75,7 @@ class CellSegPreprocess:
 
         # different process for diffrent staining 
         pre_func = self.m_preprocess.get(stain_type)
-        img = pre_func(img)
+        img = pre_func(img, self.enhance_times)
 
         # basic operation
         if img.dtype != np.float32:

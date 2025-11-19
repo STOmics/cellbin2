@@ -192,6 +192,7 @@ def download_all_weights(save_dir: str = None):
 if __name__ == '__main__':
     save_dir = '/media/Data1/user/dengzhonghan/data/tmp/test_weights_2'
     download_all_weights()
+    
     # names = [DNNModuleName.cellseg]
     # wd = WeightDownloader(save_dir)
     #

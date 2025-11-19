@@ -245,10 +245,16 @@ class TrackPointQC(object):
                     mininterval=10,
                     desc='Track points detect'
             ):
+                if isinstance(val, (list, tuple)):
+                    y0, y1, x0, x1 = val
+                    if (y1 - y0) <= 1 or (x1 - x0) <= 1:
+                        continue
                 img_obj: CBImage = self.img_read(val, buffer)
+                if img_obj is None:
+                    continue
                 cp, angle = self.ci.predict(img_obj)
                 if save_dir is not None:
-                    # debug 模式
+                    # debug mode
                     save_result_on_image(enhance_func, img_obj, cp, save_dir, key)
                 if angle is None or len(cp) == 0:
                     continue
@@ -263,7 +269,13 @@ class TrackPointQC(object):
                     mininterval=10,
                     desc='Track points detect'
             ):
+                if isinstance(val, (list, tuple)):
+                    y0, y1, x0, x1 = val
+                    if (y1 - y0) <= 1 or (x1 - x0) <= 1:
+                        continue
                 img_obj = self.img_read(val, buffer)
+                if img_obj is None:
+                    continue
                 sub_process = pool.apply_async(self.ci.predict, args=(img_obj,))
                 processes.append([key, sub_process, img_obj])
             pool.close()
@@ -510,7 +522,7 @@ if __name__ == '__main__':
     h, w = 2000, 2000
     overlap = 0.0
 
-    # 大图
+    # big img
     weight_path = r"E:\03.users\liuhuanlin\01.data\cellbin2\weights\points_detect_yolov5obb_SSDNA_20220513_pytorch.onnx"
     img_file = r"E:\03.users\liuhuanlin\01.data\cellbin2\stitch/SS200000789TL_C6_S_DAPI.tif"
     show_result = r"E:\03.users\liuhuanlin\01.data\cellbin2\output"
@@ -527,5 +539,5 @@ if __name__ == '__main__':
         h=h,
         w=w,
         overlap=overlap,
-        save_dir=show_result,  # 非必须
+        save_dir=show_result,  # no need
     )

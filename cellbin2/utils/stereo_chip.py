@@ -34,7 +34,7 @@ POINTS_BEGIN_Y = 105
 POINTS_END_X = 163275
 POINTS_END_Y = 163275
 
-CHIP_TITLE_NAME = ['A', 'B', 'C', 'D', 'Y', 'E', 'F', 'G', 'H', 'Q', 'S']
+CHIP_TITLE_NAME = ['A', 'B', 'C', 'D', 'Y', 'E', 'F', 'G', 'H', 'Q', 'J', 'K', 'L', 'M', 'N', 'P', 'S']
 
 
 class StereoChip(object):
@@ -86,7 +86,7 @@ class StereoChip(object):
         return p_list
 
     def create_track_points(self):
-        """ 至S13大小芯片上的点的分布
+        """ To the distribution of points on the S13 large and small chips
 
         Returns:
 
@@ -370,9 +370,12 @@ class StereoChip(object):
     def _base_rules(self, ):
         name_len = len(self._name)
 
-        if name_len == 0: return 0
+        if name_len == 0:
+            return 0
 
-        if self._name[0] not in CHIP_TITLE_NAME: return 0
+        # 首位必须是字母
+        if not self._name[0] in CHIP_TITLE_NAME:
+            return 0
 
         if name_len in [8, 10]:
             if not self._name[6].isalpha():

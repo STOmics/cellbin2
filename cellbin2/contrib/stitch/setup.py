@@ -3,7 +3,6 @@ from setuptools import setup, find_packages
 with open('requirements.txt') as f:
     requires = f.read().splitlines()
 
-# Parse version number from cellbin2/__init__.py:
 with open('mfws/__init__.py') as f:
     info = {}
     for line in f:
@@ -34,7 +33,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'mfws=mfws.image_stitch:arg_parser',
+            'mfws=mfws.main:main',
         ]
     },
   )

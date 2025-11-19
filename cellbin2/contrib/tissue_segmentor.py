@@ -29,6 +29,7 @@ class TissueSegParam(BaseModel, BaseModule):
     IF_weights_path: Optional[str] = Field('-', description='IF using tradition algorithm, no model applied')
     GPU: int = Field(-1, description='GPU id, default -1 (CPU)')
     num_threads: int = Field(1, description="name of the model")
+    best_tissue_mask_method: int = Field(0, description="0: use the best tissue mask, 1: use the tissue mask with the highest score")
 
     # def get_weights_path(self, stain_type):
     #     p = ''

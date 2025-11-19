@@ -266,4 +266,3 @@ def run_register(
 
         cbimwrite(os.path.join(output_path, f"{image_file.magnification}X_regist.tif"), dst_image)
         clog.info(f'{image_file.magnification}X register image has been created')
-

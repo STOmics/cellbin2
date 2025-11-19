@@ -31,6 +31,7 @@ class CellSegParam(BaseModel, BaseModule):
     Protein_weights_path: str = Field("cellseg_unet_RNA_20230606.onnx", description="name of the model")
     num_threads: int = Field(1, description="name of the model")
     GPU: int = Field(0, description="name of the model")
+    enhance_times: int = Field(1, description="number of times to enhance the image")
 
     # def get_weights_path(self, stain_type):
     #     if stain_type == TechType.ssDNA or stain_type == TechType.DAPI:
@@ -69,6 +70,8 @@ class CellSegmentation:
         self.cfg = cfg
         self.stain_type = stain_type
         self._model_path = self.cfg.get_weights_path(self.stain_type)
+        self.enhance_times = self.cfg.enhance_times
+
         if not os.path.exists(self._model_path):
             clog.info(f"{self._model_path} does not exist, will download automatically.")
             download_by_names(
@@ -89,7 +92,8 @@ class CellSegmentation:
             self._WIN_SIZE = (256, 256)
             self._OVERLAP = 16
         self.pre_process = CellSegPreprocess(
-            model_name=self.model_name
+            model_name=self.model_name,
+            enhance_times=self.enhance_times
         )
         self.post_process = CellSegPostprocess(
             model_name=self.model_name

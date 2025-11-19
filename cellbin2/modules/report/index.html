@@ -374,21 +374,29 @@
                 :module-title="dataJson.image.image1_cellseg.cell_intensity.title" :src="dataJson.image.image1_cellseg.cell_intensity.src" container-id="tissueseg-plot">
              </tissue-seg>
 			 
-			 <cell-seg v-if="dataJson.image.image_num > 0 && Object.keys(dataJson.image.image1_cellseg.cellseg1).length > 0"
-                 :src="dataJson.image.image1_cellseg.cellseg1" container-id="tissueseg-plot">
-             </cell-seg>
-			 <cell-seg v-if="dataJson.image.image_num > 0 && Object.keys(dataJson.image.image1_cellseg.cellseg2).length > 0"
-                 :src="dataJson.image.image1_cellseg.cellseg2" container-id="tissueseg-plot">
-             </cell-seg>
-			 <cell-seg v-if="dataJson.image.image_num > 0 && Object.keys(dataJson.image.image1_cellseg.cellseg3).length > 0"
-                 :src="dataJson.image.image1_cellseg.cellseg3" container-id="tissueseg-plot">
-             </cell-seg>
-			 <cell-seg v-if="dataJson.image.image_num > 0 && Object.keys(dataJson.image.image1_cellseg.cellseg4).length > 0"
-                :src="dataJson.image.image1_cellseg.cellseg4" container-id="tissueseg-plot">
-             </cell-seg>
-			 <cell-seg v-if="dataJson.image.image_num > 0 && Object.keys(dataJson.image.image1_cellseg.cellseg5).length > 0"
-                :src="dataJson.image.image1_cellseg.cellseg5" container-id="tissueseg-plot">
-             </cell-seg>
+			 <!-- Cell Segmentation Overview -->
+			 <tissue-seg v-if="dataJson.image.image_num > 0 && dataJson.image.image1_cellseg.overview.src.length > 0"
+                :module-title="'Cell Seg'" :src="dataJson.image.image1_cellseg.overview.src" container-id="cellseg-overview-plot">
+             </tissue-seg>
+			 
+			 <!-- Cell Segmentation Detail Images Container -->
+			 <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: flex-start; align-items: flex-start; margin: 20px 0;">
+				 <cell-seg v-if="dataJson.image.image1_cellseg.cellseg1.length > 0"
+					 :module-title="'Cell Seg 1'" :src="dataJson.image.image1_cellseg.cellseg1" container-id="tissueseg-plot">
+				 </cell-seg>
+				 <cell-seg v-if="dataJson.image.image1_cellseg.cellseg2.length > 0"
+					 :module-title="'Cell Seg 2'" :src="dataJson.image.image1_cellseg.cellseg2" container-id="tissueseg-plot">
+				 </cell-seg>
+				 <cell-seg v-if="dataJson.image.image1_cellseg.cellseg3.length > 0"
+					 :module-title="'Cell Seg 3'" :src="dataJson.image.image1_cellseg.cellseg3" container-id="tissueseg-plot">
+				 </cell-seg>
+				 <cell-seg v-if="dataJson.image.image1_cellseg.cellseg4.length > 0"
+					:module-title="'Cell Seg 4'" :src="dataJson.image.image1_cellseg.cellseg4" container-id="tissueseg-plot">
+				 </cell-seg>
+				 <cell-seg v-if="dataJson.image.image1_cellseg.cellseg5.length > 0"
+					:module-title="'Cell Seg 5'" :src="dataJson.image.image1_cellseg.cellseg5" container-id="tissueseg-plot">
+				 </cell-seg>
+			 </div>
 			 
 			 <!-- display second image information -->
 			<div>
@@ -461,21 +469,29 @@
                 :module-title="dataJson.image.image2_cellseg.cell_intensity.title" :src="dataJson.image.image2_cellseg.cell_intensity.src" container-id="tissueseg-plot">
              </tissue-seg>
 			 
-			 <cell-seg v-if="dataJson.image.image_num > 0 && Object.keys(dataJson.image.image2_cellseg.cellseg1).length > 0"
-                 :src="dataJson.image.image2_cellseg.cellseg1" container-id="tissueseg-plot">
-             </cell-seg>
-			 <cell-seg v-if="dataJson.image.image_num > 0 && Object.keys(dataJson.image.image2_cellseg.cellseg2).length > 0"
-                 :src="dataJson.image.image2_cellseg.cellseg2" container-id="tissueseg-plot">
-             </cell-seg>
-			 <cell-seg v-if="dataJson.image.image_num > 0 && Object.keys(dataJson.image.image2_cellseg.cellseg3).length > 0"
-                 :src="dataJson.image.image2_cellseg.cellseg3" container-id="tissueseg-plot">
-             </cell-seg>
-			 <cell-seg v-if="dataJson.image.image_num > 0 && Object.keys(dataJson.image.image2_cellseg.cellseg4).length > 0"
-                :src="dataJson.image.image2_cellseg.cellseg4" container-id="tissueseg-plot">
-             </cell-seg>
-			 <cell-seg v-if="dataJson.image.image_num > 0 && Object.keys(dataJson.image.image2_cellseg.cellseg5).length > 0"
-                :src="dataJson.image.image2_cellseg.cellseg5" container-id="tissueseg-plot">
-             </cell-seg>
+			 <!-- Cell Segmentation Overview -->
+			 <tissue-seg v-if="dataJson.image.image_num > 1 && dataJson.image.image2_cellseg.overview.src.length > 0"
+                :module-title="'Cell Seg'" :src="dataJson.image.image2_cellseg.overview.src" container-id="cellseg-overview2-plot">
+             </tissue-seg>
+			 
+			 <!-- Cell Segmentation Detail Images Container -->
+			 <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: flex-start; align-items: flex-start; margin: 20px 0;">
+				 <cell-seg v-if="dataJson.image.image_num > 1 && dataJson.image.image2_cellseg.cellseg1.length > 0"
+					 :module-title="'Cell Seg 1'" :src="dataJson.image.image2_cellseg.cellseg1" container-id="tissueseg-plot">
+				 </cell-seg>
+				 <cell-seg v-if="dataJson.image.image_num > 1 && dataJson.image.image2_cellseg.cellseg2.length > 0"
+					 :module-title="'Cell Seg 2'" :src="dataJson.image.image2_cellseg.cellseg2" container-id="tissueseg-plot">
+				 </cell-seg>
+				 <cell-seg v-if="dataJson.image.image_num > 1 && dataJson.image.image2_cellseg.cellseg3.length > 0"
+					 :module-title="'Cell Seg 3'" :src="dataJson.image.image2_cellseg.cellseg3" container-id="tissueseg-plot">
+				 </cell-seg>
+				 <cell-seg v-if="dataJson.image.image_num > 1 && dataJson.image.image2_cellseg.cellseg4.length > 0"
+					:module-title="'Cell Seg 4'" :src="dataJson.image.image2_cellseg.cellseg4" container-id="tissueseg-plot">
+				 </cell-seg>
+				 <cell-seg v-if="dataJson.image.image_num > 1 && dataJson.image.image2_cellseg.cellseg5.length > 0"
+					:module-title="'Cell Seg 5'" :src="dataJson.image.image2_cellseg.cellseg5" container-id="tissueseg-plot">
+				 </cell-seg>
+			 </div>
 			 <!-- display third image information -->
 			<div>
 			<common v-if="dataJson.image.image_num > 2":module-title="dataJson.image.image3_qc.title" :msg="dataJson.image.image3_qc.msg"
@@ -547,21 +563,29 @@
                 :module-title="dataJson.image.image3_cellseg.cell_intensity.title" :src="dataJson.image.image3_cellseg.cell_intensity.src" container-id="tissueseg-plot">
              </tissue-seg>
 			 
-			 <cell-seg v-if="dataJson.image.image_num > 0 && Object.keys(dataJson.image.image3_cellseg.cellseg1).length > 0"
-                 :src="dataJson.image.image3_cellseg.cellseg1" container-id="tissueseg-plot">
-             </cell-seg>
-			 <cell-seg v-if="dataJson.image.image_num > 0 && Object.keys(dataJson.image.image3_cellseg.cellseg2).length > 0"
-                 :src="dataJson.image.image3_cellseg.cellseg2" container-id="tissueseg-plot">
-             </cell-seg>
-			 <cell-seg v-if="dataJson.image.image_num > 0 && Object.keys(dataJson.image.image3_cellseg.cellseg3).length > 0"
-                 :src="dataJson.image.image3_cellseg.cellseg3" container-id="tissueseg-plot">
-             </cell-seg>
-			 <cell-seg v-if="dataJson.image.image_num > 0 && Object.keys(dataJson.image.image3_cellseg.cellseg4).length > 0"
-                :src="dataJson.image.image3_cellseg.cellseg4" container-id="tissueseg-plot">
-             </cell-seg>
-			 <cell-seg v-if="dataJson.image.image_num > 0 && Object.keys(dataJson.image.image3_cellseg.cellseg5).length > 0"
-                :src="dataJson.image.image3_cellseg.cellseg5" container-id="tissueseg-plot">
-             </cell-seg>
+			 <!-- Cell Segmentation Overview -->
+			 <tissue-seg v-if="dataJson.image.image_num > 2 && dataJson.image.image3_cellseg.overview.src.length > 0"
+                :module-title="'Cell Seg'" :src="dataJson.image.image3_cellseg.overview.src" container-id="cellseg-overview3-plot">
+             </tissue-seg>
+			 
+			 <!-- Cell Segmentation Detail Images Container -->
+			 <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: flex-start; align-items: flex-start; margin: 20px 0;">
+				 <cell-seg v-if="dataJson.image.image_num > 2 && dataJson.image.image3_cellseg.cellseg1.length > 0"
+					 :module-title="'Cell Seg 1'" :src="dataJson.image.image3_cellseg.cellseg1" container-id="tissueseg-plot">
+				 </cell-seg>
+				 <cell-seg v-if="dataJson.image.image_num > 2 && dataJson.image.image3_cellseg.cellseg2.length > 0"
+					 :module-title="'Cell Seg 2'" :src="dataJson.image.image3_cellseg.cellseg2" container-id="tissueseg-plot">
+				 </cell-seg>
+				 <cell-seg v-if="dataJson.image.image_num > 2 && dataJson.image.image3_cellseg.cellseg3.length > 0"
+					 :module-title="'Cell Seg 3'" :src="dataJson.image.image3_cellseg.cellseg3" container-id="tissueseg-plot">
+				 </cell-seg>
+				 <cell-seg v-if="dataJson.image.image_num > 2 && dataJson.image.image3_cellseg.cellseg4.length > 0"
+					:module-title="'Cell Seg 4'" :src="dataJson.image.image3_cellseg.cellseg4" container-id="tissueseg-plot">
+				 </cell-seg>
+				 <cell-seg v-if="dataJson.image.image_num > 2 && dataJson.image.image3_cellseg.cellseg5.length > 0"
+					:module-title="'Cell Seg 5'" :src="dataJson.image.image3_cellseg.cellseg5" container-id="tissueseg-plot">
+				 </cell-seg>
+			 </div>
 			<!-- display fourth image information -->
 			 <div>
 			<common v-if="dataJson.image.image_num > 3":module-title="dataJson.image.image4_qc.title" :msg="dataJson.image.image4_qc.msg"
@@ -633,21 +657,29 @@
                 :module-title="dataJson.image.image4_cellseg.cell_intensity.title" :src="dataJson.image.image4_cellseg.cell_intensity.src" container-id="tissueseg-plot">
              </tissue-seg>
 			 
-			 <cell-seg v-if="dataJson.image.image_num > 0 && Object.keys(dataJson.image.image4_cellseg.cellseg1).length > 0"
-                 :src="dataJson.image.image4_cellseg.cellseg1" container-id="tissueseg-plot">
-             </cell-seg>
-			 <cell-seg v-if="dataJson.image.image_num > 0 && Object.keys(dataJson.image.image4_cellseg.cellseg2).length > 0"
-                 :src="dataJson.image.image4_cellseg.cellseg2" container-id="tissueseg-plot">
-             </cell-seg>
-			 <cell-seg v-if="dataJson.image.image_num > 0 && Object.keys(dataJson.image.image4_cellseg.cellseg3).length > 0"
-                 :src="dataJson.image.image4_cellseg.cellseg3" container-id="tissueseg-plot">
-             </cell-seg>
-			 <cell-seg v-if="dataJson.image.image_num > 0 && Object.keys(dataJson.image.image4_cellseg.cellseg4).length > 0"
-                :src="dataJson.image.image4_cellseg.cellseg4" container-id="tissueseg-plot">
-             </cell-seg>
-			 <cell-seg v-if="dataJson.image.image_num > 0 && Object.keys(dataJson.image.image4_cellseg.cellseg5).length > 0"
-                :src="dataJson.image.image4_cellseg.cellseg5" container-id="tissueseg-plot">
-             </cell-seg>
+			 <!-- Cell Segmentation Overview -->
+			 <tissue-seg v-if="dataJson.image.image_num > 3 && dataJson.image.image4_cellseg.overview.src.length > 0"
+                :module-title="'Cell Seg'" :src="dataJson.image.image4_cellseg.overview.src" container-id="cellseg-overview4-plot">
+             </tissue-seg>
+			 
+			 <!-- Cell Segmentation Detail Images Container -->
+			 <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: flex-start; align-items: flex-start; margin: 20px 0;">
+				 <cell-seg v-if="dataJson.image.image_num > 3 && dataJson.image.image4_cellseg.cellseg1.length > 0"
+					 :module-title="'Cell Seg 1'" :src="dataJson.image.image4_cellseg.cellseg1" container-id="tissueseg-plot">
+				 </cell-seg>
+				 <cell-seg v-if="dataJson.image.image_num > 3 && dataJson.image.image4_cellseg.cellseg2.length > 0"
+					 :module-title="'Cell Seg 2'" :src="dataJson.image.image4_cellseg.cellseg2" container-id="tissueseg-plot">
+				 </cell-seg>
+				 <cell-seg v-if="dataJson.image.image_num > 3 && dataJson.image.image4_cellseg.cellseg3.length > 0"
+					 :module-title="'Cell Seg 3'" :src="dataJson.image.image4_cellseg.cellseg3" container-id="tissueseg-plot">
+				 </cell-seg>
+				 <cell-seg v-if="dataJson.image.image_num > 3 && dataJson.image.image4_cellseg.cellseg4.length > 0"
+					:module-title="'Cell Seg 4'" :src="dataJson.image.image4_cellseg.cellseg4" container-id="tissueseg-plot">
+				 </cell-seg>
+				 <cell-seg v-if="dataJson.image.image_num > 3 && dataJson.image.image4_cellseg.cellseg5.length > 0"
+					:module-title="'Cell Seg 5'" :src="dataJson.image.image4_cellseg.cellseg5" container-id="tissueseg-plot">
+				 </cell-seg>
+			 </div>
 						
           </div>
 
