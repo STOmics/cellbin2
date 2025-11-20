@@ -11,7 +11,7 @@ CURR_PATH = os.path.dirname(os.path.realpath(__file__))
 CB2_PATH = os.path.dirname(CURR_PATH)
 sys.path.append(CB2_PATH)
 
-from contrib.stitch.mfws.main import stitching
+from cellbin2.contrib.stitch.mfws.main import stitching
 
 def get_max_rows_cols(folder_path):
 
