@@ -228,8 +228,12 @@ class cMatrix(object):
             if not dataset[...].size:
                 clog.error("The sequencing data is empty, please confirm the {} file.".format(file))
                 raise Exception("The sequencing data is empty, please confirm the {} file.".format(file))
-            
-            binx = int(dataset.attrs["resolution"][0]/dataset.attrs["dnbPitch"][0]) # binx标识
+    
+            try:
+                binx = int(dataset.attrs["resolution"][0]/dataset.attrs["dnbPitch"][0]) 
+            except KeyError:
+                binx = int(dataset.attrs["resolution"][0]/500)
+                
             min_x, max_x = dataset.attrs["minX"][0], dataset.attrs["maxX"][0]
             min_y, max_y = dataset.attrs["minY"][0], dataset.attrs["maxY"][0]
             width = max_x - min_x + 1
