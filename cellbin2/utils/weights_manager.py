@@ -26,7 +26,7 @@ class DownloadSource(Enum):
     GITHUB = "github"
 
 
-def download_with_progress(local_file, file_url, source_name="remote"):
+def download(local_file, file_url, source_name="remote"):
     f_name = os.path.basename(local_file)
     if not os.path.exists(local_file):
         try:
@@ -78,7 +78,7 @@ class WeightDownloader(object):
                 w[weight_name] = sources
         return w
 
-    def _download_with_fallback(self, weight_name: str, sources: Dict):
+    def _download(self, weight_name: str, sources: Dict):
 
         weight_path = os.path.join(self._save_dir, weight_name)
         
@@ -90,7 +90,7 @@ class WeightDownloader(object):
         bgipan_url = sources.get(DownloadSource.BGIPAN.value)
         if bgipan_url:
             clog.info(f'Trying to download {weight_name} from BGIPan...')
-            success = download_with_progress(weight_path, bgipan_url, DownloadSource.BGIPAN.value)
+            success = download(weight_path, bgipan_url, DownloadSource.BGIPAN.value)
             if success:
                 return 0
             else:
@@ -103,7 +103,7 @@ class WeightDownloader(object):
         github_url = sources.get(DownloadSource.GITHUB.value)
         if github_url:
             clog.info(f'Trying to download {weight_name} from GitHub...')
-            success = download_with_progress(weight_path, github_url, DownloadSource.GITHUB.value)
+            success = download(weight_path, github_url, DownloadSource.GITHUB.value)
             if success:
                 return 0
             else:
@@ -125,7 +125,7 @@ class WeightDownloader(object):
                 continue
             
             sources = all_weights[weight_name]
-            flag = self._download_with_fallback(weight_name, sources)
+            flag = self._download(weight_name, sources)
             if flag != 0:
                 failed_downloads.append(weight_name)
         
@@ -144,7 +144,7 @@ class WeightDownloader(object):
             return 1
         
         sources = self._WEIGHTS[module_name.name][weight_name]
-        return self._download_with_fallback(weight_name, sources)
+        return self._download(weight_name, sources)
 
     def download_module_weight(self, module_name: Union[DNNModuleName, list] = None):
         weights_to_download = []
@@ -164,7 +164,7 @@ class WeightDownloader(object):
             clog.info(f'Downloading weights for module: {module.name}')
             module_failed = []
             for weight_name, sources in self._WEIGHTS[module.name].items():
-                flag = self._download_with_fallback(weight_name, sources)
+                flag = self._download(weight_name, sources)
                 if flag != 0:
                     module_failed.append(weight_name)
             
