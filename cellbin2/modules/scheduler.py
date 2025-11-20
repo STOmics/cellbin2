@@ -482,6 +482,9 @@ class Scheduler(object):
 
 
             # integrate nuclei, interior, cell seperatly 
+            merged_cell_mask = None
+            merged_interior_mask = None
+            merged_core_mask = None
 
             if len(cell_mask) != 0: #cell mask exist
                 if len(cell_mask) == 1:
@@ -490,13 +493,11 @@ class Scheduler(object):
                     stain_type=self._files[cell_mask[0]].get_group_name(sn=self.param_chip.chip_name),
                     save_dir=self._output_path
                 )
-                    print(im_naming.cell_mask)
-                    merged_cell_mask = cbimread(im_naming.cell_mask, only_np=True)
+                    if im_naming.cell_mask.exists():
+                        merged_cell_mask = cbimread(im_naming.cell_mask, only_np=True)
                 else:
                     print("multiple cell masks exist")
                     #TODO: merge multiple cell masks, return final_cell_mask = merged cell masks
-            else: #no cell mask
-                merged_cell_mask = []
             
             if len(interior_mask) != 0: #interior mask exist
                 if len(interior_mask) == 1:
@@ -505,13 +506,11 @@ class Scheduler(object):
                     stain_type=self._files[interior_mask[0]].get_group_name(sn=self.param_chip.chip_name),
                     save_dir=self._output_path
                 )
-                    print(im_naming.cell_mask)
-                    merged_interior_mask = cbimread(im_naming.cell_mask, only_np=True)
+                    if im_naming.cell_mask.exists():
+                        merged_interior_mask = cbimread(im_naming.cell_mask, only_np=True)
                 else:
                     print("multiple interior masks exist")
                     #TODO: merge multiple cell masks, return final_cell_mask = merged cell masks
-            else: #no interior mask
-                merged_interior_mask = []
             
             if len(core_mask) != 0: #core mask exist
                 if len(core_mask) == 1:
@@ -525,13 +524,11 @@ class Scheduler(object):
                     if im_naming.tissue_mask.exists():
                         shutil.copy2(im_naming.tissue_mask, final_t_mask_path)
                     final_nuclear_path = im_naming.cell_mask
-                    print(im_naming.cell_mask)
-                    merged_core_mask = cbimread(im_naming.cell_mask, only_np=True)
+                    if im_naming.cell_mask.exists():
+                        merged_core_mask = cbimread(im_naming.cell_mask, only_np=True)
                 else:
                     print("multiple core masks exist")
                     #TODO: merge multiple cell masks, return final_cell_mask = merged cell masks
-            else: #no core mask
-                merged_core_mask = []
 
 
             #  --------------------nuclei expand--------------------
