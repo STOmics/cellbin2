@@ -272,7 +272,7 @@ class ProcParam(BaseModel):
                 if image.tissue_segmentation or
                    image.cell_segmentation or
                    image.registration.trackline or
-                   image.channel_align != -1 or
+                   image.tech_type == "IF" or
                    image.chip_matching != -1
             }
             # add matrix
