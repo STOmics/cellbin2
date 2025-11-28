@@ -261,7 +261,7 @@ class ProcParam(BaseModel):
                 if image.is_image and
                    (image.chip_detect or
                     image.quality_control or
-                    image.channel_align != -1 or
+                    image.tech_type == "IF" or
                     image.registration.trackline or
                     image.chip_matching != -1)
             }
