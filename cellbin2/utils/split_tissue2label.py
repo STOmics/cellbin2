@@ -203,12 +203,12 @@ def export_foreground_coords(mask_path: str, output_dir: str, min_size: int = -1
 
 def parse_args():
     p = argparse.ArgumentParser(description="Export foreground label pixel coordinates to CSV.GZ")
-    p.add_argument("--mask", "-m", required=True, type=str, help="input mask path")
-    p.add_argument("--output", "-o", required=True, type=str, help="output file path")
+    p.add_argument("--mask_path", "-m", required=True, type=str, help="input mask path")
+    p.add_argument("--output_dir", "-o", required=True, type=str, help="output file path")
     p.add_argument("--min_size", "-s", required=False, type=int, help="remove small objects", default=-1)
     p.add_argument("--scan_scale", "-sc", required=False, type=float, help="control scan step size scale", default=1.5)
     return p.parse_args()
 
 if __name__ == "__main__":
     args = parse_args()
-    export_foreground_coords(args.mask, args.output)
+    export_foreground_coords(mask_path=args.mask_path, output_dir=args.output_dir)
