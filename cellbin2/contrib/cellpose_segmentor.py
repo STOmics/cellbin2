@@ -161,7 +161,7 @@ def main(
         overlap = overlap + 1
     act_step = ceil(overlap / 2)
     logging.getLogger('cellpose.models').setLevel(logging.WARNING)
-    model = models.Cellpose(gpu=True, model_type=model_name)
+    model = models.CellposeModel(gpu=True, pretrained_model=model_dir)
 
     img = cbimread(file_path, only_np=True)
     img = f_ij_16_to_8(img)
@@ -183,7 +183,7 @@ def main(
     for i in tqdm.tqdm(range(wid), desc='Segment cells with [Cellpose]'):
         for j in range(high):
             img_data = patches[i, j, :, :]
-            masks, flows, styles, diams = model.eval(img_data, diameter=None, channels=[0, 0])
+            masks, _, _ = model.eval(img_data, diameter=None, channels=[0, 0])
             masks = f_instance2semantics_max(masks)
             a_patches[i, j, :, :] = masks[act_step:(photo_size - act_step),
                                     act_step:(photo_size - act_step)]
@@ -221,9 +221,8 @@ def segment4cell(input_path: str, cfg: CellSegParam, gpu: int) -> npt.NDArray[np
     mask = main(
         file_path=input_path,
         gpu=gpu,
-        model_dir=os.path.dirname(cfg.IF_weights_path)
-    )
-
+        model_dir=cfg.IF_weights_path
+        )
     return mask
 
 
