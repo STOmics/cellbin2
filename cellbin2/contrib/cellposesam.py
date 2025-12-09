@@ -3,7 +3,6 @@ import os
 import glob
 from math import ceil
 import numpy as np
-from cellpose import models, io,denoise
 import pip
 import tifffile
 import argparse
@@ -13,6 +12,7 @@ models_logger = logging.getLogger(__name__)
 import cv2
 from skimage.morphology import remove_small_objects
 
+
 from cellbin2.image.augmentation import f_ij_16_to_8_v2 as f_ij_16_to_8
 from cellbin2.image.augmentation import f_rgb2gray
 from cellbin2.contrib.cellpose_segmentor import instance2semantics, f_instance2semantics_max, poolingOverlap
@@ -21,42 +21,83 @@ from cellbin2.image import cbimread, cbimwrite
 from cellbin2.contrib.cell_segmentor import CellSegParam
 from cellbin2.utils import clog
 
+def instance2semantics(ins: np.ndarray) -> np.ndarray:
+    """
+    :param ins: Instance mask (0-N)
+    :return: Semantics mask (0-1)
+    """
+    ins_ = ins.copy()
+    h, w = ins_.shape[:2]
+    tmp0 = ins_[1:, 1:] - ins_[:h - 1, :w - 1]
+    ind0 = np.where(tmp0 != 0)
 
+    tmp1 = ins_[1:, :w - 1] - ins_[:h - 1, 1:]
+    ind1 = np.where(tmp1 != 0)
+    ins_[ind1] = 0
+    ins_[ind0] = 0
+    ins_[np.where(ins_ > 0)] = 1
+    return np.array(ins_, dtype=np.uint8)
 
+'''def cellposesam_pred_test(img_path, 
+                   use_gpu, 
+                   stain_type):
+    try:
+        import cellpose
+    except ImportError:
+        pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
+    if cellpose.version != '4.0.8':
+        pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
+    import cellpose
+    print("111111111")
+    from cellpose import models, core, io, plot
+    
+    print("11111222")
+    try:
+        import patchify
+    except ImportError:
+        pip.main(['install', 'patchify==0.2.3'])
+    import patchify
 
-
-def cellpose3_pred(img_path, 
+    
+    img = io.imread(str(img_path))
+    
+    new_model_path = "/home/wangaoli/.cellpose/models/cpsam"
+    img = io.imread(str(img_path))
+    model = models.CellposeModel(gpu=False,
+                             pretrained_model=new_model_path)
+    
+    masks = model.eval(img, batch_size=32)[0]
+    semantics = instance2semantics(masks)
+    return semantics
+'''
+def cellposesam_pred(img_path, 
                    cfg, 
                    use_gpu, 
-                   stain_type,
+                   model_dir,
                    output_path=None,
                    photo_size=2048,
                    photo_step=2000,):
     try:
         import cellpose
     except ImportError:
-        pip.main(['install', 'cellpose==3.1.1.2'])
+        pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
+    if cellpose.version != '4.0.8':
+        pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
     import cellpose
-    if cellpose.version != '3.1.1.2':
-        pip.main(['install', 'cellpose==3.1.1.2'])
-    import cellpose
+
+    from cellpose import models, core, io, plot
     try:
         import patchify
     except ImportError:
         pip.main(['install', 'patchify==0.2.3'])
-    from cellpose import models, io,denoise
     import patchify
     overlap = photo_size - photo_step
     if (overlap % 2) == 1:
         overlap = overlap + 1
     act_step = ceil(overlap / 2)
     logging.getLogger('cellpose.models').setLevel(logging.WARNING)
-    if stain_type == "DAPI" or stain_type =="ssDNA":
-        model = denoise.CellposeDenoiseModel(gpu=use_gpu, model_type="nuclei")
-    else:
-        model = denoise.CellposeDenoiseModel(gpu=use_gpu, model_type="cyto3")
-
-    img = tifffile.imread(img_path)
+    model = models.CellposeModel(gpu = use_gpu, pretrained_model=model_dir)
+    img = cbimread(img_path, only_np=True)
     img = f_ij_16_to_8(img)
     img = f_rgb2gray(img, True)
 
@@ -76,7 +117,7 @@ def cellpose3_pred(img_path,
     for i in tqdm.tqdm(range(wid), desc='Segment cells with [Cellpose]'):
         for j in range(high):
             img_data = patches[i, j, :, :]
-            masks, flows, styles, diams = model.eval(img_data, diameter=None, channels=[0, 0])
+            masks = model.eval(img_data, diameter=None, channels=[0, 0])[0]
             masks = f_instance2semantics_max(masks)
             a_patches[i, j, :, :] = masks[act_step:(photo_size - act_step),
                                     act_step:(photo_size - act_step)]
@@ -88,10 +129,18 @@ def cellpose3_pred(img_path,
     after_high = patch_nor.shape[1]
     cropped_1 = nor_imgdata[0:(after_wid - (re_length - res_a)), 0:(after_high - (re_width - res_b))]
     cropped_1 = np.uint8(remove_small_objects(cropped_1 > 0, min_size=2))
-    # #model = denoise.CellposeDenoiseModel(gpu=True, model_type="cyto3",
-    #                                    restore_type="denoise_cyto3")
-    #model = models.CellposeModel(gpu=True, model_type='/storeData/USER/data/01.CellBin/00.user/fanjinghong/code/cs-benchmark/src/methods/models/cyto3_train_on_cellbinDB')
+    if output_path is not None:
+        name = os.path.splitext(os.path.basename(img_path))[0]
+        c_mask_path = os.path.join(output_path, f"{name}_v3_mask.tif")
+        cbimwrite(output_path=c_mask_path, files=cropped_1, compression=True)
+    return cropped_1
 
-    semantics = instance2semantics(cropped_1)
-    return semantics
+if __name__ == '__main__':
+    img_path = "/storeData/USER/data/01.CellBin/00.user/wangaoli/data/raw_data/时空多蛋白数据/Xenium_Multimodal/Mouse_Brain/channel1_crop.tif"
+    model_path = "/home/wangaoli/.cellpose/models/cpsam"
+    mask =  cellposesam_pred(img_path, 
+                    use_gpu = True, 
+                    model_dir = model_path,
+                    stain_type = None)
+    tifffile.imwrite("/storeData/USER/data/01.CellBin/00.user/wangaoli/data/raw_data/时空多蛋白数据/Xenium_Multimodal/Mouse_Brain/channel1_crop_mask.tif", mask)
 

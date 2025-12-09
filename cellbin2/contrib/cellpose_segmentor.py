@@ -15,7 +15,6 @@ from cellbin2.contrib.cell_segmentor import CellSegParam
 from cellbin2.utils import clog
 
 
-# os.environ['CELLPOSE_LOCAL_MODELS_PATH'] = "/media/Data/dzh/weights"
 def instance2semantics(ins):
     """
     instance to semantics
@@ -118,21 +117,20 @@ def f_instance2semantics_max(ins):
 
 def main(
         file_path,
-        gpu: int,
+        gpu: bool,
         model_dir: str,
-        model_name='cyto2',
+        stain_type: str,
         output_path=None,
         photo_size=2048,
         photo_step=2000,
 ) -> np.ndarray:
     """
-    Main function to perform cell segmentation using Cellpose model.
+    Main function to perform cell segmentation using Cellpose2 or Cellpose3 model.
 
     Args:
         file_path (str): Path to the input image file.
-        gpu (int): Index of the GPU to be used.
-        model_dir (str): Directory where the Cellpose model is stored.
-        model_name (str, optional): Name of the model to be used. Defaults to 'cyto2'.
+        gpu (bool): Use gpu.
+        model_dir (str): Path of pretrained model.
         output_path (str, optional): Path to save the output file. Defaults to None.
         photo_size (int, optional): Size of the patches to be used for segmentation. Defaults to 2048.
         photo_step (int, optional): Step size for patch extraction. Defaults to 2000.
@@ -140,15 +138,14 @@ def main(
     Returns:
         np.ndarray: Segmented cell mask as a numpy array.
     """
-    os.environ['CELLPOSE_LOCAL_MODELS_PATH'] = model_dir  # Set the path for Cellpose to find the model
-    os.environ["CUDA_VISIBLE_DEVICES"] = f"{gpu}"
+    os.environ['CELLPOSE_LOCAL_MODELS_PATH'] = os.path.basename(model_dir)  # Set the path for Cellpose to find the model
     try:
         import cellpose
     except ImportError:
-        pip.main(['install', 'cellpose==3.0.11'])
+        pip.main(['install', 'cellpose==3.1.1.2'])
+    if cellpose.version != '3.1.1.2':
+        pip.main(['install', 'cellpose==3.1.1.2'])
     import cellpose
-    if cellpose.version != '3.0.11':
-        pip.main(['install', 'cellpose==3.0.11'])
     try:
         import patchify
     except ImportError:
@@ -161,8 +158,7 @@ def main(
         overlap = overlap + 1
     act_step = ceil(overlap / 2)
     logging.getLogger('cellpose.models').setLevel(logging.WARNING)
-    model = models.CellposeModel(gpu=True, pretrained_model=model_dir)
-
+    model = models.CellposeModel(gpu = gpu, pretrained_model=model_dir)
     img = cbimread(file_path, only_np=True)
     img = f_ij_16_to_8(img)
     img = f_rgb2gray(img, True)
@@ -183,7 +179,7 @@ def main(
     for i in tqdm.tqdm(range(wid), desc='Segment cells with [Cellpose]'):
         for j in range(high):
             img_data = patches[i, j, :, :]
-            masks, _, _ = model.eval(img_data, diameter=None, channels=[0, 0])
+            masks = model.eval(img_data, diameter=None, channels=[0, 0])[0]
             masks = f_instance2semantics_max(masks)
             a_patches[i, j, :, :] = masks[act_step:(photo_size - act_step),
                                     act_step:(photo_size - act_step)]
@@ -217,12 +213,14 @@ cyto2
 """
 
 
-def segment4cell(input_path: str, cfg: CellSegParam, gpu: int) -> npt.NDArray[np.uint8]:
+def segment4cell(input_path: str, cfg: CellSegParam, use_gpu: bool, stain_type: str) -> npt.NDArray[np.uint8]:
+    model_dir = getattr(cfg, f"{stain_type}_weights_path")
     mask = main(
         file_path=input_path,
-        gpu=gpu,
-        model_dir=cfg.IF_weights_path
-        )
+        gpu=use_gpu,
+        model_dir=model_dir,
+        stain_type= stain_type
+    )
     return mask
 
 
@@ -233,7 +231,7 @@ if __name__ == '__main__':
     parser.add_argument('-i', "--input", help="the input img path")
     parser.add_argument('-o', "--output", help="the output file")
     parser.add_argument("-m", "--model_dir", help="model dir")
-    parser.add_argument("-n", "--model_name", help="model name", default="cyto2")
+    parser.add_argument("-n", "--model_name", help="model name", default="cyto2torch_0")
     parser.add_argument("-g", "--gpu", help="the gpu index", default="-1")
 
     args = parser.parse_args()
@@ -242,12 +240,12 @@ if __name__ == '__main__':
     model_name = args.model_name
     gpu = args.gpu
     model_dir = args.model_dir
+    model_path = os.path.join(model_dir, model_name)
 
     main(
         file_path=input_path,
         gpu=gpu,
-        model_dir=model_dir,
-        model_name=model_name,
+        model_dir=model_path,
         output_path=output_path
     )
     sys.exit()
