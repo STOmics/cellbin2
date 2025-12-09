@@ -44,13 +44,13 @@ FILES_TO_KEEP = (
     naming.DumpPipelineFileNaming.final_tissue_mask,
     naming.DumpPipelineFileNaming.input_json,
     naming.DumpMatrixFileNaming.matrix_template,
+    naming.DumpPipelineFileNaming.stereo,
+    naming.DumpPipelineFileNaming.rpi,
 )
 
 FILES_TO_KEEP_RESEARCH = FILES_TO_KEEP + (
-    naming.DumpPipelineFileNaming.stereo,
-    naming.DumpPipelineFileNaming.tar_gz,
-    naming.DumpPipelineFileNaming.rpi,
-)
+    naming.DumpPipelineFileNaming.tar_gz
+    )
 
 
 class ErrorCode(Enum):
