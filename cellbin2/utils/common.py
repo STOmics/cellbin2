@@ -49,7 +49,7 @@ FILES_TO_KEEP = (
 )
 
 FILES_TO_KEEP_RESEARCH = FILES_TO_KEEP + (
-    naming.DumpPipelineFileNaming.tar_gz
+    naming.DumpPipelineFileNaming.tar_gz,
     )
 
 

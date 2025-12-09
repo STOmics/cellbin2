@@ -840,6 +840,14 @@ class Scheduler(object):
             if Path(path) in remove_:
                 os.remove(path)
 
+        multimodal_mid_dir = os.path.join(self._output_path, "multimodal_mid_file")
+        if os.path.exists(multimodal_mid_dir):
+            for file_name in os.listdir(multimodal_mid_dir):
+                file_path = os.path.join(multimodal_mid_dir, file_name)
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+            os.rmdir(multimodal_mid_dir)
+
 
 def scheduler_pipeline(weights_root: str, chip_no: str, input_image: str, stain_type: str,
                        param_file: str, output_path: str, matrix_path: str, ipr_path: str,
