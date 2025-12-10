@@ -1,7 +1,7 @@
 {
   "image_process": {
     "0": {
-      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/Y96879U8/raw_images/stitch/Y96879U8_fov_stitched.tif",
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/Y968792V3/raw_images/stitch/Y968792V3_fov_stitched.tif",
       "tech_type": "DAPI",
       "chip_detect": false,
       "quality_control": false,
@@ -16,7 +16,7 @@
       }
     },
     "1": {
-      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/Y96879U8/gem/Y96879U8.raw.gef",
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/Y968792V3/gem/Y968792V3.raw.gef",
       "tech_type": "Transcriptomics",
       "chip_detect": false,
       "quality_control": false,
@@ -31,7 +31,7 @@
       }
     },
     "2": {
-      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/B03120F1/gem/B03120F1.protein.raw.gef",
+      "file_path": "/storeData/USER/data/00.stoDatabase/00.rawdata/00.Kit_dataset/04.Stereo_CITE_Kit/Y968792V3/gem/Y968792V3.protein.raw.gef",
       "tech_type": "Protein",
       "chip_detect": false,
       "quality_control": false,
@@ -63,7 +63,7 @@
     }
   },
   "run": {
-    "qc": true,
+    "qc": false,
     "alignment": true,
     "matrix_extract": true,
     "report": false,
