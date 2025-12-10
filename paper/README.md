@@ -1,8 +1,6 @@
-## Xenium data <br>
+## 1. Xenium data <br>
 step1: convert data run xenium.py<br>
 step2: 
-
-#### 1. B03205D314 Human Lung
 ```shell
 -c
 B03205D314
@@ -12,65 +10,85 @@ B03205D314
 /media/Data1/user/dengzhonghan/data/tmp/test4paper/B03205D314
 ```
 
-#### 2. 1*2 A02177C1D1 Rat brain
+#### 2. 1*2  Rat brain
 ```shell
 -c
-A02177C1D1
+Z97822X8W8
 -p
-/media/Data1/user/dengzhonghan/code/cellbin2dev/cellbin2/paper/A02177C1D1.json
+/media/Data1/user/dengzhonghan/code/cellbin2dev/cellbin2/paper/Z97822X8W8.json
 -o
-/media/Data1/user/dengzhonghan/data/tmp/test4paper/A02177C1D1
+/media/Data1/user/dengzhonghan/data/tmp/test4paper/Z97822X8W8
 ```
 
-#### 3. A02497C1 Mouse kidney
+#### 3. Mouse kidney
 ```shell
 -c
-A02497C1
+Z97502X8
 -p
-/media/Data1/user/dengzhonghan/code/cellbin2dev/cellbin2/paper/A02497C1.json
+/media/Data1/user/dengzhonghan/code/cellbin2dev/cellbin2/paper/Z97502X8.json
 -o
-/media/Data1/user/dengzhonghan/data/tmp/test4paper/A02497C1
+/media/Data1/user/dengzhonghan/data/tmp/test4paper/Z97502X8
 ```
 
-#### 4. 2*3 B01207E3G4 Rat brain
+#### 4. 2*3 Rat brain
 ```shell
 -c
-B01207E3G4
+Y98792V6T5
 -p
-/media/Data1/user/dengzhonghan/code/cellbin2dev/cellbin2/paper/B01207E3G4.json
+/media/Data1/user/dengzhonghan/code/cellbin2dev/cellbin2/paper/Y98792V6T5.json
 -o
-/media/Data1/user/dengzhonghan/data/tmp/test4paper/B01207E3G4
+/media/Data1/user/dengzhonghan/data/tmp/test4paper/Y98792V6T5
 ```
 
-#### 5. C04042E2 Mouse brain
+#### 5. Mouse brain
 ```shell
 -c
-C04042E2
+X95957V7
 -p
-/media/Data1/user/dengzhonghan/code/cellbin2dev/cellbin2/paper/C04042E2.json
+/media/Data1/user/dengzhonghan/code/cellbin2dev/cellbin2/paper/X95957V7.json
 -o
-/media/Data1/user/dengzhonghan/data/tmp/test4paper/C04042E2
+/media/Data1/user/dengzhonghan/data/tmp/test4paper/X95957V7
 ```
 
-#### 6. B03120E6 Mouse liver
+#### 6. Mouse liver (stereo-CITE)
 ```shell
 -c
-B03120E6
+Y968792V3
 -p
-/media/Data1/user/dengzhonghan/code/cellbin2dev/cellbin2/paper/B03120E6.json
+/media/Data1/user/dengzhonghan/code/cellbin2dev/cellbin2/paper/Y968792V3.json
 -o
-/media/Data1/user/dengzhonghan/data/tmp/test4paper/B03120E6
+/media/Data1/user/dengzhonghan/data/tmp/test4paper/Y968792V3
+```
+#### 7. Arabidopsis thaliana
+```shell
+-c
+UK799999550GO_X6
+-p
+/media/Data1/user/dengzhonghan/code/cellbin2dev/cellbin2/paper/UK799999550GO_X6.json
+-o
+/media/Data1/user/dengzhonghan/data/tmp/test4paper/UK799999550GO_X6
 ```
 
-#### 7. B04001D6 Mouse pneumonitis
+### 8. Mouse liver (IF stained image)
 ```shell
 -c
-B04001D6
+C01344C4
 -p
-/media/Data1/user/dengzhonghan/code/cellbin2dev/cellbin2/paper/B04001D6.json
+/media/Data1/user/dengzhonghan/code/cellbin2dev/cellbin2/paper/C01344C4.json
 -o
-/media/Data1/user/dengzhonghan/data/tmp/test4paper/B04001D6
+/media/Data1/user/dengzhonghan/data/tmp/test4paper/C01344C4
 ```
+
+### 9. PBMC (Stereo-cell)
+```shell
+-c
+Z96914Z8W6
+-p
+/media/Data1/user/dengzhonghan/code/cellbin2dev/cellbin2/paper/Z96914Z8W6.json
+-o
+/media/Data1/user/dengzhonghan/data/tmp/test4paper/Z96914Z8W6
+```
+
 
 ## VisiumHD  <br>
 step1: convert data run VisiumHD.py, then rename the output result and give a fake chip number<br>
