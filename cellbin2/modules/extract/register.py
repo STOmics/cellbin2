@@ -246,5 +246,5 @@ def run_register(
         _new_mi = cbimread(cur_f_name.registration_image)
         scale = int(image_file.magnification / 10)
         _new_mi = _new_mi.resize_image(scale)
-        cbimwrite(os.path.join(output_path, f"{image_file.magnification}X_regist.tif"), _new_mi)
+        cbimwrite(os.path.join(output_path, f"{image_file.tech_type}_{image_file.magnification}X_regist.tif"), _new_mi)
         clog.info(f'{image_file.magnification}X register image has been created')

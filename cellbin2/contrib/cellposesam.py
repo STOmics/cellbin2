@@ -11,6 +11,8 @@ import logging
 models_logger = logging.getLogger(__name__)
 import cv2
 from skimage.morphology import remove_small_objects
+from skimage.segmentation import find_boundaries
+from typing import Tuple, List 
 
 
 from cellbin2.image.augmentation import f_ij_16_to_8_v2 as f_ij_16_to_8
@@ -21,26 +23,87 @@ from cellbin2.image import cbimread, cbimwrite
 from cellbin2.contrib.cell_segmentor import CellSegParam
 from cellbin2.utils import clog
 
-def instance2semantics(ins: np.ndarray) -> np.ndarray:
-    """
-    :param ins: Instance mask (0-N)
-    :return: Semantics mask (0-1)
-    """
-    ins_ = ins.copy()
-    h, w = ins_.shape[:2]
-    tmp0 = ins_[1:, 1:] - ins_[:h - 1, :w - 1]
-    ind0 = np.where(tmp0 != 0)
 
-    tmp1 = ins_[1:, :w - 1] - ins_[:h - 1, 1:]
-    ind1 = np.where(tmp1 != 0)
-    ins_[ind1] = 0
-    ins_[ind0] = 0
-    ins_[np.where(ins_ > 0)] = 1
-    return np.array(ins_, dtype=np.uint8)
 
-'''def cellposesam_pred_test(img_path, 
-                   use_gpu, 
-                   stain_type):
+def split_image_into_patches(
+    image: np.ndarray, 
+    patch_size: int = 2000, 
+    overlap: int = 48
+) -> Tuple[List[np.ndarray], List[Tuple[int, int, int, int]]]:
+
+    
+    h, w = image.shape[:2]
+    stride = patch_size - overlap  
+    patches = []
+    positions = []
+
+    y_steps = max(1, (h - overlap) // stride + 1)
+    x_steps = max(1, (w - overlap) // stride + 1)
+    
+    for y_idx in range(y_steps):
+        for x_idx in range(x_steps):
+            y_start = y_idx * stride
+            x_start = x_idx * stride
+            
+            # edge patches process
+            if y_idx == y_steps - 1:
+                y_start = h - patch_size
+            if x_idx == x_steps - 1:
+                x_start = w - patch_size
+
+            y_start = max(0, y_start)
+            x_start = max(0, x_start)
+            y_end = min(h, y_start + patch_size)
+            x_end = min(w, x_start + patch_size)
+
+            patch = image[y_start:y_end, x_start:x_end, :]
+            
+            # padding
+            if patch.shape[0] < patch_size or patch.shape[1] < patch_size:
+                pad_h = patch_size - patch.shape[0]
+                pad_w = patch_size - patch.shape[1]
+                patch = np.pad(patch, ((0, pad_h), (0, pad_w), (0, 0)), mode='constant')
+            
+            patches.append(patch)
+            positions.append((y_start, x_start, y_end, x_end))
+    
+    return patches, positions
+
+
+
+def merge_masks_with_or(
+    masks: List[np.ndarray], 
+    positions: List[Tuple[int, int, int, int]], 
+    original_shape: Tuple[int, int]
+) -> np.ndarray:
+
+    h, w = original_shape
+    full_mask = np.zeros((h, w), dtype=np.uint8)
+    
+    for mask, (y_start, x_start, y_end, x_end) in zip(masks, positions):
+        patch_h = y_end - y_start
+        patch_w = x_end - x_start
+        
+        valid_mask = mask[:patch_h, :patch_w]
+        
+        # process overlap area with logic or 
+        full_mask[y_start:y_end, x_start:x_end] = np.logical_or(
+            full_mask[y_start:y_end, x_start:x_start+patch_w],
+            valid_mask
+        ).astype(np.uint8)
+    
+    return full_mask
+
+
+def cellposesam_pred_3c(
+    img_path: str, 
+    use_gpu, 
+    model_dir,
+    patch_size: int = 2000,
+    overlap: int = 48,
+    output_path = None
+) -> np.ndarray:
+
     try:
         import cellpose
     except ImportError:
@@ -48,32 +111,49 @@ def instance2semantics(ins: np.ndarray) -> np.ndarray:
     if cellpose.version != '4.0.8':
         pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
     import cellpose
-    print("111111111")
-    from cellpose import models, core, io, plot
-    
-    print("11111222")
-    try:
-        import patchify
-    except ImportError:
-        pip.main(['install', 'patchify==0.2.3'])
-    import patchify
+    import logging
 
+    from cellpose import models, core, io, plot
+
+    logging.getLogger('cellpose').setLevel(logging.WARNING)
+    img = io.imread(img_path)
+
+    if img.ndim == 2:  # gray
+        img = np.stack([img, img, img], axis=-1)
+        chan = [0, 0]
+    elif img.ndim == 3 and img.shape[2] == 3:
+        chan = [2, 0]  # RGB
+    elif img.ndim == 3 and img.shape[2] != 3: # rgb C H W
+        img = np.transpose(img, (1, 2, 0))
+        chan = [2, 0]  # RGB
+    # patches
+    patches, positions = split_image_into_patches(img, patch_size, overlap)
     
-    img = io.imread(str(img_path))
+    # patch segmentation
+    model = models.CellposeModel(gpu = use_gpu, pretrained_model=model_dir)
+    masks = []
+    for i, patch in enumerate(tqdm.tqdm(patches, desc='Segment cells with [Cellpose]')):
+        mask = model.eval(patch, diameter=None, channels=chan)[0]
+        boundaries = find_boundaries(mask, mode='inner')
+        
+        mask[boundaries] = 0
+        mask = f_instance2semantics(mask)
+        masks.append(mask)
     
-    new_model_path = "/home/wangaoli/.cellpose/models/cpsam"
-    img = io.imread(str(img_path))
-    model = models.CellposeModel(gpu=False,
-                             pretrained_model=new_model_path)
-    
-    masks = model.eval(img, batch_size=32)[0]
-    semantics = instance2semantics(masks)
-    return semantics
-'''
+    # merge mask patches
+    full_mask = merge_masks_with_or(masks, positions, img.shape[:2])
+    if output_path:
+        name = os.path.splitext(os.path.basename(img_path))[0]
+        c_mask_path = os.path.join(output_path, f"{name}_cpsam_mask.tif")
+        cbimwrite(output_path=c_mask_path, files=full_mask, compression=True)
+
+    return full_mask
+
+
 def cellposesam_pred(img_path, 
-                   cfg, 
                    use_gpu, 
                    model_dir,
+                   cfg=None, 
                    output_path=None,
                    photo_size=2048,
                    photo_step=2000,):
@@ -91,13 +171,14 @@ def cellposesam_pred(img_path,
     except ImportError:
         pip.main(['install', 'patchify==0.2.3'])
     import patchify
+    use_gpu = False
     overlap = photo_size - photo_step
     if (overlap % 2) == 1:
         overlap = overlap + 1
     act_step = ceil(overlap / 2)
     logging.getLogger('cellpose.models').setLevel(logging.WARNING)
     model = models.CellposeModel(gpu = use_gpu, pretrained_model=model_dir)
-    img = cbimread(img_path, only_np=True)
+    img = io.imread(img_path)
     img = f_ij_16_to_8(img)
     img = f_rgb2gray(img, True)
 
@@ -135,12 +216,39 @@ def cellposesam_pred(img_path,
         cbimwrite(output_path=c_mask_path, files=cropped_1, compression=True)
     return cropped_1
 
-if __name__ == '__main__':
-    img_path = "/storeData/USER/data/01.CellBin/00.user/wangaoli/data/raw_data/时空多蛋白数据/Xenium_Multimodal/Mouse_Brain/channel1_crop.tif"
-    model_path = "/home/wangaoli/.cellpose/models/cpsam"
-    mask =  cellposesam_pred(img_path, 
-                    use_gpu = True, 
-                    model_dir = model_path,
-                    stain_type = None)
-    tifffile.imwrite("/storeData/USER/data/01.CellBin/00.user/wangaoli/data/raw_data/时空多蛋白数据/Xenium_Multimodal/Mouse_Brain/channel1_crop_mask.tif", mask)
+demo = """
+python cellposesam.py \
+-i
+"xxx/B02512C5_after_tc_regist.tif"
+-o
+xxx/tmp
+-m
+xxx/models
+-n
+cyto2
+-g
+0
+"""
 
+if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(usage=f"{demo}")
+    parser.add_argument('-i', "--input", help="the input img path")
+    parser.add_argument('-o', "--output", help="the output file")
+    parser.add_argument("-m", "--model_path", help="model path")
+    parser.add_argument("-g", "--gpu", help="use gpu (1) or not (0)", default=0)
+
+    args = parser.parse_args()
+    img_path = args.input
+    output_path = args.output
+    gpu = args.gpu
+    model_path = args.model_path
+    use_gpu = True
+    if gpu == 0:
+        use_gpu = False
+
+    mask =  cellposesam_pred_3c(img_path, 
+                    use_gpu = use_gpu, 
+                    model_dir = model_path,
+                    output_path=output_path)

@@ -44,7 +44,8 @@ def run_cell_seg(
         cell_mask = cellposesam.cellposesam_pred(
             img_path=str(image_path),
             cfg=config.cell_segmentation,
-            use_gpu=True
+            use_gpu=True,
+            model_dir = cellseg_model_path
         )
     elif cellseg_model == 'cyto2torch_0' or cellseg_model == 'cyto3' or cellseg_model == 'cellpose3':
         print("Using cellpose_segmentor for cell segmentation")
