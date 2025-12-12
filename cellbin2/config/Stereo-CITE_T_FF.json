@@ -45,7 +45,7 @@
         "reuse": -1
       },
       "tissue_segmentation": true,
-      "cell_segmentation": false,
+      "cell_segmentation": true,
       "magnification": 10,
       "chip_matching": -1,
       "channel_align": 0,

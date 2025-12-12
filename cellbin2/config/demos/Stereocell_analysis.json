@@ -12,7 +12,10 @@
       },
       "tissue_segmentation": false,
       "cell_segmentation": true,
-      "channel_align": -1
+      "channel_align": -1,
+      "magnification": 10,
+      "chip_matching": -1,
+      "tissue_filter": -1
     },
     "1": {
       "file_path": "E:/pyproject/cellbin_stereocell_analysis/cellbin2/data/Q00327K8.raw.gef",
@@ -26,19 +29,25 @@
       },
       "tissue_segmentation": false,
       "cell_segmentation": true,
-      "channel_align": -1
+      "channel_align": -1,
+      "magnification": 10,
+      "chip_matching": -1,
+      "tissue_filter": -1
     }
   },
   "molecular_classify": {
-      "0": {
-        "exp_matrix": 1,
-        "cell_mask": [
-          0
-        ],
-        "correct_r": 10,
-        "extra_method": ""
-      }
-    },
+    "Transcriptomics": {
+      "exp_matrix": 1,
+      "cell_mask": {
+        "nuclei":[0],
+        "interior": [],
+        "boundary":[],
+        "matrix":[]
+      },
+      "correct_r": 10,
+      "extra_method": ""
+    }
+  },
   "run": {
       "qc": false,
       "alignment": true,
