@@ -1,5 +1,6 @@
 import os
 import json
+from tkinter import N
 
 import numpy as np
 import pandas as pd
@@ -33,7 +34,7 @@ POINTS_BEGIN_Y = 105
 POINTS_END_X = 163275
 POINTS_END_Y = 163275
 
-CHIP_TITLE_NAME = ['A', 'B', 'C', 'D', 'Y', 'E', 'F', 'G', 'H', 'Q', 'S']
+CHIP_TITLE_NAME = ['A', 'B', 'C', 'D', 'Y', 'E', 'F', 'G', 'H', 'Q', 'J', 'K', 'L', 'M', 'N', 'P', 'S']
 
 
 class StereoChip(object):
@@ -69,6 +70,7 @@ class StereoChip(object):
         self._s13_label = ['Y', 'Q']
         self._chip_rows = '0_0'
         self._chip_cols = '0_0'
+        self._template_points: np.ndarray = None
 
     @staticmethod
     def _create_points(b, e):
@@ -163,6 +165,7 @@ class StereoChip(object):
             (track_points_data['y'] < fov_y_max)].to_numpy()
 
         points_finish = (points_fov - [mask_x_min, mask_y_min]) * 2
+        # self._template_points = points_finish
 
         x_set, y_set = map(lambda x: sorted(set(x)),
                            points_finish.transpose(1, 0).tolist())
@@ -176,6 +179,19 @@ class StereoChip(object):
 
         zero_x = x_set[_x_index + 1]
         zero_y = y_set[_y_index + 1]
+
+        n = points_finish.shape[0]
+        points_with_indices = np.zeros((n,4))
+        points_with_indices[:, :2] = points_finish
+        for i in range(n):
+            x, y = points_finish[i]
+            x_idx = np.where(x_set == x)[0][0]
+            y_idx = np.where(y_set == y)[0][0]
+            i_index = (x_idx - np.where(np.array(x_set) == zero_x)[0][0]) % 9
+            j_index = (y_idx - np.where(np.array(y_set) == zero_y)[0][0]) % 9
+            points_with_indices[i, 2] = i_index
+            points_with_indices[i, 3] = j_index
+        self._template_points = points_with_indices
 
         # added: distance between 00 point and chip corner
         index = np.where(((points_finish[:, 0] == zero_x) & (points_finish[:, 1] == zero_y)) == True)[0][0]
@@ -205,6 +221,10 @@ class StereoChip(object):
             ud = info1["ud_expand"]
 
         return row, col, lr, ud
+
+    @property
+    def template_points(self, ):
+        return self._template_points
 
     @property
     def zero_zero_point(self, ): return self._00pt
@@ -309,17 +329,22 @@ class StereoChip(object):
                     if _w in self.chip_name[-4:]:
                         return False
 
-                if self.is_from_S13:
-                    if int(self.chip_name[1: 1 + 5]) >= s13_min_num:
-                        return True
+                    prefix = self.chip_name[0]
+                    num_str = self.chip_name[1:6]
+                    # determine if SN[1:6] consists entirely of numbers
+                    if num_str.isdigit():
+                        num_val = int(num_str)
+                        if prefix in ['A', 'B', 'C', 'D']:  # 'A00025A1','A00025A111','A03025A1',
+                            return num_val >= s6_min_num
+                        elif prefix == 'Y':
+                            return num_val >= s13_min_num
+                        else:
+                            # SN[0] support [E, F, G, H, Q, ...] + serial number supports [any 5-digit number], valid
+                            return True
                     else:
-                        return False
-                else:
-                    if int(self.chip_name[1: 1 + 5]) >= s6_min_num:
+                        # SN[0] support [E, F, G, H, Q, ...] + any 5 digits and letters, valid
                         return True
-                    else:
-                        return False
-            else:  # long code cannot be determined yet, considered it as old data
+            else:  # do not support long code for now
                 return False
         except ValueError:
             return False
@@ -345,16 +370,19 @@ class StereoChip(object):
     def _base_rules(self, ):
         name_len = len(self._name)
 
-        if name_len == 0: return 0
+        if name_len == 0:
+            return 0
 
-        if self._name[0] not in CHIP_TITLE_NAME: return 0
+        # 首位必须是字母
+        if not self._name[0] in CHIP_TITLE_NAME:
+            return 0
 
         if name_len in [8, 10]:
-            if not self._name[1: 6].isdigit(): return 0
-            if not 97 <= ord(self._name[6].lower()) <= 122: return 0
-
-            if name_len == 8:
-                if not self._name[7].isdigit(): return 0
+            if not self._name[6].isalpha():
+                return 0
+            if (name_len == 8) and (self._name[0] not in self._s13_label):
+                if not self._name[7].isdigit():
+                    return 0
             self.name_type = ChipNameType.SHORT
         elif name_len in [14, 16, 17, 18]:
             self.name_type = ChipNameType.LONG
@@ -381,7 +409,7 @@ class StereoChip(object):
         )
         clog.info(f"\n{tb}")
 
-    def parse_info(self, chip_no: str, print_flag = False):
+    def parse_info(self, chip_no: str, print_flag = True):
         """
         Args:
             chip_no:
@@ -436,7 +464,7 @@ if __name__ == '__main__':
     # main()
     curr_path = os.path.dirname(os.path.realpath(__file__))
     sc = StereoChip(chip_mask_file = os.path.join(curr_path, r'../config/chip_mask.json'))
-    sc.parse_info(chip_no = 'E40009G6', print_flag=True)
+    sc.parse_info(chip_no = 'Y40320PA', print_flag=True)
     print(1)
     # word = 'ACDEFGHJKLMNP'
     # num = '123456789ACDE'

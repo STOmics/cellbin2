@@ -3,7 +3,7 @@
     "DAPI": {
       "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000045_M5/SS200000045_M5_fov_stitched.tif",
       "tech_type": "DAPI",
-      "chip_detect": false,
+      "chip_detect": true,
       "quality_control": false,
       "registration": {
         "fixed_image": -1,
@@ -62,7 +62,7 @@
         "reuse": -1
       },
       "tissue_segmentation": true,
-      "cell_segmentation": true,
+      "cell_segmentation": false,
       "magnification": 10,
       "chip_matching": -1,
       "channel_align": -1,
@@ -71,7 +71,7 @@
     "ssDNA": {
       "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000135TL_D1/SS200000135TL_D1_fov_stitched_ssDNA.tif",
       "tech_type": "ssDNA",
-      "chip_detect": false,
+      "chip_detect": true,
       "quality_control": false,
       "registration": {
         "fixed_image": -1,

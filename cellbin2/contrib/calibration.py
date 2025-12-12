@@ -74,7 +74,8 @@ class Calibrate:
         Returns:
 
         """
-        if im is None: return
+        if im is None or (isinstance(im, str) and im.strip() == ''):
+            return None
 
         if isinstance(im, str):
             _im = tif.imread(im)

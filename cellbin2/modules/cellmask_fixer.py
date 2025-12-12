@@ -40,7 +40,7 @@ class CellMaskFixer:
 
 
 
-    # 设置name属性值
+    # set name attribute value
     def set_name(self, sn):
         self.sn = sn
 

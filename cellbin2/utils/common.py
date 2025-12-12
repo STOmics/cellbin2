@@ -35,17 +35,23 @@ FILES_TO_KEEP = (
     naming.DumpImageFileNaming.registration_image,
     naming.DumpImageFileNaming.tissue_mask,
     naming.DumpImageFileNaming.cell_mask,
-    
+
     # matrix file related
-    naming.DumpMatrixFileNaming.heatmap,
+    naming.DumpMatrixFileNaming.heatmap,  # matrix file heatmap
+    naming.DumpMatrixFileNaming.cell_mask,    # matrix file cell mask
+    naming.DumpMatrixFileNaming.tissue_mask,  # matrix file tissue mask
+
+    # process related
+    naming.DumpPipelineFileNaming.rpi,        # RPI file
+    naming.DumpPipelineFileNaming.stereo,     # Stereo file
     naming.DumpPipelineFileNaming.ipr,
     naming.DumpPipelineFileNaming.final_nuclear_mask,
     naming.DumpPipelineFileNaming.final_cell_mask,
     naming.DumpPipelineFileNaming.final_tissue_mask,
     naming.DumpPipelineFileNaming.input_json,
     naming.DumpMatrixFileNaming.matrix_template,
-    naming.DumpPipelineFileNaming.stereo,
     naming.DumpPipelineFileNaming.rpi,
+    naming.DumpPipelineFileNaming.stereo,
 )
 
 FILES_TO_KEEP_RESEARCH = FILES_TO_KEEP + (

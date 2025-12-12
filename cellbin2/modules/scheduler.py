@@ -98,10 +98,9 @@ class Scheduler(object):
         data = {}
         for idx, f in self._files.items():
             g_name = f.get_group_name(sn=self.param_chip.chip_name)
-            n = naming.DumpImageFileNaming(
-                sn=self.param_chip.chip_name, stain_type=g_name, save_dir=self._output_path)
                 
             if f.is_image:
+                n = naming.DumpImageFileNaming(sn=self.param_chip.chip_name, stain_type=g_name, save_dir=self._output_path)
                 data[g_name] = {}
                 if os.path.exists(n.cell_mask):
                     data[g_name]['CellMask'] = n.cell_mask
@@ -391,13 +390,8 @@ class Scheduler(object):
                         m_type=f.tech.name,
                         save_dir=self._output_path,
                     )
-                    print('Matrix file naming configuration:')
-                    print('- Heatmap path: {}'.format(cur_m_naming.heatmap))
-                    print('- Tissue mask path: {}'.format(cur_m_naming.tissue_mask))
-                    print('- Cell mask path: {}'.format(cur_m_naming.cell_mask))
-                    
-                    print('Starting matrix extraction with extract4stitched...')
-                    cm = extract4stitched(
+
+                    cm, binx = extract4stitched(
                         image_file=f,
                         param_chip=self.param_chip,
                         m_naming=cur_m_naming,
@@ -414,6 +408,7 @@ class Scheduler(object):
                             save_path=cur_m_naming.tissue_mask,
                             chip_info=self.param_chip,
                             config=self.config,
+                            binx=binx
                         )
                         print('Tissue segmentation completed')
 
@@ -585,7 +580,7 @@ class Scheduler(object):
 
 
             #  --------------------nuclei expand--------------------
-            if len(interior_mask) == 0 and len(cell_mask) == 0:  
+            if len(interior_mask) == 0 and len(cell_mask) == 0 and merged_core_mask:  
                 #merged_cell_mask_path = self._output_path + "core_extend_mask.tif"
                 to_fast = final_nuclear_path
                 if not os.path.exists(final_cell_mask_path) and os.path.exists(to_fast):
@@ -596,7 +591,7 @@ class Scheduler(object):
                     )
                     cbimwrite(final_cell_mask_path, fast_mask)
             # --------------------nuclei cell merge----------------------
-            elif len(interior_mask) == 0 and len(cell_mask) != 0:
+            elif len(interior_mask) == 0 and merged_cell_mask and merged_core_mask:
                 from cellbin2.contrib.mask_manager import merge_cell_mask
                 save_path = os.path.join(self._output_path, "multimodal_mid_file")
                 os.makedirs(save_path, exist_ok=True)
@@ -620,7 +615,7 @@ class Scheduler(object):
                 secondary_mask_final, final_mask = overlap_v3(expand_nuclei, merged_cell_mask, overlap_threshold=0.1, save_path="")
                 cbimwrite(final_cell_mask_path, final_mask)
             # --------------------multimodal merge--------------------
-            elif len(interior_mask) != 0 and len(cell_mask) != 0:
+            elif merged_interior_mask and merged_cell_mask and merged_core_mask:
                 save_path = os.path.join(self._output_path, "multimodal_mid_file")
                 os.makedirs(save_path, exist_ok=True)
                 merged_mask = multimodal_merge(merged_core_mask, merged_cell_mask, merged_interior_mask, overlap_threshold=0.5, save_path = save_path)
@@ -643,6 +638,12 @@ class Scheduler(object):
                 secondary_mask_final, final_mask = overlap_v3(expand_nuclei, cell_mask_add_interior, overlap_threshold=0.1, save_path="")
                 #final_mask = cbimread(os.path.join(save_path2, "cell_mask_add_interior.tif"), only_np=True)
                 cbimwrite(final_cell_mask_path, final_mask)
+            # --------------------boundary only--------------------
+            elif len(interior_mask) == 0 and merged_cell_mask and len(core_mask) == 0:
+                cbimwrite(final_cell_mask_path, merged_cell_mask)
+            # --------------------interior only--------------------
+            elif merged_interior_mask and len(cell_mask) == 0 and len(core_mask) == 0:
+                cbimwrite(final_cell_mask_path, merged_interior_mask)
             # --------------------matrix fix--------------------
             if len(matrix_mask) != 0: #interior mask exist
                 if len(matrix_mask) == 1:

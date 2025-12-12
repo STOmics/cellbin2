@@ -27,7 +27,7 @@
         "trackline": true,
         "reuse": -1
       },
-      "tissue_segmentation": true,
+      "tissue_segmentation": false,
       "cell_segmentation": false,
       "magnification": 10,
       "chip_matching": -1,
