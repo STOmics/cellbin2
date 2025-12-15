@@ -22,7 +22,13 @@ CONFIG_PATH = os.path.join(CURR_PATH, 'config')
 # DEFAULT_WEIGHTS_DIR = os.path.join(CURR_PATH, "weights")
 
 CONFIG_FILE = os.path.join(CONFIG_PATH, 'cellbin.yaml')
-CHIP_MASK_FILE = os.path.join(CONFIG_PATH, 'chip_mask.json')
+
+
+from cellbin2.utils.stereo_chip_name import load_chip_mask
+CHIP_MASK_FILE = os.path.join(CONFIG_PATH, 'chip_mask.json.enc')
+
+
+
 DEFAULT_PARAM_FILE = os.path.join(CONFIG_PATH, 'default_param.json')
 SUPPORTED_TRACK_STAINED_TYPES = (TechType.ssDNA.name, TechType.DAPI.name, TechType.HE.name)
 SUPPORTED_STAINED_Types = []

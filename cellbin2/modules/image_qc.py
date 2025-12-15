@@ -347,7 +347,8 @@ def image_quality_control(weights_root: str, chip_no: str, input_image: str,
     """
     curr_path = os.path.dirname(os.path.realpath(__file__))
     config_file = os.path.join(curr_path, r'../config/cellbin.yaml')
-    chip_mask_file = os.path.join(curr_path, r'../config/chip_mask.json')
+
+    chip_mask_file = os.path.join(curr_path, '../config/chip_mask.json.enc')
 
     iqc = ImageQC(config_file=config_file, chip_mask_file=chip_mask_file, weights_root=weights_root)
     return iqc.run(chip_no=chip_no, input_image=input_image, stain_type=stain_type, param_file=param_file,

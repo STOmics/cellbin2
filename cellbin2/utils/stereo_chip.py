@@ -6,9 +6,10 @@ import numpy as np
 import pandas as pd
 from typing import Tuple
 from enum import Enum
+from cellbin2.utils.stereo_chip_name import load_chip_mask
 
 from cellbin2.utils import clog
-from cellbin2.utils.stereo_chip_name import get_chip_prefix_info
+# from cellbin2.utils.stereo_chip_name import get_chip_prefix_info
 
 try:
     from prettytable import PrettyTable
@@ -50,9 +51,9 @@ class StereoChip(object):
         """
         if chip_mask_file == '':
             curr_path = os.path.dirname(os.path.realpath(__file__))
-            chip_mask_file = os.path.join(curr_path, r'../config/chip_mask.json')
-        with open(chip_mask_file, 'r') as fd:
-            self.chip_mask = json.load(fd)
+            chip_mask_file = os.path.join(curr_path, '../config/chip_mask.json.enc')
+        self.chip_mask = load_chip_mask(chip_mask_file)
+
         self._name: str = None
         self.chip_specif = ''  # chip specifications:S0.5, S1
         self.fov_edge_len = 2940
@@ -456,14 +457,14 @@ def main():
              'FP200000407BR_F2', 'FP200000561BL_A3B4', 'SS200000672_CC', 'SS200000060_K5L5',
              'SS200000060_M3N3', 'SS200000979TL_E6', 'SS200000108BR_A3A4']
     for chip_name in chips:
-        sc = StereoChip(chip_mask_file=os.path.join(curr_path, r'../config/chip_mask.json'))
+        sc = StereoChip(chip_mask_file=os.path.join(curr_path, r'../config/chip_mask.json.enc'))
         sc.parse_info(chip_no=chip_name)
 
 
 if __name__ == '__main__':
     # main()
     curr_path = os.path.dirname(os.path.realpath(__file__))
-    sc = StereoChip(chip_mask_file = os.path.join(curr_path, r'../config/chip_mask.json'))
+    sc = StereoChip(chip_mask_file = os.path.join(curr_path, r'../config/chip_mask.json.enc'))
     sc.parse_info(chip_no = 'Y40320PA', print_flag=True)
     print(1)
     # word = 'ACDEFGHJKLMNP'

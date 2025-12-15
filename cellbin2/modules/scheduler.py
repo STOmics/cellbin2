@@ -874,7 +874,8 @@ def scheduler_pipeline(weights_root: str, chip_no: str, input_image: str, stain_
     """
     curr_path = os.path.dirname(os.path.realpath(__file__))
     config_file = os.path.join(curr_path, r'../config/cellbin.yaml')
-    chip_mask_file = os.path.join(curr_path, r'../config/chip_mask.json')
+
+    chip_mask_file = os.path.join(curr_path, '../config/chip_mask.json.enc')
 
     # Initialize the Scheduler with configuration and weights
     iqc = Scheduler(config_file=config_file, chip_mask_file=chip_mask_file, weights_root=weights_root)
