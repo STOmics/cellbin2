@@ -10,7 +10,7 @@ B03205D314
 /media/Data1/user/dengzhonghan/data/tmp/test4paper/B03205D314
 ```
 
-#### 2. 1*2  Rat brain
+## 2. 1*2  Rat brain
 ```shell
 -c
 Z97822X8W8
@@ -20,7 +20,7 @@ Z97822X8W8
 /media/Data1/user/dengzhonghan/data/tmp/test4paper/Z97822X8W8
 ```
 
-#### 3. Mouse kidney
+## 3. Mouse kidney
 ```shell
 -c
 Z97502X8
@@ -30,7 +30,7 @@ Z97502X8
 /media/Data1/user/dengzhonghan/data/tmp/test4paper/Z97502X8
 ```
 
-#### 4. 2*3 Rat brain
+## 4. 2*3 Rat brain
 ```shell
 -c
 Y98792V6T5
@@ -40,7 +40,7 @@ Y98792V6T5
 /media/Data1/user/dengzhonghan/data/tmp/test4paper/Y98792V6T5
 ```
 
-#### 5. Mouse brain
+## 5. Mouse brain
 ```shell
 -c
 X95957V7
@@ -50,7 +50,7 @@ X95957V7
 /media/Data1/user/dengzhonghan/data/tmp/test4paper/X95957V7
 ```
 
-#### 6. Mouse liver (stereo-CITE)
+## 6. Mouse liver (stereo-CITE)
 ```shell
 -c
 Y968792V3
@@ -59,7 +59,7 @@ Y968792V3
 -o
 /media/Data1/user/dengzhonghan/data/tmp/test4paper/Y968792V3
 ```
-#### 7. Arabidopsis thaliana
+## 7. Arabidopsis thaliana
 ```shell
 -c
 UK799999550GO_X6
@@ -69,7 +69,7 @@ UK799999550GO_X6
 /media/Data1/user/dengzhonghan/data/tmp/test4paper/UK799999550GO_X6
 ```
 
-### 8. Mouse liver (IF stained image)
+## 8. Mouse liver (IF stained image)
 ```shell
 -c
 C01344C4
@@ -79,7 +79,7 @@ C01344C4
 /media/Data1/user/dengzhonghan/data/tmp/test4paper/C01344C4
 ```
 
-### 9. PBMC (Stereo-cell)
+## 9. PBMC (Stereo-cell)
 ```shell
 -c
 Z96914Z8W6
@@ -98,4 +98,21 @@ python VisiumHD.py -i /storeData/USER/data/01.CellBin/00.user/fanjinghong/data/1
 step2: run cellbin2_pipeline.py
 ```shell
 python cellbin2/cellbin_pipeline.py -c A04547A1C3 -i /storeData/USER/data/01.CellBin/00.user/fanjinghong/data/10xHD/v2paper/A04547A1C3.tif -s HE -m /storeData/USER/data/01.CellBin/00.user/fanjinghong/data/10xHD/v2paper/A04547A1C3.gem.gz  -o /storeData/USER/data/01.CellBin/00.user/fanjinghong/data/10xHD/v2paper/output -p /storeData/USER/data/01.CellBin/00.user/fanjinghong/cellbin2/paper/VisiumHD.json
+```
+
+## Void segmentation
+```shell
+# code location: cellbin2/paper/Void_segmentation.py
+python Void_segmentation.py \
+    --cell input_cell_mask.tif \
+    --raw_void_out raw_void.tif \
+    --void_out final_void.tif \
+    --boundary_out boundary_cells.tif \
+    --in_void_out cells_in_void.tif \
+    --other_out cells_other.tif \
+    --dilate 2 \
+    --close 2 \
+    --min_area 3000 \
+    --threshold 5 \
+    --smooth 3
 ```
