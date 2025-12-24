@@ -103,7 +103,7 @@
     "qc": true,
     "alignment": true,
     "matrix_extract": true,
-    "report": true,
+    "report": false,
     "annotation": false
   }
 }

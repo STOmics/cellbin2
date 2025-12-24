@@ -15,7 +15,7 @@ class TechType(Enum):
 
 
 KIT_VERSIONS = (
-    'Chip-Matching_T_FF_V1.0',
+    'Chip-Matching_N_FFPE_V1.0',
     'Stereo-seq_T_FF_V1.2',
     'Stereo-seq_T_FF_V1.3',
     'Stereo-CITE_T_FF_V1.0',
