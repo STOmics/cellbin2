@@ -21,6 +21,7 @@ def f_pre_ssdna(img: npt.NDArray, enhance_times: int) -> npt.NDArray:
 
 
 def f_pre_rna(img: npt.NDArray, enhance_times: int) -> npt.NDArray:
+    img = np.where(img<3, 0, img)
     img = f_ij_auto_contrast_v3(img)
     return img
 

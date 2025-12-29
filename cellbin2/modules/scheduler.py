@@ -580,7 +580,7 @@ class Scheduler(object):
 
 
             #  --------------------nuclei expand--------------------
-            if len(interior_mask) == 0 and len(cell_mask) == 0 and merged_core_mask:  
+            if len(interior_mask) == 0 and len(cell_mask) == 0 and len(core_mask) != 0:  
                 #merged_cell_mask_path = self._output_path + "core_extend_mask.tif"
                 to_fast = final_nuclear_path
                 if not os.path.exists(final_cell_mask_path) and os.path.exists(to_fast):
