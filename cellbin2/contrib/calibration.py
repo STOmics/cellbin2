@@ -215,29 +215,37 @@ class Calibrate:
 
         """
         if self.method:
-            norm_scale = min(self.src_image.shape) / max(self.dst_image.shape)
-            self.dst_image = cv.resize(
-                self.dst_image,
-                (int(self.dst_image.shape[1] * norm_scale), int(self.dst_image.shape[0] * norm_scale))
-            )
+            self.src_pad_offset = np.array([0, 0])  # (x, y)
+            src_h, src_w = self.src_image.shape[:2]
+            dst_h, dst_w = self.dst_image.shape[:2]
 
-            self.dst_image, norm_offset = self.mass_align()
+            if src_h < dst_h and src_w < dst_w:
+                target_size = max(dst_h, dst_w)
+
+                pad_top = 0
+                pad_left = 0
+                pad_bottom = target_size - src_h
+                pad_right = target_size - src_w
+
+                self.src_image_pad = cv.copyMakeBorder(
+                    self.src_image,
+                    pad_top, pad_bottom,
+                    pad_left, pad_right,
+                    borderType=cv.BORDER_CONSTANT,
+                    value=0
+                )
+
+                self.src_pad_offset = np.array([pad_left, pad_top])
+
+            src_mass, dst_mass = self.get_mass(self.src_image_pad), self.get_mass(self.dst_image)
+            norm_offset = src_mass - dst_mass
+            _di = cbimread(self.dst_image)
+            self.dst_image = _di.trans_image(offset=norm_offset, dst_size = self.src_image_pad.shape).image   
         else:
             self.src_image, self.dst_image = self._consistent_image(
                 self.src_image, self.dst_image, 'same'
             )
 
-        # padding
-        # pad_rate = 0.1
-        # padding_size = int(max(self.src_image.shape) * pad_rate)
-        # self.src_image = cv.copyMakeBorder(
-        #     self.src_image, padding_size, padding_size, padding_size, padding_size,
-        #     borderType = cv.BORDER_CONSTANT, value=0
-        # )
-        # self.dst_image = cv.copyMakeBorder(
-        #     self.dst_image, padding_size, padding_size, padding_size, padding_size,
-        #     borderType = cv.BORDER_CONSTANT, value=0
-        # )
 
         down_scale = max(self.src_image.shape) / self.down_size
 
@@ -258,14 +266,14 @@ class Calibrate:
         score = ret.get('success')
         scale = ret.get('scale', 1)
         rotate = ret.get('angle', 0)
+        offset = offset - self.src_pad_offset
 
         trans_info = {"score": score, "offset": offset, "scale": scale, "rotate": rotate}
 
         if self.same_image is not None:
             new_dst = cbimread(self.same_image)
             if self.method:
-                new_dst = new_dst.resize_image(norm_scale)
-                new_dst = new_dst.trans_image(offset=norm_offset, dst_size = self.src_image.shape)
+                new_dst = new_dst.trans_image(offset=norm_offset, dst_size = self.src_image_pad.shape)
         else:
             new_dst = cbimread(self.dst_image)
         new_dst = new_dst.trans_image(
@@ -273,7 +281,7 @@ class Calibrate:
             rotate = rotate,
         )
 
-        _offset = (np.array(self.src_image.shape[:2]) - np.array(new_dst.shape[:2])) / 2
+        _offset = (np.array(self.src_image_pad.shape[:2]) - np.array(new_dst.shape[:2])) / 2
         _offset = _offset[::-1]
 
         result = new_dst.trans_image(
@@ -281,7 +289,6 @@ class Calibrate:
             dst_size = self.src_image.shape[:2]
         )
 
-        # _, result = self._consistent_image(self.src_image, new_dst.image, 'same')
         if len(self.output_path) > 0:
             result.write(self.output_path)
 
