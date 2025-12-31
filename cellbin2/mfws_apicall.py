@@ -40,11 +40,11 @@ def resolve_image_path(image_input, stain_type=None):
     image_input = os.path.abspath(image_input)
     lower = image_input.lower()
 
-    # 已经是目录或单个 tif 文件
+    # already path or a tif file
     if os.path.isdir(image_input) or lower.endswith('.tif') or lower.endswith('.tiff'):
         return image_input, None
 
-    # 处理 tar.gz / tgz 包
+    # handle tar.gz / tgz packages
     if lower.endswith('.tar.gz') or lower.endswith('.tgz'):
         tmp = tempfile.TemporaryDirectory(prefix='mfws_')
         try:
@@ -60,7 +60,7 @@ def resolve_image_path(image_input, stain_type=None):
         if os.path.isdir(stain_dir):
             return stain_dir, tmp
 
-    # 其他未知后缀，直接返回原始（调用方可做进一步判断）
+    # other unknown suffix, directly return the original (caller can make further judgment)
     return image_input, None
 
 def file_to_stitch(image_input, sn, stain_type, base_dir):
@@ -75,18 +75,18 @@ def file_to_stitch(image_input, sn, stain_type, base_dir):
     stitch_path = os.path.join(base_dir, f"{sn}_stitch.tif")
 
     try:
-        # 若解析到的是单个 tif 文件（可能是直接传入的文件，或解压后找到的 tif）
+        # If resolved to a single tif file (could be directly passed file or found after extraction)
         if os.path.isfile(image_path) and (image_path.lower().endswith('.tif') or image_path.lower().endswith('.tiff')):
             if os.path.exists(stitch_path):
                 os.remove(stitch_path)
             shutil.move(image_path, stitch_path)
             return stitch_path
 
-        # 若解析到的是目录
+        # If resolved to a directory
         if os.path.isdir(image_path):
             tifs = glob.glob(os.path.join(image_path, '*.tif')) + glob.glob(os.path.join(image_path, '*.tiff'))
             if tifs:
-                # 使用第一个 tif 文件并改名到 parent(image_path)/{sn}_stitch.tif
+                # Use the first tif file and rename it to parent(image_path)/{sn}_stitch.tif
                 src = tifs[0]
                 if os.path.exists(stitch_path):
                     os.remove(stitch_path)
@@ -113,7 +113,7 @@ def file_to_stitch(image_input, sn, stain_type, base_dir):
             )
             return stitch_path
 
-        # 其他情况（无法解析），返回原始输入的父目录下的默认 stitch_path
+        # Other cases (unable to resolve), return the default stitch_path under the original input's parent directory
         return stitch_path  
     finally:
         if cleanup:

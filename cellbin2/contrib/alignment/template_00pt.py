@@ -248,12 +248,13 @@ def template_00pt_check(
             mat=f_rgb2hsv(moving_image.mat.image, channel=1, need_not=False)
         )
 
-    if not rot90_flag:
+    # TODO: now ,binx use the Template00Pt register offset directly without calibration.  Further calibration is required.
+    if not rot90_flag or fixed_image.binx != 1:
         return {
             'offset': (offset_info[0]["offset"] - np.array(fixed_offset)).tolist(),
             'flip': flip_flag,
             'register_score': -1,
-            'counter_rot90': 0,
+            'counter_rot90': 2,
             'method': AlignMode.Template00Pt,
             'dst_shape': (fixed_image.mat.shape[0], fixed_image.mat.shape[1])
         }

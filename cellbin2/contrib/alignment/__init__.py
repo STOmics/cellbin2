@@ -89,7 +89,7 @@ def registration(moving_image: ChipFeature,
     """
     # TODO Temporary Compatibility Changes
     #  11/22 by lizepeng
-    if qc_info[0]:
+    if qc_info[0] :
         res_template = centroid(
             moving_image=moving_image,
             fixed_image=fixed_image,

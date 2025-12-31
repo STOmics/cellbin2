@@ -15,7 +15,7 @@
       "magnification": 10,
       "chip_matching": -1,
       "channel_align": -1,
-      "tissue_filter": -1
+      "tissue_filter": 0
     },
     "Transcriptomics": {
       "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000045_M5/SS200000045_M5.raw.gef",
