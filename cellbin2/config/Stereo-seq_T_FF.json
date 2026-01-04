@@ -64,8 +64,8 @@
       "tissue_segmentation": true,
       "cell_segmentation": true,
       "channel_align": -1,
-      "magnification": 20,
-      "chip_matching": 0,
+      "magnification": 10,
+      "chip_matching": -1,
       "tissue_filter": -1
     },
     "ssDNA": {
