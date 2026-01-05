@@ -199,7 +199,10 @@ class cMatrix(object):
             try:
                 binx = int(dataset.attrs["resolution"][0]/dataset.attrs["dnbPitch"][0]) 
             except KeyError:
-                binx = int(dataset.attrs["resolution"][0]/500)
+                if dataset.attrs["resolution"][0] == 0:
+                    binx = 1
+                else:
+                    binx = int(dataset.attrs["resolution"][0]/500)
 
             if binx != 1: 
                 self.dtype = np.uint16

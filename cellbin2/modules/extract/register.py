@@ -130,6 +130,7 @@ def run_register(
     g_name = image_file.get_group_name(sn=sn)
     param1 = channel_images[g_name]
     if image_file.registration.reuse != -1:
+        binx = 1  # only work for IF image; do not return binx scale image
         f_name = files[image_file.registration.reuse].get_group_name(sn=sn)
         info = channel_images[f_name].get_registration()
         clog.info('Get registration param from ipr')
