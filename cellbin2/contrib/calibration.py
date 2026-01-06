@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-🌟 Create Time  : 2024/9/26 9:39
-🌟 Author  : CB🐂🐎 - lizepeng
-🌟 File  : calibrate.py
-🌟 Description  :
-"""
 import os
 import math
 import imreg_dft
@@ -215,82 +208,109 @@ class Calibrate:
         Returns:
 
         """
+        src_h, src_w = self.src_image.shape[:2]
+        dst_h, dst_w = self.dst_image.shape[:2]
+
         if self.method:
-            self.src_pad_offset = np.array([0, 0])  # (x, y)
-            src_h, src_w = self.src_image.shape[:2]
-            dst_h, dst_w = self.dst_image.shape[:2]
+            if src_h < dst_h or src_w < dst_w:
+                # pad src to dst size
+                pad_h = max(dst_h - src_h, 0)
+                pad_w = max(dst_w - src_w, 0)
 
-            if src_h < dst_h and src_w < dst_w:
-                target_size = max(dst_h, dst_w)
-
-                pad_top = 0
-                pad_left = 0
-                pad_bottom = target_size - src_h
-                pad_right = target_size - src_w
+                pad_top = pad_h // 2
+                pad_bottom = pad_h - pad_top
+                pad_left = pad_w // 2
+                pad_right = pad_w - pad_left
 
                 self.src_image_pad = cv.copyMakeBorder(
                     self.src_image,
                     pad_top, pad_bottom,
                     pad_left, pad_right,
-                    borderType=cv.BORDER_CONSTANT,
+                    cv.BORDER_CONSTANT,
                     value=0
                 )
 
                 self.src_pad_offset = np.array([pad_left, pad_top])
 
-            src_mass, dst_mass = self.get_mass(self.src_image_pad), self.get_mass(self.dst_image)
-            norm_offset = src_mass - dst_mass
-            _di = cbimread(self.dst_image)
-            self.dst_image = _di.trans_image(offset=norm_offset, dst_size = self.src_image_pad.shape).image   
+                # mass alignment
+                src_mass = self.get_mass(self.src_image_pad)
+                dst_mass = self.get_mass(self.dst_image)
+                norm_offset = src_mass - dst_mass
+
+                self.dst_image = cbimread(self.dst_image).trans_image(
+                    offset=norm_offset,
+                    dst_size=self.src_image_pad.shape
+                ).image
+            else:
+                # scale dst to comparable size
+                norm_scale = min(self.src_image.shape) / max(self.dst_image.shape)
+                self.dst_image = cv.resize(
+                    self.dst_image,
+                    (int(self.dst_image.shape[1] * norm_scale),
+                    int(self.dst_image.shape[0] * norm_scale))
+                )
+
+                self.dst_image, norm_offset = self.mass_align()
+                self.src_image_pad = self.src_image
         else:
+            # strict same-size mode
             self.src_image, self.dst_image = self._consistent_image(
                 self.src_image, self.dst_image, 'same'
             )
+            self.src_image_pad = self.src_image
 
 
-        down_scale = max(self.src_image.shape) / self.down_size
+        down_scale = max(self.src_image_pad.shape) / self.down_size
 
-        src_img = self.resize_image(
-            self.src_image, 1 / down_scale
-        )
-        dst_img = self.resize_image(
-            self.dst_image, 1 / down_scale
-        )
+        src_small = self.resize_image(self.src_image_pad, 1 / down_scale)
+        dst_small = self.resize_image(self.dst_image, 1 / down_scale)
 
         if self.method == 0:
-            ret = imreg_dft.translation(src_img, dst_img)
+            ret = imreg_dft.translation(src_small, dst_small)
         else:
-            ret = imreg_dft.similarity(src_img, dst_img)
+            ret = imreg_dft.similarity(src_small, dst_small)
 
-        # Analysis results
-        offset = np.round(ret.get('tvec')[::-1] * down_scale)
+        offset = np.round(ret['tvec'][::-1] * down_scale)
+        scale = ret.get('scale', 1.0)
+        rotate = ret.get('angle', 0.0)
         score = ret.get('success')
-        scale = ret.get('scale', 1)
-        rotate = ret.get('angle', 0)
-        offset = offset - self.src_pad_offset
 
-        trans_info = {"score": score, "offset": offset, "scale": scale, "rotate": rotate}
+        offset -= self.src_pad_offset
 
-        if self.same_image is not None:
-            new_dst = cbimread(self.same_image)
-            if self.method:
-                new_dst = new_dst.trans_image(offset=norm_offset, dst_size = self.src_image_pad.shape)
-        else:
-            new_dst = cbimread(self.dst_image)
+        trans_info = {
+            "score": score,
+            "offset": offset,
+            "scale": scale,
+            "rotate": rotate
+        }
+
+        base_dst = self.same_image if self.same_image is not None else self.dst_image
+        new_dst = cbimread(base_dst)
+
+        if self.method:
+            new_dst = new_dst.resize_image(norm_scale)
+            new_dst = new_dst.trans_image(
+                offset=norm_offset,
+                dst_size=self.src_image_pad.shape
+            )
+
         new_dst = new_dst.trans_image(
-            scale = float(scale),
-            rotate = rotate,
+            scale=float(scale),
+            rotate=rotate
         )
 
-        _offset = (np.array(self.src_image_pad.shape[:2]) - np.array(new_dst.shape[:2])) / 2
-        _offset = _offset[::-1]
+        center_offset = (
+            np.array(self.src_image_pad.shape[:2]) -
+            np.array(new_dst.shape[:2])
+        ) / 2
+        center_offset = center_offset[::-1]
 
         result = new_dst.trans_image(
-            offset = offset + _offset,
-            dst_size = self.src_image.shape[:2]
+            offset=offset + center_offset,
+            dst_size=self.src_image.shape[:2]
         )
 
-        if len(self.output_path) > 0:
+        if self.output_path:
             result.write(self.output_path)
 
         return result.image, trans_info
