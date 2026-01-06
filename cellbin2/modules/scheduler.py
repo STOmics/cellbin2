@@ -580,7 +580,7 @@ class Scheduler(object):
 
 
             #  --------------------nuclei expand--------------------
-            if len(interior_mask) == 0 and len(cell_mask) == 0 and len(cell_mask) != 0:  
+            if len(interior_mask) == 0 and len(cell_mask) == 0 and len(core_mask) != 0:  
                 #merged_cell_mask_path = self._output_path + "core_extend_mask.tif"
                 to_fast = final_nuclear_path
                 if not os.path.exists(final_cell_mask_path) and os.path.exists(to_fast):
@@ -591,7 +591,7 @@ class Scheduler(object):
                     )
                     cbimwrite(final_cell_mask_path, fast_mask)
             # --------------------nuclei cell merge----------------------
-            elif len(interior_mask) == 0 and len(cell_mask) != 0 and len(cell_mask) != 0: 
+            elif len(interior_mask) == 0 and len(cell_mask) != 0 and len(core_mask) != 0: 
                 from cellbin2.contrib.mask_manager import merge_cell_mask
                 save_path = os.path.join(self._output_path, "multimodal_mid_file")
                 os.makedirs(save_path, exist_ok=True)
@@ -615,7 +615,7 @@ class Scheduler(object):
                 secondary_mask_final, final_mask = overlap_v3(expand_nuclei, merged_cell_mask, overlap_threshold=0.1, save_path="")
                 cbimwrite(final_cell_mask_path, final_mask)
             # --------------------multimodal merge--------------------
-            elif len(interior_mask) != 0 and len(cell_mask) != 0 and len(cell_mask) != 0: 
+            elif len(interior_mask) != 0 and len(cell_mask) != 0 and len(core_mask) != 0: 
                 save_path = os.path.join(self._output_path, "multimodal_mid_file")
                 os.makedirs(save_path, exist_ok=True)
                 merged_mask = multimodal_merge(merged_core_mask, merged_cell_mask, merged_interior_mask, overlap_threshold=0.5, save_path = save_path)
