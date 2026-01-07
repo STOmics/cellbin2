@@ -208,6 +208,10 @@ class Calibrate:
         Returns:
 
         """
+        norm_scale = 1.0
+        norm_offset = np.array([0, 0])
+        self.src_pad_offset = np.array([0, 0])
+
         src_h, src_w = self.src_image.shape[:2]
         dst_h, dst_w = self.dst_image.shape[:2]
 
