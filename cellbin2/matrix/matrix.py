@@ -136,6 +136,8 @@ class cMatrix(object):
         else:
             self.binx = 1
 
+        self.binx = 1 if self.binx == 0 else self.binx      
+
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             for chunk in df:
@@ -235,7 +237,10 @@ class cMatrix(object):
             try:
                 binx = int(dataset.attrs["resolution"][0]/dataset.attrs["dnbPitch"][0]) 
             except KeyError:
-                binx = int(dataset.attrs["resolution"][0]/500)
+                if dataset.attrs["resolution"][0] == 0:
+                    binx = 1
+                else:
+                    binx = int(dataset.attrs["resolution"][0]/500)
                 
             min_x, max_x = dataset.attrs["minX"][0], dataset.attrs["maxX"][0]
             min_y, max_y = dataset.attrs["minY"][0], dataset.attrs["maxY"][0]
