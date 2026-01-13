@@ -152,7 +152,7 @@ CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
 -mi IF=SN_IF.tif \
 -m SN.raw.gef \
 -o test/SN \
--k "Stereo-CITE_T_FF_V1.1_R"
+-k "Stereo-CITE_T_FF_V1.1"
 ```
 
 #### Case 3:Stereo-CITE
@@ -164,7 +164,7 @@ CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
 -s DAPI \
 -pr IF=SN.protein.tissue.gef \
 -o /test/SN \
--k "Stereo-CITE_T_FF_V1.1_R"
+-k "Stereo-CITE_T_FF_V1.1"
 ```
 
 #### Case 4:Stereo-CITE
@@ -178,7 +178,7 @@ CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
 -m SN.raw.gef \  # Transcriptomics gef path
 -pr SN.protein.raw.gef \  # protein gef path
 -o test/SN \ # output dir
--k "Stereo-CITE_T_FF_V1.1_R"
+-k "Stereo-CITE_T_FF_V1.1"
 ```
 
 #### Case 5:Stereo-cell <br>
@@ -213,7 +213,7 @@ ssDNA + HE + trans gef
  -s ssDNA \  # stain type (ssDNA, DAPI)
  -m SN.raw.gef \  # Transcriptomics gef path
  -o test/SN \ # output dir
- -k "Chip-Matching T FF V1.0 R"
+ -k "Chip-Matching_N_FFPE_V1.0"
  ```
 
 #### Case 8: Multimodal Cell Segmentation<br>
