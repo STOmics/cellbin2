@@ -93,7 +93,9 @@ def extract4matrix(
     cell_correct_mask_path = p_naming.final_cell_mask
     c_inp = None
 
-    binx, _, _ = cMatrix.gef_gef_shape(image_file.file_path)
+    cm = cMatrix()
+    cm.read(file_path=Path(image_file.file_path))
+    binx = cm.binx
 
     if Path(tissue_mask_path).exists():
         save_tissue_bin_data(
