@@ -3,6 +3,7 @@ import os
 import shutil
 from typing import List, Dict, Any, Tuple, Union, Optional
 from pathlib import Path
+from skimage.morphology import remove_small_objects
 
 import numpy as np
 
