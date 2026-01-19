@@ -3,6 +3,7 @@ import os
 import shutil
 from typing import List, Dict, Any, Tuple, Union, Optional
 from pathlib import Path
+from skimage.morphology import remove_small_objects
 
 import numpy as np
 
@@ -595,12 +596,9 @@ class Scheduler(object):
                 from cellbin2.contrib.mask_manager import merge_cell_mask
                 save_path = os.path.join(self._output_path, "multimodal_mid_file")
                 os.makedirs(save_path, exist_ok=True)
-                #merged_mask = merge_cell_mask(merged_cell_mask, merged_core_mask)
-                #output_nuclei = merge_cell_mask(merged_cell_mask, merged_core_mask)
                 output_nuclei_mask, cell_add_core = overlap_v3(merged_core_mask, merged_cell_mask, overlap_threshold=0.8, save_path=save_path)
                 output_nuclei_path = os.path.join(save_path, f"output_nuclei_mask.tif")
                 cbimwrite(output_nuclei_path, output_nuclei_mask)
-                #merged_cell_mask_path = self._output_path + "/core_cell_merged_mask.tif"
                 # expand nuclei
                 fast_mask = run_fast_correct(
                     mask_path=output_nuclei_path,
@@ -639,13 +637,13 @@ class Scheduler(object):
                 #final_mask = cbimread(os.path.join(save_path2, "cell_mask_add_interior.tif"), only_np=True)
                 cbimwrite(final_cell_mask_path, final_mask)
             # --------------------boundary only--------------------
-            elif len(interior_mask) == 0 and merged_cell_mask and len(core_mask) == 0:
+            elif len(interior_mask) == 0 and len(cell_mask) != 0 and len(core_mask) == 0:
                 cbimwrite(final_cell_mask_path, merged_cell_mask)
             # --------------------interior only--------------------
-            elif merged_interior_mask and len(cell_mask) == 0 and len(core_mask) == 0:
+            elif len(interior_mask) != 0 and len(cell_mask) == 0 and len(core_mask) == 0:
                 cbimwrite(final_cell_mask_path, merged_interior_mask)
             # --------------------matrix fix--------------------
-            if len(matrix_mask) != 0: #interior mask exist
+            if len(matrix_mask) != 0: #matrix mask exist
                 if len(matrix_mask) == 1:
                     im_naming = naming.DumpImageFileNaming(
                     sn=self.param_chip.chip_name,
@@ -654,18 +652,23 @@ class Scheduler(object):
                 )
                     matrix_mask_path = im_naming.cell_mask
                 else:
-                    print("multiple interior masks exist")
+                    print("multiple matrix masks exist")
                     #TODO: merge multiple cell masks, return final_cell_mask = merged cell masks
-                if matrix_mask_path.exists():
+                if matrix_mask_path.exists() and final_nuclear_path.exists():
                     cmf=CellMaskFixer(source_imge=str(matrix_mask_path),refer_image=str(final_nuclear_path),sn=self.param_chip.chip_name)
                     cmf.fix_notsinglecell2mask(out_path=self._output_path, save=True)
+                    shutil.copy2(os.path.join(self._output_path, f"{self.param_chip.chip_name}_fixed_cell_mask.tif"), final_cell_mask_path)
                 else:
                     print("matrix mask not exist")
-            if final_nuclear_path.exists() and final_cell_mask_path.exists():
-                filtered_core_mask = cell_filter(final_nuclear_path,final_cell_mask_path)
-                final_nuclear = cbimread(final_nuclear_path, only_np=True)
-                filtered_core_mask = keep_large_nucleus_fragments(final_nuclear, filtered_core_mask)
-                cbimwrite(final_nuclear_path, filtered_core_mask)
+            if final_cell_mask_path.exists():
+                final_cell_mask = cbimread(final_cell_mask_path, only_np=True)
+                final_cell_mask = remove_small_objects(final_cell_mask.astype(np.bool8), min_size=15, connectivity=1).astype(np.uint8)
+                cbimwrite(final_cell_mask_path, final_cell_mask)
+                if final_nuclear_path.exists():
+                    filtered_core_mask = cell_filter(final_nuclear_path,final_cell_mask_path)
+                    final_nuclear = cbimread(final_nuclear_path, only_np=True)
+                    filtered_core_mask = keep_large_nucleus_fragments(final_nuclear, filtered_core_mask)
+                    cbimwrite(final_nuclear_path, filtered_core_mask)
 
 
 
