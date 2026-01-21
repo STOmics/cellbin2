@@ -238,7 +238,8 @@ CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
 please modify [Stereocell_analysis.json](\cellbin2\config\demos\Stereocell_analysis.json)<br>
 
 > more examples, please visit [example.md](docs/v2/example.md)
-
+### Cell Segmentation Customization
+To customize the cell segmentation model, please visit [model customization SOP](https://alidocs.dingtalk.com/i/nodes/14lgGw3P8vv3oq71HG2nmvM285daZ90D?utm_scene=team_space)
 ## ErrorCode
 refer to [error.md](docs/v2/error.md)
 
