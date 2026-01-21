@@ -1,6 +1,7 @@
 # RUN CELLPOSE
 import os
 import glob
+import cv2
 from math import ceil
 import numpy as np
 import pip
@@ -20,6 +21,7 @@ from cellbin2.image.augmentation import f_rgb2gray
 from cellbin2.contrib.cellpose_segmentor import instance2semantics, f_instance2semantics_max, poolingOverlap
 from cellbin2.image.mask import f_instance2semantics
 from cellbin2.image import cbimread, cbimwrite
+from cellbin2.dnn.segmentor.postprocess import watershed_segmentation,f_postprocess_rna
 from cellbin2.contrib.cell_segmentor import CellSegParam
 from cellbin2.utils import clog
 
@@ -100,7 +102,7 @@ def cellposesam_pred_3c(
     use_gpu, 
     model_dir,
     patch_size: int = 2000,
-    overlap: int = 48,
+    overlap: int = 24,
     output_path = None
 ) -> np.ndarray:
 
@@ -130,7 +132,7 @@ def cellposesam_pred_3c(
     patches, positions = split_image_into_patches(img, patch_size, overlap)
     
     # patch segmentation
-    model = models.CellposeModel(gpu = use_gpu, pretrained_model=model_dir)
+    model = models.CellposeModel(gpu = use_gpu, pretrained_model=model_dir, use_bfloat16=False)
     masks = []
     for i, patch in enumerate(tqdm.tqdm(patches, desc='Segment cells with [Cellpose]')):
         mask = model.eval(patch, diameter=None, channels=chan)[0]
@@ -142,6 +144,7 @@ def cellposesam_pred_3c(
     
     # merge mask patches
     full_mask = merge_masks_with_or(masks, positions, img.shape[:2])
+    full_mask = f_postprocess_rna(full_mask)
     if output_path:
         name = os.path.splitext(os.path.basename(img_path))[0]
         c_mask_path = os.path.join(output_path, f"{name}_cpsam_mask.tif")
@@ -155,7 +158,7 @@ def cellposesam_pred(img_path,
                    model_dir,
                    cfg=None, 
                    output_path=None,
-                   photo_size=2048,
+                   photo_size=2024,
                    photo_step=2000,):
     try:
         import cellpose
@@ -177,7 +180,7 @@ def cellposesam_pred(img_path,
         overlap = overlap + 1
     act_step = ceil(overlap / 2)
     logging.getLogger('cellpose.models').setLevel(logging.WARNING)
-    model = models.CellposeModel(gpu = use_gpu, pretrained_model=model_dir)
+    model = models.CellposeModel(gpu = use_gpu, pretrained_model=model_dir, use_bfloat16=False)
     img = io.imread(img_path)
     img = f_ij_16_to_8(img)
     img = f_rgb2gray(img, True)

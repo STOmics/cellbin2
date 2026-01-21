@@ -116,8 +116,6 @@ def cell_filter(final_nuclear_path,final_cell_mask_path):
     final_nuclear = cbimread(final_nuclear_path, only_np=True)
     final_cell_mask = cbimread(final_cell_mask_path, only_np=True)
     filtered_mask = final_nuclear * final_cell_mask
-    filtered_mask = label(filtered_mask, connectivity=1) 
-    filtered_mask = remove_small_objects(filtered_mask, min_size=15)
     filtered_mask = instance2semantics(filtered_mask)
     return filtered_mask
 
@@ -131,8 +129,6 @@ def secondary_mask_filter(final_nuclear_path,final_cell_mask_path):
     else:
         final_cell_mask = final_cell_mask_path
     filtered_mask = np.where(final_cell_mask > 0, 0, final_nuclear)
-    filtered_mask = label(filtered_mask, connectivity=1) 
-    filtered_mask = remove_small_objects(filtered_mask, min_size=15)
     filtered_mask = instance2semantics(filtered_mask)
     return filtered_mask
 
@@ -255,8 +251,40 @@ def overlap_v3(secondary_mask_raw, primary_mask_raw, overlap_threshold=0.2, save
     primary_mask_add_secondary = np.add(primary_mask, secondary_mask_final)
 
     save_primary_mask = np.where(secondary_boundary > 0, 0, primary_mask_add_secondary)
+    secondary_mask_final = np.where(secondary_boundary > 0, 0, secondary_mask_final)
 
     return secondary_mask_final, save_primary_mask
+
+def interior_filter(interior_mask: np.ndarray, nuclei_mask: np.ndarray) -> np.ndarray:
+        """
+        Filter cells by contours, removing interior not overlaped with nuclei
+        
+        Parameters:
+        tissue_mask (numpy.ndarray): Tissue mask image
+        cell_mask (numpy.ndarray): Cell mask image
+        
+        Returns:
+        numpy.ndarray: Filtered cell mask image
+        """
+        contours, _ = cv2.findContours(interior_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        for contour in contours:
+            x, y, w, h = cv2.boundingRect(contour)
+            nuclei_roi = nuclei_mask[y:y+h, x:x+w]
+            contour_roi = contour - np.array([x, y])
+
+            roi_mask = np.zeros(shape=(h, w), dtype=np.uint8)
+            cv2.fillPoly(roi_mask, pts=[contour_roi], color=(1,))
+
+            interior_and_nuclei = cv2.bitwise_and(roi_mask, nuclei_roi)
+
+            total_area = np.sum(roi_mask > 0)
+            if total_area > 0:
+                overlap_ratio = np.sum(interior_and_nuclei > 0) / total_area
+                if overlap_ratio < 0.1:
+                    cv2.fillPoly(interior_mask, pts=[contour], color=(0,))
+
+        return interior_mask
 
 
 
@@ -280,8 +308,19 @@ def multimodal_merge(nuclei_mask_path, cell_mask_path, interior_mask_path, overl
     interior_mask_raw = cbimread(interior_mask_path, only_np=True)
 
     interior_mask_final, cell_add_interior = overlap_v3(interior_mask_raw, cell_mask_raw, overlap_threshold=0.5, save_path=save_path)
+    #filter_mask,_ = overlap_v3(interior_mask_final, nuclei_mask_raw, overlap_threshold=1, save_path=save_path)
+    interior_mask_final = instance2semantics(interior_mask_final)
+    nuclei_mask_raw = instance2semantics(nuclei_mask_raw)
+    filter_mask = interior_filter(interior_mask_final, nuclei_mask_raw)
+    #delete_mask = cv2.subtract(interior_mask_final, filter_mask)
+    
+    #cbimwrite(join(save_path, f"filter_mask.tif"), instance2semantics(delete_mask) * 255)
+    cbimwrite(join(save_path, f"cell_add_interior_before_filter.tif"), instance2semantics(cell_add_interior) * 255)
+    #cell_add_interior = np.where(delete_mask>0, 0, cell_add_interior)
+    cell_add_interior = cv2.bitwise_or(cell_mask_raw, filter_mask)
+    
     if save_path != "":
-        cbimwrite(join(save_path, f"interior_mask_final.tif"), instance2semantics(interior_mask_final) * 255)
+        cbimwrite(join(save_path, f"interior_mask_final.tif"), interior_mask_final * 255)
         cbimwrite(join(save_path, f"cell_mask_add_interior.tif"), instance2semantics(cell_add_interior) * 255)
     #-----------------------------start merging nuclei---------------------------------------------------------
     

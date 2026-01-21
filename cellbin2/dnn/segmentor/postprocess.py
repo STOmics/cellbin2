@@ -2,6 +2,10 @@ from typing import Union
 
 import numpy as np
 import numpy.typing as npt
+from scipy import ndimage as ndi
+from skimage.segmentation import watershed
+from skimage.feature import peak_local_max
+from skimage.filters import sobel
 from skimage.measure import label, regionprops
 import cv2
 
@@ -91,8 +95,64 @@ def f_watershed(mask):
     opening = cv2.dilate(opening, open_kernel)
     return opening, tmp
 
+def watershed_segmentation(binary_image, sigma=3.5):
+    tmp = binary_image.copy()
+    binary_mask = binary_image > 0
+    
+    distance = ndi.distance_transform_edt(binary_mask)
+    local_min = distance < 1.5 
+    
+    blurred_distance = ndi.gaussian_filter(distance, sigma=sigma)
+    
+    # peak_local
+    fp = np.ones((3,) * binary_mask.ndim)
+    coords = peak_local_max(blurred_distance, footprint=fp, labels=binary_mask)
+    
+    # markers
+    mask = np.zeros(distance.shape, dtype=bool)
+    mask[tuple(coords.T)] = True
+    markers = ndi.label(mask)[0]
+    
+    # watershed
+    labels = watershed(-blurred_distance, markers, mask=binary_mask)
+    
+    edges_labels = sobel(labels)
+    edges_binary = sobel(binary_mask.astype(float))
+    edges = np.logical_xor(edges_labels != 0, edges_binary != 0)
+    
+    # postprocess
+    result = np.logical_not(edges) * binary_mask
+    result = ndi.binary_opening(result)
+    result[local_min] = 0
+    labels_cut, _ = ndi.label(result)
+    for _ in range(2):  
+        border = ndi.binary_dilation(labels_cut > 0) & (labels_cut == 0)
+        y, x = np.where(border)
+        for yi, xi in zip(y, x):
+            neighbors = labels_cut[max(yi-1,0):yi+2, max(xi-1,0):xi+2]
+            unique_neighbors = np.unique(neighbors[neighbors > 0])
+            if len(unique_neighbors) == 1:
+                labels_cut[yi, xi] = unique_neighbors[0]
+    labels_cut = np.where(labels_cut > 0, 1, 0).astype(np.uint8)
+    return labels_cut, tmp
 
 def f_postprocess_rna(mask):
+    clog.info(f"Start rna post processing")
+    label_mask = label(mask, connectivity=2)
+    props = regionprops(label_mask, label_mask)
+    for idx, obj in enumerate(props):
+        bbox = obj['bbox']
+        label_mask_temp = label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]].copy()
+        tmp_mask = label_mask_temp.copy()
+        tmp_mask[tmp_mask != obj['label']] = 0
+        tmp_mask, tmp_area = watershed_segmentation(tmp_mask)
+        tmp_mask = np.uint32(tmp_mask)
+        tmp_mask[tmp_mask > 0] = obj['label']
+        label_mask_temp[tmp_area > 0] = tmp_mask[tmp_area > 0]
+        label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]][tmp_area > 0] = label_mask_temp[tmp_area > 0]
+    label_mask[label_mask > 0] = 1
+    #post_mask=watershed_segmentation(mask)
+    return np.uint8(label_mask)
     def f_check_shape(ct):
         farthest = 0
         max_dist = 0
