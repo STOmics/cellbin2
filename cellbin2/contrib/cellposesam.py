@@ -136,9 +136,6 @@ def cellposesam_pred_3c(
     masks = []
     for i, patch in enumerate(tqdm.tqdm(patches, desc='Segment cells with [Cellpose]')):
         mask = model.eval(patch, diameter=None, channels=chan)[0]
-        boundaries = find_boundaries(mask, mode='inner')
-        
-        mask[boundaries] = 0
         mask = f_instance2semantics(mask)
         masks.append(mask)
     
