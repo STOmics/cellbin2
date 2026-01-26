@@ -18,7 +18,7 @@ from typing import Tuple, List
 
 from cellbin2.image.augmentation import f_ij_16_to_8_v2 as f_ij_16_to_8
 from cellbin2.image.augmentation import f_rgb2gray
-from cellbin2.contrib.cellpose_segmentor import instance2semantics, f_instance2semantics_max, poolingOverlap
+from cellbin2.contrib.cellpose_segmentor import f_instance2semantics_max, poolingOverlap
 from cellbin2.image.mask import f_instance2semantics
 from cellbin2.image import cbimread, cbimwrite
 from cellbin2.dnn.segmentor.postprocess import watershed_segmentation,f_postprocess_rna
@@ -102,7 +102,7 @@ def cellposesam_pred_3c(
     use_gpu, 
     model_dir,
     patch_size: int = 2000,
-    overlap: int = 24,
+    overlap: int = 5,
     output_path = None
 ) -> np.ndarray:
 
@@ -110,7 +110,7 @@ def cellposesam_pred_3c(
         import cellpose
     except ImportError:
         pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
-    if cellpose.version != '4.0.8':
+    if not cellpose.version.startswith('4.0.'):
         pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
     import cellpose
     import logging
@@ -144,7 +144,7 @@ def cellposesam_pred_3c(
     
     # merge mask patches
     full_mask = merge_masks_with_or(masks, positions, img.shape[:2])
-    full_mask = f_postprocess_rna(full_mask)
+    #full_mask = f_postprocess_rna(full_mask)
     if output_path:
         name = os.path.splitext(os.path.basename(img_path))[0]
         c_mask_path = os.path.join(output_path, f"{name}_cpsam_mask.tif")
@@ -164,7 +164,7 @@ def cellposesam_pred(img_path,
         import cellpose
     except ImportError:
         pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
-    if cellpose.version != '4.0.8':
+    if not cellpose.version.startswith('4.0.'):
         pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
     import cellpose
 
