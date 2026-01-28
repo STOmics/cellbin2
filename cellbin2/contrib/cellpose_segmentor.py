@@ -8,16 +8,13 @@ import numpy.typing as npt
 import numpy as np
 from skimage.morphology import remove_small_objects
 
-from cellbin2.image.augmentation import f_ij_16_to_8_v2 as f_ij_16_to_8
-from cellbin2.image.augmentation import f_rgb2gray
 from cellbin2.image.mask import f_instance2semantics
 from cellbin2.image import cbimread, cbimwrite
-from cellbin2.dnn.segmentor.postprocess import watershed_segmentation,f_postprocess_rna
+from cellbin2.dnn.segmentor.postprocess import f_postprocess_rna
 from cellbin2.contrib.cell_segmentor import CellSegParam
 from cellbin2.utils import clog
 
 from typing import Tuple, List 
-
 
 
 def split_image_into_patches(
@@ -213,7 +210,7 @@ def main(
     for i, patch in enumerate(tqdm.tqdm(patches, desc='Segment cells with [Cellpose]')):
         mask = model.eval(patch, diameter=None, channels=[0, 0])[0]
         mask = f_instance2semantics_max(mask)
-        num_cells, instance_mask = cv2.connectedComponents(
+        '''num_cells, instance_mask = cv2.connectedComponents(
             (mask > 0).astype(np.uint8), 
             connectivity=4
         )
@@ -233,8 +230,8 @@ def main(
             cell_size = np.sum(instance_mask == i)
             
             if cell_size <= avg_size * 5:
-                new_mask[instance_mask == i] = 1
-        masks.append(new_mask)
+                new_mask[instance_mask == i] = 1'''
+        masks.append(mask)
     
     # merge mask patches
     full_mask = merge_masks_with_or(masks, positions, img.shape[:2])
@@ -246,7 +243,7 @@ def main(
         c_mask_path = os.path.join(output_path, f"{name}_cellpose_mask.tif")
         cbimwrite(output_path=c_mask_path, files=full_mask, compression=True)
 
-    return full_mask
+    return (full_mask > 0).astype(np.uint8)
 
 demo = """
 python cellpose_segmentor.py \

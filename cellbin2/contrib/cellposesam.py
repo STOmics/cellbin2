@@ -18,10 +18,10 @@ from typing import Tuple, List
 
 from cellbin2.image.augmentation import f_ij_16_to_8_v2 as f_ij_16_to_8
 from cellbin2.image.augmentation import f_rgb2gray
-from cellbin2.contrib.cellpose_segmentor import instance2semantics, f_instance2semantics_max, poolingOverlap
+from cellbin2.contrib.cellpose_segmentor import f_instance2semantics_max, poolingOverlap
 from cellbin2.image.mask import f_instance2semantics
 from cellbin2.image import cbimread, cbimwrite
-from cellbin2.dnn.segmentor.postprocess import watershed_segmentation,f_postprocess_rna
+from cellbin2.dnn.segmentor.postprocess import f_postprocess_rna
 from cellbin2.contrib.cell_segmentor import CellSegParam
 from cellbin2.utils import clog
 
@@ -110,7 +110,7 @@ def cellposesam_pred_3c(
         import cellpose
     except ImportError:
         pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
-    if cellpose.version != '4.0.8':
+    if not cellpose.version.startswith('4.0.'):
         pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
     import cellpose
     import logging
@@ -164,7 +164,7 @@ def cellposesam_pred(img_path,
         import cellpose
     except ImportError:
         pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
-    if cellpose.version != '4.0.8':
+    if not cellpose.version.startswith('4.0.'):
         pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
     import cellpose
 

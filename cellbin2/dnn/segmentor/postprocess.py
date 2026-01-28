@@ -137,22 +137,29 @@ def watershed_segmentation(binary_image, sigma=3.5):
     return labels_cut, tmp
 
 def f_postprocess_rna(mask):
-    clog.info(f"Start rna post processing")
+    clog.info(f"Start post processing")
+    mean_area = 0 
+    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(
+        mask.astype(np.uint8), connectivity=8
+    )
+    areas = stats[1:, cv2.CC_STAT_AREA]
+    mean_area = np.mean(areas)
+    watershed_threshold = mean_area * 1.5
     label_mask = label(mask, connectivity=2)
     props = regionprops(label_mask, label_mask)
     for idx, obj in enumerate(props):
-        bbox = obj['bbox']
-        label_mask_temp = label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]].copy()
-        tmp_mask = label_mask_temp.copy()
-        tmp_mask[tmp_mask != obj['label']] = 0
-        tmp_mask, tmp_area = watershed_segmentation(tmp_mask)
-        tmp_mask = np.uint32(tmp_mask)
-        tmp_mask[tmp_mask > 0] = obj['label']
-        label_mask_temp[tmp_area > 0] = tmp_mask[tmp_area > 0]
-        label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]][tmp_area > 0] = label_mask_temp[tmp_area > 0]
+        cell_area = obj['area']
+        if cell_area > watershed_threshold:
+            bbox = obj['bbox']
+            label_mask_temp = label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]].copy()
+            tmp_mask = label_mask_temp.copy()
+            tmp_mask[tmp_mask != obj['label']] = 0
+            tmp_mask, tmp_area = watershed_segmentation(tmp_mask)
+            tmp_mask = np.uint32(tmp_mask)
+            tmp_mask[tmp_mask > 0] = obj['label']
+            label_mask_temp[tmp_area > 0] = tmp_mask[tmp_area > 0]
+            label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]][tmp_area > 0] = label_mask_temp[tmp_area > 0]
     label_mask[label_mask > 0] = 1
-    #post_mask=watershed_segmentation(mask)
-    return np.uint8(label_mask)
     def f_check_shape(ct):
         farthest = 0
         max_dist = 0
