@@ -1,35 +1,14 @@
-# -*- coding: utf-8 -*-
-"""
-🌟 Create Time  : 2025/4/24 16:35
-🌟 Author  : CB🐂🐎 - lizepeng
-🌟 File  : stereo_chip_name.py
-🌟 Description  : 
-🌟 Key Words  :
-"""
+import json
+from .stereo_chip_name_c import decrypt_mask  
 
+def load_chip_mask(path: str):
 
-def get_chip_prefix_info(
-        prefix: str,
-        chip_name: str = None
-):
-    """
-
-    Args:
-        prefix:
-        chip_name:
-
-    Returns:
-
-    """
-    raise NotImplementedError("Need (stereo_chip_name.pyd) file.")
-
-
-if __name__ == '__main__':
-    from stereo_chip_name import get_chip_prefix_info
-
-    scn = get_chip_prefix_info('A')
-
-    print(scn)
-
-
-
+    if path.endswith('.enc'):
+        with open(path, 'rb') as f:
+            enc = f.read()
+        json_text = decrypt_mask(enc)
+        obj = json.loads(json_text)
+        return obj
+    else:
+        with open(path, 'r') as f:
+            return json.load(f)

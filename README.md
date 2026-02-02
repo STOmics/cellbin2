@@ -21,10 +21,10 @@ CellBin is an image processing pipeline designed to delineate cell boundaries fo
 conda create --name env-cellbinv2 python=3.8
 conda activate env-cellbinv2
 # Install the cellbin2 from PyPI
-pip install cellbin2==1.1.0
-# Or install with optional dependencies
-pip install cellbin2[cp,rs]==1.1.0      # Editable install with basic extras
-pip install cellbin2[cp,rs,rp]==1.1.0   # # Editable install including report module
+pip install cellbin2==1.2.0
+# Install with optional dependencies
+pip install cellbin2[cp,rs]==1.2.0      # Editable install with basic extras. Recommended for most users.
+pip install cellbin2[cp,rs,rp]==1.2.0   # Editable install including report module.
 ```
 ### Option 2: Install from source
 ```shell
@@ -152,7 +152,7 @@ CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
 -mi IF=SN_IF.tif \
 -m SN.raw.gef \
 -o test/SN \
--k "Stereo-CITE_T_FF_V1.1_R"
+-k "Stereo-CITE_T_FF_V1.1"
 ```
 
 #### Case 3:Stereo-CITE
@@ -164,7 +164,7 @@ CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
 -s DAPI \
 -pr IF=SN.protein.tissue.gef \
 -o /test/SN \
--k "Stereo-CITE_T_FF_V1.1_R"
+-k "Stereo-CITE_T_FF_V1.1"
 ```
 
 #### Case 4:Stereo-CITE
@@ -178,7 +178,7 @@ CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
 -m SN.raw.gef \  # Transcriptomics gef path
 -pr SN.protein.raw.gef \  # protein gef path
 -o test/SN \ # output dir
--k "Stereo-CITE_T_FF_V1.1_R"
+-k "Stereo-CITE_T_FF_V1.1"
 ```
 
 #### Case 5:Stereo-cell <br>
@@ -208,11 +208,11 @@ ssDNA + HE + trans gef
  CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
  -c SN \ # chip number
  -i SN_ssDNA_fov_stitched.tif \  # ssDNA,DAPI data path
- -mi HE=SN_HE_fov_stitched.tif \ # HE data path. This image has been registered with ssDNA(DAPI) image
+ -mi HE=SN_HE_fov_stitched.tif \ # HE data path. 
  -s ssDNA \  # stain type (ssDNA, DAPI)
  -m SN.raw.gef \  # Transcriptomics gef path
  -o test/SN \ # output dir
- -k "Stereo-CITE_T_FF_V1.1_R"
+ -k "Chip-Matching_N_FFPE_V1.0"
  ```
 
 #### Case 8: Multimodal Cell Segmentation<br>
@@ -226,8 +226,19 @@ CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
 please modify [sample_multimodal.json](cellbin2/config/demos/sample_multimodal.json)<br>
 complete infomation for numtimodal cell segmentation, visit [multimodal.md](docs/v2/multimodal.md)
 
-> more examples, please visit [example.md](docs/v2/example.md)
+#### Case 9: StereoCell<br>
+DAPI + Transcriptomics
+```shell
+CUDA_VISIBLE_DEVICES=0 python cellbin2/cellbin_pipeline.py \
+-c SN \ # chip number
+-p Stereocell_analysis.json \ # Personalized Json File
+-o test/SN \ # output dir
+```
+please modify [Stereocell_analysis.json](\cellbin2\config\demos\Stereocell_analysis.json)<br>
 
+> more examples, please visit [example.md](docs/v2/example.md)
+### Cell Segmentation Customization
+To customize the cell segmentation model, please visit [model customization SOP](https://alidocs.dingtalk.com/i/nodes/14lgGw3P8vv3oq71HG2nmvM285daZ90D?utm_scene=team_space)
 ## ErrorCode
 refer to [error.md](docs/v2/error.md)
 

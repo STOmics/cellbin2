@@ -66,6 +66,37 @@ class ImageQC(object):
 
         return 0
 
+    def _match_channels(self, image_file: ProcFile, output_path: str):
+        """
+        Matches the channels of an image using calibration data.
+
+        Args:
+            image_file (ProcFile): The image file to be matched.
+
+        Returns:
+            int: Returns 1 if calibration data is missing; otherwise, returns 0.
+        """
+        from cellbin2.contrib.chip_transform import chip_transform
+
+        fixed = self._files[image_file.chip_matching]
+        if fixed is None:
+            return 1
+        clog.info('Transform [moving, fixed] == ({}, {})'.format(
+            os.path.basename(image_file.file_path), os.path.basename(fixed.file_path)))
+
+        scale = [1, float(image_file.magnification) / float(fixed.magnification)]
+
+        # TODO save path name
+        chip_transform(
+            fixed_image = fixed.file_path,
+            moving_image=image_file.file_path,
+            scale = scale,
+            output_path = os.path.join(output_path, 'chip_matching.tif')
+        )
+
+        # TODO info record
+        # self._channel_images[image_file.get_group_name(sn=self.param_chip.chip_name)].Calibration.update(r)
+
     def _dump_ipr(self, output_path: Union[str, Path]):
         """
         Write the ipr to the specified output path.
@@ -145,18 +176,33 @@ class ImageQC(object):
         else:
             clog.info('Start verifying data format')
             wh = {}
+            re = {}
             for idx, f in self._files.items():
                 if not os.path.exists(f.file_path):
                     clog.error('Missing file, {}'.format(f.file_path))
                     sys.exit(ErrorCode.missFile.value)  # missing file, abnormal exit
                 image = cbimread(f.file_path)
-                wh[f.tag] = [image.width, image.height]
-            s = np.unique(list(wh.values()), axis=0)
-            if s.shape[0] != 1:
-                clog.error(f'The sizes of the images are inconsistent: {wh}')
-                sys.exit(ErrorCode.sizeInconsistent.value)
-            clog.info('Images info as (size, channel, depth) == ({}, {}, {})'.format(
-                s[0], image.channel, image.depth))
+                wh[idx] = [image.width, image.height]
+                re[idx] = {'channel_align': f.channel_align, 'chip_matching': f.chip_matching}
+
+                clog.info('Images ({}) info as (size, channel, depth) == ({}, {}, {})'.format(
+                    f.tag, image.shape, image.channel, image.depth))
+
+            for idx, k in re.items():
+                if k['chip_matching'] == -1 and k['channel_align'] == -1:
+                    continue
+                else:
+                    if k['channel_align'] != -1:
+                        if wh[idx] != wh[k['channel_align']]:
+                            clog.error(f'The sizes of the images are inconsistent: {wh}')
+                            sys.exit(ErrorCode.sizeInconsistent.value)
+
+            # s = np.unique(list(wh.values()), axis=0)
+            # if s.shape[0] != 1:
+            #     clog.error(f'The sizes of the images are inconsistent: {wh}')
+            #     sys.exit(ErrorCode.sizeInconsistent.value)
+            # clog.info('Images info as (size, channel, depth) == ({}, {}, {})'.format(
+            #     s[0], image.channel, image.depth))
         return 0
 
     def run(
@@ -241,6 +287,13 @@ class ImageQC(object):
                 files.append(
                     (f.file_path, f"{f.tech.name}/{f.get_group_name(sn=self.param_chip.chip_name)}/{f.tag}.tif")
                 )
+            # elif f.chip_matching != -1:
+            #     channel_image = ipr.IFChannel()
+            #     self._channel_images[f.get_group_name(sn=self.param_chip.chip_name)] = channel_image
+            #     self._match_channels(f, output_path)
+            #     files.append(
+            #         (f.file_path, f"{f.tech.name}/{f.get_group_name(sn=self.param_chip.chip_name)}/{f.tag}.tif")
+            #     )
             else:
                 channel_image = ipr.ImageChannel()
                 self._channel_images[f.get_group_name(sn=self.param_chip.chip_name)] = channel_image
@@ -294,7 +347,8 @@ def image_quality_control(weights_root: str, chip_no: str, input_image: str,
     """
     curr_path = os.path.dirname(os.path.realpath(__file__))
     config_file = os.path.join(curr_path, r'../config/cellbin.yaml')
-    chip_mask_file = os.path.join(curr_path, r'../config/chip_mask.json')
+
+    chip_mask_file = os.path.join(curr_path, '../config/chip_mask.json.enc')
 
     iqc = ImageQC(config_file=config_file, chip_mask_file=chip_mask_file, weights_root=weights_root)
     return iqc.run(chip_no=chip_no, input_image=input_image, stain_type=stain_type, param_file=param_file,

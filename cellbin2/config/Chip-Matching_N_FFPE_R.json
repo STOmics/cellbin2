@@ -46,10 +46,10 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": false,
+      "channel_align": 0,
       "magnification": 10,
       "chip_matching": -1,
-      "channel_align": 0,
-      "tissue_filter": 0
+      "tissue_filter": -1
     },
     "HE": {
       "file_path": "/media/Data/dzh/data/cellbin2/demo_data/C04042E3/C04042E3_fov_stitched.tif",
@@ -58,14 +58,14 @@
       "quality_control": false,
       "registration": {
         "fixed_image": -1,
-        "trackline": true,
+        "trackline": false,
         "reuse": -1
       },
-      "tissue_segmentation": true,
+      "tissue_segmentation": false,
       "cell_segmentation": false,
-      "magnification": 10,
-      "chip_matching": -1,
       "channel_align": -1,
+      "magnification": 20,
+      "chip_matching": 0,
       "tissue_filter": -1
     },
     "ssDNA": {
@@ -80,9 +80,9 @@
       },
       "tissue_segmentation": true,
       "cell_segmentation": true,
+      "channel_align": -1,
       "magnification": 10,
       "chip_matching": -1,
-      "channel_align": -1,
       "tissue_filter": -1
     }
   },

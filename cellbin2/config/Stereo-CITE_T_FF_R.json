@@ -13,7 +13,9 @@
       "tissue_segmentation": true,
       "cell_segmentation": true,
       "magnification": 10,
-      "channel_align": -1
+      "chip_matching": -1,
+      "channel_align": -1,
+      "tissue_filter": 0
     },
     "Transcriptomics": {
       "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000045_M5/SS200000045_M5.raw.gef",
@@ -28,7 +30,9 @@
       "tissue_segmentation": true,
       "cell_segmentation": false,
       "magnification": 10,
-      "channel_align": -1
+      "chip_matching": -1,
+      "channel_align": -1,
+      "tissue_filter": -1
     },
     "IF": {
       "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000045_M5/SS200000045_M5_ATP_IF_fov_stitched.tif",
@@ -43,7 +47,9 @@
       "tissue_segmentation": true,
       "cell_segmentation": true,
       "magnification": 10,
-      "channel_align": 0
+      "chip_matching": -1,
+      "channel_align": 0,
+      "tissue_filter": 0
     },
     "HE": {
       "file_path": "/media/Data/dzh/data/cellbin2/demo_data/C04042E3/C04042E3_fov_stitched.tif",
@@ -58,7 +64,9 @@
       "tissue_segmentation": true,
       "cell_segmentation": true,
       "magnification": 10,
-      "channel_align": -1
+      "chip_matching": -1,
+      "channel_align": -1,
+      "tissue_filter": -1
     },
     "ssDNA": {
       "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000135TL_D1/SS200000135TL_D1_fov_stitched_ssDNA.tif",
@@ -73,7 +81,9 @@
       "tissue_segmentation": true,
       "cell_segmentation": true,
       "magnification": 10,
-      "channel_align": -1
+      "chip_matching": -1,
+      "channel_align": -1,
+      "tissue_filter": -1
     },
     "Protein": {
       "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000045_M5/SS200000045_M5.raw.gef",
@@ -88,7 +98,9 @@
       "tissue_segmentation": true,
       "cell_segmentation": false,
       "magnification": 10,
-      "channel_align": -1
+      "chip_matching": -1,
+      "channel_align": -1,
+      "tissue_filter": -1
     }
   },
   "molecular_classify": {
@@ -97,7 +109,8 @@
       "cell_mask": {
         "nuclei":[0],
         "interior": [],
-        "boundary":[]
+        "boundary":[],
+        "matrix":[]
       },
       "correct_r": 10,
       "extra_method": ""
@@ -107,7 +120,8 @@
       "cell_mask": {
         "nuclei":[0],
         "interior": [],
-        "boundary":[]
+        "boundary":[],
+        "matrix":[]
       },
       "correct_r": 10,
       "extra_method": ""
@@ -117,7 +131,7 @@
     "qc": true,
     "alignment": true,
     "matrix_extract": true,
-    "report": true,
+    "report": false,
     "annotation": false
   }
 }

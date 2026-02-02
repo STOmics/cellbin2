@@ -48,7 +48,7 @@ where = ["."]
 [project.optional-dependencies]
 cp = ['cellpose==3.0.11', 'patchify==0.2.3']
 rs = [
-    'gefpy==1.2.3',  # generate cellbin matrix
+    'gefpy==1.2.6',  # generate cellbin matrix
     'mapbox_earcut'
 ]
 rp = [

@@ -6,9 +6,10 @@ import numpy as np
 import pandas as pd
 from typing import Tuple
 from enum import Enum
+from cellbin2.utils.stereo_chip_name import load_chip_mask
 
 from cellbin2.utils import clog
-from cellbin2.utils.stereo_chip_name import get_chip_prefix_info
+# from cellbin2.utils.stereo_chip_name import get_chip_prefix_info
 
 try:
     from prettytable import PrettyTable
@@ -50,9 +51,9 @@ class StereoChip(object):
         """
         if chip_mask_file == '':
             curr_path = os.path.dirname(os.path.realpath(__file__))
-            chip_mask_file = os.path.join(curr_path, r'../config/chip_mask.json')
-        with open(chip_mask_file, 'r') as fd:
-            self.chip_mask = json.load(fd)
+            chip_mask_file = os.path.join(curr_path, '../config/chip_mask.json.enc')
+        self.chip_mask = load_chip_mask(chip_mask_file)
+
         self._name: str = None
         self.chip_specif = ''  # chip specifications:S0.5, S1
         self.fov_edge_len = 2940
@@ -331,20 +332,20 @@ class StereoChip(object):
 
                     prefix = self.chip_name[0]
                     num_str = self.chip_name[1:6]
-                    # Determine if all are numbers
+                    # determine if SN[1:6] consists entirely of numbers
                     if num_str.isdigit():
                         num_val = int(num_str)
-                        if prefix in ['A', 'B', 'C', 'D']: 
+                        if prefix in ['A', 'B', 'C', 'D']:  # 'A00025A1','A00025A111','A03025A1',
                             return num_val >= s6_min_num
                         elif prefix == 'Y':
                             return num_val >= s13_min_num
                         else:
-                            # support [E, F,.....] and any 5-digit number
+                            # SN[0] support [E, F, G, H, Q, ...] + serial number supports [any 5-digit number], valid
                             return True
                     else:
-                        # support any 5-digit number with letters
+                        # SN[0] support [E, F, G, H, Q, ...] + any 5 digits and letters, valid
                         return True
-            else:  # long code not supported
+            else:  # do not support long code for now
                 return False
         except ValueError:
             return False
@@ -378,11 +379,9 @@ class StereoChip(object):
             return 0
 
         if name_len in [8, 10]:
-            # 第7位必须是字母
             if not self._name[6].isalpha():
                 return 0
-            # 8位时第8位必须是数字
-            if name_len == 8:
+            if (name_len == 8) and (self._name[0] not in self._s13_label):
                 if not self._name[7].isdigit():
                     return 0
             self.name_type = ChipNameType.SHORT
@@ -411,7 +410,7 @@ class StereoChip(object):
         )
         clog.info(f"\n{tb}")
 
-    def parse_info(self, chip_no: str, print_flag = False):
+    def parse_info(self, chip_no: str, print_flag = True):
         """
         Args:
             chip_no:
@@ -458,15 +457,15 @@ def main():
              'FP200000407BR_F2', 'FP200000561BL_A3B4', 'SS200000672_CC', 'SS200000060_K5L5',
              'SS200000060_M3N3', 'SS200000979TL_E6', 'SS200000108BR_A3A4']
     for chip_name in chips:
-        sc = StereoChip(chip_mask_file=os.path.join(curr_path, r'../config/chip_mask.json'))
+        sc = StereoChip(chip_mask_file=os.path.join(curr_path, r'../config/chip_mask.json.enc'))
         sc.parse_info(chip_no=chip_name)
 
 
 if __name__ == '__main__':
     # main()
     curr_path = os.path.dirname(os.path.realpath(__file__))
-    sc = StereoChip(chip_mask_file = os.path.join(curr_path, r'../config/chip_mask.json'))
-    sc.parse_info(chip_no = 'E40009G6', print_flag=True)
+    sc = StereoChip(chip_mask_file = os.path.join(curr_path, r'../config/chip_mask.json.enc'))
+    sc.parse_info(chip_no = 'Y40320PA', print_flag=True)
     print(1)
     # word = 'ACDEFGHJKLMNP'
     # num = '123456789ACDE'

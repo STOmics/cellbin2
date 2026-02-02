@@ -15,6 +15,7 @@ class TechType(Enum):
 
 
 KIT_VERSIONS = (
+    'Chip-Matching_N_FFPE_V1.0',
     'Stereo-seq_T_FF_V1.2',
     'Stereo-seq_T_FF_V1.3',
     'Stereo-CITE_T_FF_V1.0',
@@ -30,9 +31,19 @@ iPlaceHolder = -999
 sPlaceHolder = '-'
 
 FILES_TO_KEEP = (
+    # image related
     naming.DumpImageFileNaming.registration_image,
     naming.DumpImageFileNaming.tissue_mask,
     naming.DumpImageFileNaming.cell_mask,
+
+    # matrix file related
+    naming.DumpMatrixFileNaming.heatmap,  # matrix file heatmap
+    naming.DumpMatrixFileNaming.cell_mask,    # matrix file cell mask
+    naming.DumpMatrixFileNaming.tissue_mask,  # matrix file tissue mask
+
+    # process related
+    naming.DumpPipelineFileNaming.rpi,        # RPI file
+    naming.DumpPipelineFileNaming.stereo,     # Stereo file
     naming.DumpPipelineFileNaming.ipr,
     naming.DumpPipelineFileNaming.final_nuclear_mask,
     naming.DumpPipelineFileNaming.final_cell_mask,
@@ -45,7 +56,7 @@ FILES_TO_KEEP = (
 
 FILES_TO_KEEP_RESEARCH = FILES_TO_KEEP + (
     naming.DumpPipelineFileNaming.tar_gz,
-)
+    )
 
 
 class ErrorCode(Enum):

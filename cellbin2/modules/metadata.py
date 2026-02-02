@@ -63,6 +63,8 @@ class ProcFile(BaseModel):
     channel_align: int
     registration: ProcRegistration
     magnification: int
+    chip_matching: int
+    tissue_filter: int
     _supported_matrix = ['.gef', '.gz', '.gem']
     _supported_image = ['.tif', '.tiff', '.TIF', '.TIFF']
 
@@ -259,8 +261,9 @@ class ProcParam(BaseModel):
                 if image.is_image and
                    (image.chip_detect or
                     image.quality_control or
-                    image.channel_align != -1 or
-                    image.registration.trackline)
+                    image.tech_type == "IF" or
+                    image.registration.trackline or
+                    image.chip_matching != -1)
             }
 
         if do_scheduler:
@@ -269,7 +272,8 @@ class ProcParam(BaseModel):
                 if image.tissue_segmentation or
                    image.cell_segmentation or
                    image.registration.trackline or
-                   image.channel_align != -1
+                   image.tech_type == "IF" or
+                   image.chip_matching != -1
             }
             # add matrix
             for idx, matrix in self.molecular_classify.items():

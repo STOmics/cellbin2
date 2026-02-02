@@ -1,3 +1,4 @@
+from typing import Optional
 import os.path
 
 import pandas as pd
@@ -15,15 +16,28 @@ from cellbin2.image import cbimread, cbimwrite
 from cellbin2.modules import naming
 from pydantic import BaseModel, Field
 
-
-@njit(parallel=True)
-def parse_gef_line(data, img):
+def parse_gef_line(data, img, _dtype):
     """
     Speedup parse lines with numba
     """
+    dtype_dict = {
+        np.uint8: 255,
+        np.uint16: 65535,
+        np.uint32: 4294967295,
+    }
+
+    max_val = dtype_dict[_dtype]
+
     for i in prange(len(data)):
         y, x, c = data[i]["y"], data[i]["x"], data[i]["count"]
-        img[y, x] = min(255, c + img[y, x])
+        img[y, x] = min(max_val, c + img[y, x])
+
+    # if _dtype == np.uint8:
+    #     _uint8_parse_gef_line(data, img)
+    # elif _dtype == np.uint16:
+    #     _uint16_parse_gef_line(data, img)
+    # elif _dtype == np.uint32:
+    #     _uint32_parse_gef_line(data, img)
 
 
 class GeneticStandards(BaseModel):
@@ -37,13 +51,15 @@ class cMatrix(object):
 
     def __init__(self) -> None:
         self._gene_mat = np.array([])
+        self.binx = 1
+        self.dtype = np.uint8
         self.x_start = 65535
         self.y_start = 65535
         self.h_x_start = 0
         self.h_y_start = 0
 
         self._template: TemplateInfo = None
-        self._chip_box: ChipBoxInfo = None
+        self._chip_box: ChipBoxInfo = ChipBoxInfo()
         self.file_path: str = ''
 
     def read(self, file_path: Path, chunk_size=1024 * 1024 * 10):
@@ -57,10 +73,9 @@ class cMatrix(object):
         suffix = file_path.suffix
         assert suffix in ['.gz', '.gef', '.gem']
         if suffix == ".gef":
-            self.x_start, self.y_start, self._gene_mat = self._load_gef(file_path)
+            self.binx, self.x_start, self.y_start, self._gene_mat = self._load_gef(self, file_path)
             return
 
-        img = np.zeros((1, 1), np.uint8)
         if suffix == ".gz":
             fh = gzip.open(file_path, "rb")
         else:
@@ -81,6 +96,26 @@ class cMatrix(object):
         title = title.strip("\n").split("\t")
         umi_count_name = [i for i in title if "ount" in i][0]
         title = ["x", "y", umi_count_name]
+
+        max_val = 0
+        for chunk in pd.read_csv(fh, sep='\t', usecols=[umi_count_name], dtype=np.uint32, chunksize=chunk_size):
+            tmp_max = chunk[umi_count_name].max()
+            if tmp_max > max_val:
+                max_val = tmp_max
+
+        if max_val <= 255:
+            _dtype = np.uint8
+            _max_val = 255
+        elif max_val <= 65535:
+            _dtype = np.uint16
+            _max_val = 65535
+        else:
+            _dtype = np.uint32
+            _max_val = 4294967295
+
+        fh.seek(eoh)
+        img = np.zeros((1, 1), dtype=_dtype)
+
         # todo There is a problem reading gem.gz and barcode_gene_exp.txt
         df = pd.read_csv(
             fh,
@@ -94,6 +129,14 @@ class cMatrix(object):
         _list = header.split("\n#")[-2:]
         self.h_x_start = int(_list[0].split("=")[1])
         self.h_y_start = int(_list[1].split("=")[1])
+        import re
+        m_bin = re.search(r'(?im)^#.*\b(?:bin(?:size|_size|x)?)[\s:=]*([0-9]+)', header)
+        if m_bin:
+            self.binx = int(m_bin.group(1))
+        else:
+            self.binx = 1
+
+        self.binx = 1 if self.binx == 0 else self.binx      
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -112,11 +155,11 @@ class cMatrix(object):
 
                 chunk = (
                     chunk.groupby(["x", "y"])
-                        .agg(UMI_sum=(umi_count_name, "sum"))
-                        .reset_index()
+                    .agg(UMI_sum=(umi_count_name, "sum"))
+                    .reset_index()
                 )
-                chunk["UMI_sum"] = chunk["UMI_sum"].mask(chunk["UMI_sum"] > 255, 255)
-                tmp_img = np.zeros(shape=(tmp_h, tmp_w), dtype=np.uint8)
+                # chunk["UMI_sum"] = chunk["UMI_sum"].mask(chunk["UMI_sum"] > 255, 255)
+                tmp_img = np.zeros(shape=(tmp_h, tmp_w), dtype=_dtype)
                 tmp_img[chunk["y"], chunk["x"]] = chunk["UMI_sum"]
 
                 # resize matrix
@@ -131,21 +174,21 @@ class cMatrix(object):
                 elif ext_w < 0:
                     tmp_img = np.pad(tmp_img, ((0, 0), (0, abs(ext_w))), "constant")
 
-                # incase overflow
+                # in case overflow
                 tmp_img = (
-                        255 - tmp_img
+                        _max_val - tmp_img
                 )  # old b is gone shortly after new array is created
                 np.putmask(
                     img, tmp_img < img, tmp_img
                 )  # a temp bool array here, then it's gone
-                img += 255 - tmp_img  # a temp array here, then it's gone
+                img += _max_val - tmp_img  # a temp array here, then it's gone
         df.close()
         self._gene_mat = img[self.y_start:, self.x_start:]
 
     @staticmethod
-    def _load_gef(file):
+    def _load_gef(self, file):
         """
-        Sepeedup version that only for gef file format
+        Sepeedup version that for gef file format of all the bin_size
         """
         chunk_size = 512 * 1024
         with h5py.File(file, "r") as fh:
@@ -155,18 +198,28 @@ class cMatrix(object):
                 clog.error("The sequencing data is empty, please confirm the {} file.".format(file))
                 raise Exception("The sequencing data is empty, please confirm the {} file.".format(file))
 
+            try:
+                binx = int(dataset.attrs["resolution"][0]/dataset.attrs["dnbPitch"][0]) 
+            except KeyError:
+                if dataset.attrs["resolution"][0] == 0:
+                    binx = 1
+                else:
+                    binx = int(dataset.attrs["resolution"][0]/500)
+
+            if binx != 1: 
+                self.dtype = np.uint16
             min_x, max_x = dataset.attrs["minX"][0], dataset.attrs["maxX"][0]
             min_y, max_y = dataset.attrs["minY"][0], dataset.attrs["maxY"][0]
             width = max_x - min_x + 1
             height = max_y - min_y + 1
-            img = np.zeros((height, width), np.uint8)
+            img = np.zeros((height, width), self.dtype)
             img.fill(0)
-
             for step in range(dataset.size // chunk_size + 1):
                 data = dataset[step * chunk_size: (step + 1) * chunk_size]
-                parse_gef_line(data, img)
+                parse_gef_line(data, img, self.dtype)
 
         return (
+            binx,
             min_x,
             min_y,
             img,
@@ -175,17 +228,25 @@ class cMatrix(object):
     @staticmethod
     def gef_gef_shape(file):
         with h5py.File(file, "r") as fh:
-            dataset = fh["/geneExp/bin1/expression"]
+            dataset = fh[f"/geneExp/bin1/expression"]
 
             if not dataset[...].size:
                 clog.error("The sequencing data is empty, please confirm the {} file.".format(file))
                 raise Exception("The sequencing data is empty, please confirm the {} file.".format(file))
-
+    
+            try:
+                binx = int(dataset.attrs["resolution"][0]/dataset.attrs["dnbPitch"][0]) 
+            except KeyError:
+                if dataset.attrs["resolution"][0] == 0:
+                    binx = 1
+                else:
+                    binx = int(dataset.attrs["resolution"][0]/500)
+                
             min_x, max_x = dataset.attrs["minX"][0], dataset.attrs["maxX"][0]
             min_y, max_y = dataset.attrs["minY"][0], dataset.attrs["maxY"][0]
             width = max_x - min_x + 1
             height = max_y - min_y + 1
-            return width, height
+            return binx, width, height
 
     def detect_feature(self, ref: list, chip_size: float):
         """ track lines detection, matrix data: chip area recognition for registration """
@@ -215,14 +276,28 @@ class cMatrix(object):
 
 
 def adjust_mask_shape(gef_path, mask_path):
-    m_width, m_height = cMatrix.gef_gef_shape(gef_path)
-    mask = cbimread(mask_path)
-    if mask.width == m_width and mask.height == m_height:
-        return mask_path
-    mask_adjust = mask.trans_image(offset=[0, 0], dst_size=(m_height, m_width))
-    path_no_ext, ext = os.path.splitext(mask_path)
-    new_path = path_no_ext + "_adjust" + ".tif"
-    cbimwrite(new_path, mask_adjust)
+    binx, m_width, m_height = cMatrix.gef_gef_shape(gef_path)
+    if binx==1:
+        mask = cbimread(mask_path)
+        if mask.width == m_width and mask.height == m_height:
+            return mask_path
+        mask_adjust = mask.trans_image(offset=[0, 0], dst_size=(m_height, m_width))
+        path_no_ext, ext = os.path.splitext(mask_path)
+        new_path = path_no_ext + "_adjust" + ".tif"
+        cbimwrite(new_path, mask_adjust)
+    else:
+        mask = cbimread(mask_path)
+        mask_binx = mask.trans_image(scale=1/binx)
+        path_no_ext, ext = os.path.splitext(mask_path)
+        
+        if mask_binx.width == m_width and mask_binx.height == m_height:
+            new_path = path_no_ext + f"_bin{binx}" + ".tif"
+            cbimwrite(new_path, mask_binx)
+            return new_path
+        mask_adjust = mask.trans_image(offset=[0, 0], dst_size=(m_height, m_width))
+        new_path = path_no_ext + "_adjust" + ".tif"
+        cbimwrite(new_path, mask_adjust)
+        
     return new_path
 
 
