@@ -1,8 +1,10 @@
 from cellbin2.utils.matrix import cbMatrix
+from cellbin2.image import cbimread, cbimwrite
 import numpy as np
 import pandas as pd
 import cv2
 import tifffile
+import os
 
 
 class FilterCells(object):
@@ -47,8 +49,8 @@ class FilterCells(object):
 
     def filter_doublecells(self):
 
-        celllist = self.cbm.raw_data.cells.obs.index.totolist()
-        celllist.remove("0.0")
+        celllist = self.cbm.raw_data.cells.obs.index.tolist()
+        #celllist.remove("0.0")
         self.cbm.raw_data.tl.filter_cells(cell_list=celllist, inplace=True)
         self._cell_pd = self.cbm.raw_data.cells.obs.copy(deep=True)
         self._cell_pd["x"] = self.cbm.raw_data.position[:, 0]
@@ -80,6 +82,65 @@ class FilterCells(object):
             "not_singlecell_area"]
         ## 1 means the cell is not single cell(is double cells)
         return self._cell_pd["not_singlecell_two_factor"].to_frame()
+    
+    def create_filtered_mask(self, output_path=None):
+        """
+        mark the multi-cell masks in the cell mask
+        """
+        if self._cell_pd.empty:
+            raise ValueError("filter_doublecells() not run yet")
+        
+        # get double cells mask ID
+        double_cells_set = set(self._cell_pd[
+            self._cell_pd["not_singlecell_two_factor"] == 1
+        ].index.tolist())
+        
+        print(f"number of multi-cell masks: {len(double_cells_set)}")
+        
+        # cell position dict
+        cell_positions = {}
+        for idx, row in self._cell_pd.iterrows():
+            cell_positions[idx] = (int(row['x']), int(row['y']))
+        
+        # creat label mask
+        from skimage import measure
+        labeled_mask = measure.label(self.cellmask, connectivity=2)
+        
+        # project cell id to region
+        cell_to_region = {}
+        region_to_cell = {}
+        
+        for cell_id, (x, y) in cell_positions.items():
+            if 0 <= y < labeled_mask.shape[0] and 0 <= x < labeled_mask.shape[1]:
+                region_label = labeled_mask[y, x]
+                if region_label > 0:
+                    cell_to_region[cell_id] = region_label
+                    if region_label not in region_to_cell:
+                        region_to_cell[region_label] = []
+                    region_to_cell[region_label].append(cell_id)
+        
+        print(f"projected {len(cell_to_region)} cell area")
+        
+        # remove multi-cell masks
+        max_region = labeled_mask.max()
+    
+        
+        valid_array = np.zeros(max_region + 1, dtype=bool)
+        
+        for region_label, cell_ids in region_to_cell.items():
+            is_valid = True
+            for cell_id in cell_ids:
+                if cell_id in double_cells_set:
+                    is_valid = False  
+                    break
+
+            if is_valid:
+                valid_array[region_label] = True
+
+        valid_array[0] = False
+        filtered_mask = valid_array[labeled_mask].astype(np.uint8)
+        
+        return filtered_mask
 
     def _split_chipRegion(self):
         splitx = np.linspace(0, self._cell_pd.x.max(), self.split_num + 1)
@@ -134,8 +195,13 @@ def filter_pipline(geffile, cellmask, output_filter_file="", output_filter_gef="
         :param output_filter_gef: generate filtered gef file based on the filter list 
         :return: filtered gef
         """
+    print(geffile, cellmask, output_filter_file, output_filter_gef)
     fc = FilterCells(geffile, mask=cellmask)
     fc.filter_doublecells()
+    filtered_mask = fc.create_filtered_mask()
+    filtered_mask = np.where(filtered_mask > 0, 1, 0).astype(np.uint8)
+    path = os.path.dirname(cellmask)
+    cbimwrite(os.path.join(path, "filtered_cellmask.tif"), filtered_mask)
     fc.result_to_txt(output_filter_file)  ###### output double-column text, column 1: cell name, column 2: delete flag (1 for delete, 0 for keep)
     df = pd.read_csv(output_filter_file, header=0, sep="\t")
     cbm = cbMatrix(geffile)
@@ -143,7 +209,6 @@ def filter_pipline(geffile, cellmask, output_filter_file="", output_filter_gef="
 
 
 def main():
-    import os
     path = "Z:\MySyncFiles"
     geffile = os.path.join(path, 'D04167E2.cellbin.txt')  ## example
     cellmask = os.path.join(path, 'D04167E2_mask.tif')

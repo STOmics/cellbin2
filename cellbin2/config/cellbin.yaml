@@ -87,8 +87,8 @@ cellSegmentation:
   DAPI_weights_path: cellseg_bcdu_SHDI_221008_tf.onnx
   HE_weights_path: cellseg_bcdu_H_240823_tf.onnx
   IF_weights_path: cyto3
-  Transcriptomics_weights_path: cellseg_unet_RNA_20230606.onnx
-  Protein_weights_path: cellseg_unet_RNA_20230606.onnx
+  Transcriptomics_weights_path: cellseg_unetpp_RNA_20260129.onnx
+  Protein_weights_path: cellseg_unetpp_RNA_20260129.onnx
   GPU: 0
   num_threads: 0
   enhance_times: 1

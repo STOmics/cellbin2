@@ -20,6 +20,7 @@
     "molecular_classify": {
         "0": {
             "exp_matrix": 0,
+            "doublet_filter": -1,
             "cell_mask": {
                 "nuclei":[],
                 "interior": [],

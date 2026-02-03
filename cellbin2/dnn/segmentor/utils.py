@@ -5,7 +5,7 @@ ONNX_EXT = '.onnx'
 SUPPORTED_MODELS = [
     f'cellseg_bcdu_SHDI_221008_tf',
     f'cellseg_bcdu_H_240823_tf',
-    f'cellseg_unet_RNA_20230606',
+    f'cellseg_unetpp_RNA_20260129',
 ]
 SUPPORTED_STAIN_TYPE_BY_MODEL = {
     SUPPORTED_MODELS[0]: [TechType.ssDNA, TechType.HE, TechType.DAPI],

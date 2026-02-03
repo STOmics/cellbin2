@@ -2,15 +2,20 @@ from typing import Union
 
 import numpy as np
 import numpy.typing as npt
+from scipy import ndimage as ndi
+from skimage.segmentation import watershed
+from skimage.feature import peak_local_max
+from skimage.filters import sobel
 from skimage.measure import label, regionprops
 import cv2
+from cellbin2.image import cbimread, cbimwrite
 
 from cellbin2.image.mask import f_instance2semantics
 from cellbin2.image.morphology import f_deep_watershed
 from cellbin2.dnn.segmentor.utils import SUPPORTED_MODELS
 from cellbin2.utils.common import TechType
 from cellbin2.utils import clog
-import tifffile
+from cellbin2.contrib.cell_filter import FilterCells
 
 
 def f_postpocess(pred):
@@ -45,72 +50,6 @@ def f_postprocess_v2(pred):
 
     
 def f_watershed(mask):
-    
-    # 1. 确保是二值图像
-    '''binary = (mask > 0).astype(np.uint8) * 255
-    
-    # 2. 距离变换 - 找到细胞中心
-    dist = cv2.distanceTransform(binary, cv2.DIST_L2, 5)
-    
-    # 3. 生成前景种子 - 核心：距离变换的局部极大值
-    # 使用固定阈值（原代码的核心思想）
-    #threshold_ratio = 0.3  # 可调节参数，控制种子大小
-    thr_lst = np.round(np.arange(1, 10) * 0.1, 1)
-    best_result = None
-    best_lines = None
-    best_num_regions = 1  # 至少1个区域
-    for threshold_ratio in thr_lst:
-        _, seeds = cv2.threshold(dist, threshold_ratio * dist.max(), 255, 0)
-        seeds = seeds.astype(np.uint8)
-        
-        # 4. 如果只有一个种子点，不需要分割
-        num_seeds = cv2.connectedComponents(seeds)[0] - 1
-        if num_seeds <= 1:
-            continue
-        
-        # 5. 创建标记图像
-        print(num_seeds)
-        _, markers = cv2.connectedComponents(seeds, connectivity=8)
-        markers = markers + 1  # 背景标记为1，前景从2开始
-        markers[binary == 0] = 1  # 细胞外区域设为背景
-        
-        # 6. 执行分水岭（核心算法）
-        markers = cv2.watershed(cv2.cvtColor(binary, cv2.COLOR_GRAY2BGR), markers)
-
-        unique_regions = np.unique(markers)
-        num_regions = len([r for r in unique_regions if r > 1])  # 前景区域数
-        
-        # 选择分割出最多区域的结果
-        if num_regions > best_num_regions:
-            best_num_regions = num_regions
-            
-            # 提取分水岭线
-            watershed_lines = (markers == -1).astype(np.uint8)
-            
-            # 分割结果（保持原大小）
-            segmented = binary.copy()
-            segmented[watershed_lines > 0] = 0
-            
-            best_result = segmented
-            best_lines = watershed_lines
-    
-    # 如果没有找到合适的分割，返回原图
-    if best_result is None:
-        return binary, np.zeros_like(binary)
-    
-    print(f"选择最佳结果：{best_num_regions}个区域")
-    return best_result, best_lines
-        
-    # 7. 提取结果
-    # 分水岭线（标记为-1）
-    watershed_lines = (markers == -1).astype(np.uint8)
-    
-    # 分割后的区域（所有前景区域）
-    segmented = binary.copy()
-    segmented[watershed_lines > 0] = 0
-    return segmented, watershed_lines
-    
-    return binary, np.zeros_like(binary)'''
     tmp = mask.copy()
     tmp[tmp > 0] = 255
     tmp = np.uint8(tmp)
@@ -158,8 +97,75 @@ def f_watershed(mask):
     opening = cv2.dilate(opening, open_kernel)
     return opening, tmp
 
+def watershed_segmentation(binary_image, sigma=3.5):
+    tmp = binary_image.copy()
+    binary_mask = binary_image > 0
+    
+    distance = ndi.distance_transform_edt(binary_mask)
+    local_min = distance < 1.5 
+    
+    blurred_distance = ndi.gaussian_filter(distance, sigma=sigma)
+    
+    # peak_local
+    fp = np.ones((3,) * binary_mask.ndim)
+    coords = peak_local_max(blurred_distance, footprint=fp, labels=binary_mask)
+    
+    # markers
+    mask = np.zeros(distance.shape, dtype=bool)
+    mask[tuple(coords.T)] = True
+    markers = ndi.label(mask)[0]
+    
+    # watershed
+    labels = watershed(-blurred_distance, markers, mask=binary_mask)
+    
+    edges_labels = sobel(labels)
+    edges_binary = sobel(binary_mask.astype(float))
+    edges = np.logical_xor(edges_labels != 0, edges_binary != 0)
+    
+    # postprocess
+    result = np.logical_not(edges) * binary_mask
+    result = ndi.binary_opening(result)
+    result[local_min] = 0
+    labels_cut, _ = ndi.label(result)
+    for _ in range(2):  
+        border = ndi.binary_dilation(labels_cut > 0) & (labels_cut == 0)
+        y, x = np.where(border)
+        for yi, xi in zip(y, x):
+            neighbors = labels_cut[max(yi-1,0):yi+2, max(xi-1,0):xi+2]
+            unique_neighbors = np.unique(neighbors[neighbors > 0])
+            if len(unique_neighbors) == 1:
+                labels_cut[yi, xi] = unique_neighbors[0]
+    labels_cut = np.where(labels_cut > 0, 1, 0).astype(np.uint8)
+    return labels_cut, tmp
+
+def filter_double_cell_rna(mask, gef_file, save_path):
+    fc = FilterCells(gef_file, mask=mask, mask_save_path = save_path)
+    fc.filter_doublecells()
+    filtered_mask = fc.create_filtered_mask()
+    filtered_mask = np.where(filtered_mask > 0, 1, 0).astype(np.uint8)
+    #post_mask=watershed_segmentation(mask)
+    return filtered_mask
+    
 
 def f_postprocess_rna(mask):
+    from skimage.morphology import remove_small_objects
+    clog.info(f"Start rna post processing")
+    label_mask = label(mask, connectivity=2)
+    props = regionprops(label_mask, label_mask)
+    for idx, obj in enumerate(props):
+        bbox = obj['bbox']
+        label_mask_temp = label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]].copy()
+        tmp_mask = label_mask_temp.copy()
+        tmp_mask[tmp_mask != obj['label']] = 0
+        tmp_mask, tmp_area = watershed_segmentation(tmp_mask)
+        tmp_mask = np.uint32(tmp_mask)
+        tmp_mask[tmp_mask > 0] = obj['label']
+        label_mask_temp[tmp_area > 0] = tmp_mask[tmp_area > 0]
+        label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]][tmp_area > 0] = label_mask_temp[tmp_area > 0]
+    label_mask = np.where(label_mask > 0, 1, 0).astype(np.uint8)
+    pred = remove_small_objects(label_mask.astype(np.bool8), min_size=80, connectivity=2).astype(np.uint8)
+    #post_mask=watershed_segmentation(mask)
+    return pred
     def f_check_shape(ct):
         farthest = 0
         max_dist = 0
@@ -206,9 +212,7 @@ def f_postprocess_rna(mask):
                 if img[i + r][j + c] != 0 and img[i + r][j + c] != img[i][j]:
                     return 1
         return 0
-    def instance2semantics(ins):
-        ins[np.where(ins > 0)] = 1
-        return np.array(ins, dtype=np.uint8)
+
     def f_border_map(img):
         map = np.zeros(img.shape)
         for i in range(img.shape[0]):
@@ -218,29 +222,7 @@ def f_postprocess_rna(mask):
                 map[i][j] = f_is_border(img, i, j)
         return map
     clog.info(f"Start rna post processing")
-    original_nucleus_mask = instance2semantics(mask)
-    contours, _ = cv2.findContours(original_nucleus_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-
-    for contour in contours:
-
-        x, y, w, h = cv2.boundingRect(contour)
-        nucleus_roi = original_nucleus_mask[y:y+h, x:x+w]
-        contour_roi = contour - np.array([x,y])
-        roi_mask = np.zeros((h,w), dtype=np.uint8)
-        
-        cv2.fillPoly(roi_mask, [contour_roi],(1,)) # cell before filterd 
-        not_cell_area = nucleus_roi - roi_mask
-        filtered_roi, watershed_lines = f_watershed(roi_mask)
-                
-        #not_cell_area = instance2semantics(not_cell_area)
-        filtered_roi = instance2semantics(filtered_roi)
-        #filtered_roi = roi_mask - watershed_lines
-        filtered_roi = instance2semantics(filtered_roi)
-        original_nucleus_mask[y:y+h, x:x+w] = filtered_roi + not_cell_area
-    return original_nucleus_mask
-    
-    '''label_mask = label(mask, connectivity=2)
+    label_mask = label(mask, connectivity=2)
     props = regionprops(label_mask, label_mask)
     for idx, obj in enumerate(props):
         bbox = obj['bbox']
@@ -250,15 +232,14 @@ def f_postprocess_rna(mask):
             label_mask_temp[label_mask_temp == obj['label']] = 0
             label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]] = label_mask_temp
         else:
-        tmp_mask = label_mask_temp.copy()
-        tmp_mask[tmp_mask != obj['label']] = 0
-        tmp_mask, tmp_area = f_watershed(tmp_mask)
-        tmp_mask = np.uint32(tmp_mask)
-        tmp_mask[tmp_mask > 0] = obj['label']
-        label_mask_temp[tmp_area > 0] = tmp_mask[tmp_area > 0]
-        label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]][tmp_area > 0] = label_mask_temp[tmp_area > 0]
-    label_mask[label_mask > 0] = 1'''
-    return label_mask
+            tmp_mask = label_mask_temp.copy()
+            tmp_mask[tmp_mask != obj['label']] = 0
+            tmp_mask, tmp_area = f_watershed(tmp_mask)
+            tmp_mask = np.uint32(tmp_mask)
+            tmp_mask[tmp_mask > 0] = obj['label']
+            label_mask_temp[tmp_area > 0] = tmp_mask[tmp_area > 0]
+            label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]][tmp_area > 0] = label_mask_temp[tmp_area > 0]
+    label_mask[label_mask > 0] = 255
     label_mask = label(label_mask, connectivity=2)
     props = regionprops(label_mask, label_mask)
     for idx, obj in enumerate(props):

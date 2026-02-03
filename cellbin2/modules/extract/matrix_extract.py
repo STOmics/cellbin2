@@ -14,6 +14,7 @@ from cellbin2.utils.common import TechType
 from cellbin2.image.augmentation import f_resize
 from cellbin2.utils.stereo_chip import StereoChip
 from cellbin2.image.augmentation import f_ij_16_to_8
+from cellbin2.contrib.cell_filter import FilterCells, filter_pipline
 
 
 def extract4stitched(
@@ -77,6 +78,7 @@ def extract4matrix(
         p_naming: naming.DumpPipelineFileNaming,
         image_file: ProcFile,
         m_naming: naming.DumpMatrixFileNaming,
+        doublet_filter: int = -1,
 ):
     """
     Extracts matrix data for stitched images based on cell and tissue masks.
@@ -125,6 +127,13 @@ def extract4matrix(
             str(m_naming.cell_correct_bin_matrix),
             cell_correct_mask_path
         )
+        if doublet_filter == 1:
+            import os
+            path = os.path.dirname(cell_correct_mask_path)
+            geffile = str(m_naming.cell_correct_bin_matrix)  ## example
+            cellmask = cell_correct_mask_path
+            filter_pipline(geffile, cellmask, output_filter_file=os.path.join(path, f"{m_naming.sn}.filter.txt"),
+                        output_filter_gef=os.path.join(path, f"{m_naming.sn}.filter.gef"))
         if image_file.tech == TechType.Transcriptomics:
             generate_stereo_file(
                 save_path=p_naming.stereo,

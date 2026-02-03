@@ -174,6 +174,7 @@ class ProcMolecularFile(BaseModel):
         extra_method (str): An additional molecular classification method, currently not used.
     """
     exp_matrix: int
+    doublet_filter: int
     cell_mask: Dict[str,List[int]] 
     extra_method: str = ''  # additional molecular classification methods, currently not available
     correct_r: int
