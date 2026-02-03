@@ -14,6 +14,7 @@
             "cell_segmentation": true,
             "magnification": 10,
             "channel_align": -1,
+            "chip_matching": -1,  
             "tissue_filter": -1
         }
     },
