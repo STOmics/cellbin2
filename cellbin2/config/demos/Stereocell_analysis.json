@@ -38,7 +38,7 @@
   "molecular_classify": {
     "Transcriptomics": {
       "exp_matrix": 1,
-      "doublet_filter": -1,
+      "doublet_filter": false,
       "cell_mask": {
         "nuclei":[0],
         "interior": [],

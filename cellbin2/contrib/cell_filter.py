@@ -5,6 +5,7 @@ import pandas as pd
 import cv2
 import tifffile
 import os
+from pathlib import Path
 
 
 class FilterCells(object):
@@ -78,7 +79,7 @@ class FilterCells(object):
         self._cell_pd = pd.concat(df_list, axis=0)
 
         ###combine the two factors
-        self._cell_pd["not_singlecell_two_factor"] = self._cell_pd["not_singlecell_n_counts"] | self._cell_pd[
+        self._cell_pd["not_singlecell_two_factor"] = self._cell_pd["not_singlecell_n_counts"] & self._cell_pd[
             "not_singlecell_area"]
         ## 1 means the cell is not single cell(is double cells)
         return self._cell_pd["not_singlecell_two_factor"].to_frame()
@@ -104,6 +105,9 @@ class FilterCells(object):
         
         # creat label mask
         from skimage import measure
+        if not hasattr(self.cellmask, 'dtype'):
+            if isinstance(self.cellmask, (str, Path)):
+                self.cellmask = tifffile.imread(str(self.cellmask))
         labeled_mask = measure.label(self.cellmask, connectivity=2)
         
         # project cell id to region

@@ -78,7 +78,7 @@ def extract4matrix(
         p_naming: naming.DumpPipelineFileNaming,
         image_file: ProcFile,
         m_naming: naming.DumpMatrixFileNaming,
-        doublet_filter: int = -1,
+        doublet_filter: bool = False,
 ):
     """
     Extracts matrix data for stitched images based on cell and tissue masks.
@@ -127,7 +127,7 @@ def extract4matrix(
             str(m_naming.cell_correct_bin_matrix),
             cell_correct_mask_path
         )
-        if doublet_filter == 1:
+        if doublet_filter:
             import os
             path = os.path.dirname(cell_correct_mask_path)
             geffile = str(m_naming.cell_correct_bin_matrix)  ## example
