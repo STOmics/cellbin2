@@ -102,7 +102,7 @@ def cellposesam_pred_3c(
     use_gpu, 
     model_dir,
     patch_size: int = 2000,
-    overlap: int = 24,
+    overlap: int = 5,
     output_path = None
 ) -> np.ndarray:
 
@@ -136,15 +136,12 @@ def cellposesam_pred_3c(
     masks = []
     for i, patch in enumerate(tqdm.tqdm(patches, desc='Segment cells with [Cellpose]')):
         mask = model.eval(patch, diameter=None, channels=chan)[0]
-        boundaries = find_boundaries(mask, mode='inner')
-        
-        mask[boundaries] = 0
         mask = f_instance2semantics(mask)
         masks.append(mask)
     
     # merge mask patches
     full_mask = merge_masks_with_or(masks, positions, img.shape[:2])
-    full_mask = f_postprocess_rna(full_mask)
+    #full_mask = f_postprocess_rna(full_mask)
     if output_path:
         name = os.path.splitext(os.path.basename(img_path))[0]
         c_mask_path = os.path.join(output_path, f"{name}_cpsam_mask.tif")
