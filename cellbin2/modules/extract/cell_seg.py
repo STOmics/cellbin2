@@ -9,6 +9,7 @@ from pathlib import Path
 from cellbin2.utils import ipr
 from cellbin2.utils.rle import RLEncode
 from cellbin2.contrib import cellpose_segmentor
+from cellbin2.utils import clog
 import os
 import numpy as np
 
@@ -35,15 +36,14 @@ def run_cell_seg(
     """
     # check input data stain type and its referred model
     stain_type = str(image_file.tech.name)
-    print(stain_type)
     cellseg_model_path = getattr(config.cell_segmentation, f"{stain_type}_weights_path")
     cellseg_model = os.path.basename(cellseg_model_path)
+    clog.info(f'{stain_type} image segmented by model: {cellseg_model}')
 
     if cellseg_model == 'cpsam':
         from cellbin2.contrib import cellposesam
-        cell_mask = cellposesam.cellposesam_pred(
+        cell_mask = cellposesam.cellposesam_pred_3c(
             img_path=str(image_path),
-            cfg=config.cell_segmentation,
             use_gpu=True,
             model_dir = cellseg_model_path
         )

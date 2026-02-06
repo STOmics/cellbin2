@@ -21,7 +21,7 @@ from cellbin2.image.augmentation import f_rgb2gray
 from cellbin2.contrib.cellpose_segmentor import f_instance2semantics_max, poolingOverlap
 from cellbin2.image.mask import f_instance2semantics
 from cellbin2.image import cbimread, cbimwrite
-from cellbin2.dnn.segmentor.postprocess import f_postprocess_rna
+from cellbin2.dnn.segmentor.postprocess import f_postprocess_cellpose
 from cellbin2.contrib.cell_segmentor import CellSegParam
 from cellbin2.utils import clog
 
@@ -101,8 +101,8 @@ def cellposesam_pred_3c(
     img_path: str, 
     use_gpu, 
     model_dir,
-    patch_size: int = 2000,
-    overlap: int = 5,
+    patch_size: int = 4096,
+    overlap: int = 24,
     output_path = None
 ) -> np.ndarray:
 
@@ -130,21 +130,61 @@ def cellposesam_pred_3c(
         chan = [2, 0]  # RGB
     # patches
     patches, positions = split_image_into_patches(img, patch_size, overlap)
+
+    # mark overlap area
+    overlap_mask = np.zeros(img.shape[:2], dtype=bool)
+    h, w = img.shape[:2]
+
+    stride = patch_size - overlap
+
+    for x in range(stride, w, stride):
+        x_start = max(0, x - overlap)
+        x_end = min(w, x + overlap)
+        if x_start < x_end:
+            overlap_mask[:, x_start:x_end] = True
+
+    for y in range(stride, h, stride):
+        y_start = max(0, y - overlap)
+        y_end = min(h, y + overlap)
+        if y_start < y_end:
+            overlap_mask[y_start:y_end, :] = True
     
     # patch segmentation
     model = models.CellposeModel(gpu = use_gpu, pretrained_model=model_dir, use_bfloat16=False)
     masks = []
     for i, patch in enumerate(tqdm.tqdm(patches, desc='Segment cells with [Cellpose]')):
         mask = model.eval(patch, diameter=None, channels=chan)[0]
-        mask = f_instance2semantics(mask)
+        mask = f_instance2semantics_max(mask)
+        '''num_cells, instance_mask = cv2.connectedComponents(
+            (mask > 0).astype(np.uint8), 
+            connectivity=4
+        )
+        
+        sizes = []
+        for i in range(1, num_cells):
+            sizes.append(np.sum(instance_mask == i))
+        
+        if not sizes:  
+            masks.append(mask)
+            continue
+        avg_size = np.mean(sizes)
+        
+        new_mask = np.zeros_like(mask, dtype=np.uint8)
+        
+        for i in range(1, num_cells):
+            cell_size = np.sum(instance_mask == i)
+            
+            if cell_size <= avg_size * 5:
+                new_mask[instance_mask == i] = 1'''
         masks.append(mask)
     
     # merge mask patches
     full_mask = merge_masks_with_or(masks, positions, img.shape[:2])
-    #full_mask = f_postprocess_rna(full_mask)
+    full_mask = f_postprocess_cellpose(full_mask, overlap_mask)
+    #full_mask = watershed(full_mask)
     if output_path:
         name = os.path.splitext(os.path.basename(img_path))[0]
-        c_mask_path = os.path.join(output_path, f"{name}_cpsam_mask.tif")
+        c_mask_path = os.path.join(output_path, f"{name}_cpsam_mask_watershed.tif")
         cbimwrite(output_path=c_mask_path, files=full_mask, compression=True)
 
     return full_mask

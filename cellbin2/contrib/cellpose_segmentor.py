@@ -10,7 +10,7 @@ from skimage.morphology import remove_small_objects
 
 from cellbin2.image.mask import f_instance2semantics
 from cellbin2.image import cbimread, cbimwrite
-from cellbin2.dnn.segmentor.postprocess import f_postprocess_rna
+from cellbin2.dnn.segmentor.postprocess import f_postprocess_cellpose
 from cellbin2.contrib.cell_segmentor import CellSegParam
 from cellbin2.utils import clog
 
@@ -180,8 +180,8 @@ def main(
     model_dir: str,
     stain_type= None,
     output_path=None,
-    patch_size: int = 2000,
-    overlap: int = 15
+    patch_size: int = 4096,
+    overlap: int = 24
 ) -> np.ndarray:
 
     try:
@@ -203,6 +203,24 @@ def main(
 
     # patches
     patches, positions = split_image_into_patches(img, patch_size, overlap)
+
+    # mark overlap area
+    overlap_mask = np.zeros(img.shape[:2], dtype=bool)
+    h, w = img.shape[:2]
+
+    stride = patch_size - overlap
+
+    for x in range(stride, w, stride):
+        x_start = max(0, x - overlap)
+        x_end = min(w, x + overlap)
+        if x_start < x_end:
+            overlap_mask[:, x_start:x_end] = True
+
+    for y in range(stride, h, stride):
+        y_start = max(0, y - overlap)
+        y_end = min(h, y + overlap)
+        if y_start < y_end:
+            overlap_mask[y_start:y_end, :] = True
     
     # patch segmentation
     model = models.CellposeModel(gpu = gpu, pretrained_model=model_dir)
@@ -236,7 +254,7 @@ def main(
     # merge mask patches
     full_mask = merge_masks_with_or(masks, positions, img.shape[:2])
     #full_mask = apply_watershed(full_mask)
-    full_mask = f_postprocess_rna(full_mask)
+    full_mask = f_postprocess_cellpose(full_mask, overlap_mask)
 
     if output_path:
         name = os.path.splitext(os.path.basename(file_path))[0]

@@ -137,20 +137,46 @@ def watershed_segmentation(binary_image, sigma=3.5):
     return labels_cut, tmp
 
 def f_postprocess_rna(mask):
-    clog.info(f"Start post processing")
-    mean_area = 0 
-    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(
-        mask.astype(np.uint8), connectivity=8
-    )
-    areas = stats[1:, cv2.CC_STAT_AREA]
-    mean_area = np.mean(areas)
-    watershed_threshold = mean_area * 1.5
+    from skimage.morphology import remove_small_objects
+    clog.info(f"Start rna post processing")
     label_mask = label(mask, connectivity=2)
     props = regionprops(label_mask, label_mask)
     for idx, obj in enumerate(props):
-        cell_area = obj['area']
-        if cell_area > watershed_threshold:
-            bbox = obj['bbox']
+        bbox = obj['bbox']
+        label_mask_temp = label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]].copy()
+        tmp_mask = label_mask_temp.copy()
+        tmp_mask[tmp_mask != obj['label']] = 0
+        tmp_mask, tmp_area = watershed_segmentation(tmp_mask)
+        tmp_mask = np.uint32(tmp_mask)
+        tmp_mask[tmp_mask > 0] = obj['label']
+        label_mask_temp[tmp_area > 0] = tmp_mask[tmp_area > 0]
+        label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]][tmp_area > 0] = label_mask_temp[tmp_area > 0]
+    label_mask = np.where(label_mask > 0, 1, 0).astype(np.uint8)
+    pred = remove_small_objects(label_mask.astype(np.bool8), min_size=80, connectivity=2).astype(np.uint8)
+    #post_mask=watershed_segmentation(mask)
+    return pred
+
+
+def f_postprocess_cellpose(mask, overlap_mask=None):
+    """
+    Only apply watershed for cells overlaped with the patches overlap area.
+    To prevent over split.
+    """
+    clog.info(f"Start post processing")
+    label_mask = label(mask, connectivity=2)
+    props = regionprops(label_mask, label_mask)
+    for idx, obj in enumerate(props):
+        bbox = obj['bbox']
+        need_watershed = False
+        if overlap_mask is None:
+            need_watershed = True
+        else:
+            cell_bbox_region = label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]] == obj['label']
+            overlap_bbox_region = overlap_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]]
+            if np.any(cell_bbox_region & overlap_bbox_region):
+                need_watershed = True
+        
+        if need_watershed:
             label_mask_temp = label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]].copy()
             tmp_mask = label_mask_temp.copy()
             tmp_mask[tmp_mask != obj['label']] = 0
@@ -160,102 +186,7 @@ def f_postprocess_rna(mask):
             label_mask_temp[tmp_area > 0] = tmp_mask[tmp_area > 0]
             label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]][tmp_area > 0] = label_mask_temp[tmp_area > 0]
     label_mask[label_mask > 0] = 1
-    def f_check_shape(ct):
-        farthest = 0
-        max_dist = 0
-        for i in range(ct.shape[0]):
-            d = np.sqrt((ct[i][0][0] - ct[i - 1][0][0]) ** 2 + (ct[i][0][1] - ct[i - 1][0][1]) ** 2)
-            if d > max_dist:
-                max_dist = d
-                farthest = i
-        rect = cv2.minAreaRect(ct)
-        if rect[1][0] * rect[1][1] == 0:
-            return True
-        if rect[1][0] / rect[1][1] >= 3 or rect[1][0] * rect[1][1] <= 1 / 3 or max_dist ** 2 > rect[1][0] * rect[1][1]:
-            return True
-        return False
-
-    def f_contour_interpolate(mask_temp, value=255):
-        tmp = mask_temp.copy()
-        tmp[tmp == value] = 0
-        img = mask_temp.copy()
-        img[img != value] = 0
-        img[img > 0] = 255
-        img = np.uint8(img)
-        contours, _ = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        hull = cv2.convexHull(contours[0])
-        img = np.uint16(img)
-        img[img > 0] = value
-        cv2.drawContours(img, [hull], -1, value, thickness=-1)
-        img[img + tmp > value] = 0
-        return img
-
-    def f_is_border(img, i, j):
-        s_r = [-1, 0, 1]
-        s_c = [-1, 0, 1]
-        if i == 0:
-            s_r = s_r[1:]
-        if i == img.shape[0] - 1:
-            s_r = s_r[:-1]
-        if j == 0:
-            s_c = s_c[1:]
-        if j == img.shape[1] - 1:
-            s_c = s_c[:-1]
-        for r in s_r:
-            for c in s_c:
-                if img[i + r][j + c] != 0 and img[i + r][j + c] != img[i][j]:
-                    return 1
-        return 0
-
-    def f_border_map(img):
-        map = np.zeros(img.shape)
-        for i in range(img.shape[0]):
-            for j in range(img.shape[1]):
-                if img[i][j] == 0:
-                    continue
-                map[i][j] = f_is_border(img, i, j)
-        return map
-    clog.info(f"Start rna post processing")
-    label_mask = label(mask, connectivity=2)
-    props = regionprops(label_mask, label_mask)
-    for idx, obj in enumerate(props):
-        bbox = obj['bbox']
-        label_mask_temp = label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]].copy()
-        if obj['filled_area'] < 80:
-            # if obj['filled_area'] < 0:
-            label_mask_temp[label_mask_temp == obj['label']] = 0
-            label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]] = label_mask_temp
-        else:
-            tmp_mask = label_mask_temp.copy()
-            tmp_mask[tmp_mask != obj['label']] = 0
-            tmp_mask, tmp_area = f_watershed(tmp_mask)
-            tmp_mask = np.uint32(tmp_mask)
-            tmp_mask[tmp_mask > 0] = obj['label']
-            label_mask_temp[tmp_area > 0] = tmp_mask[tmp_area > 0]
-            label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]][tmp_area > 0] = label_mask_temp[tmp_area > 0]
-    label_mask[label_mask > 0] = 255
-    label_mask = label(label_mask, connectivity=2)
-    props = regionprops(label_mask, label_mask)
-    for idx, obj in enumerate(props):
-        bbox = obj['bbox']
-        label_mask_temp = label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]]
-        if obj['filled_area'] < 80:
-            label_mask_temp[label_mask_temp == obj['label']] = 0
-            label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]] = label_mask_temp
-            continue
-        tmp_mask = label_mask_temp.copy()
-        tmp_mask[tmp_mask != obj['label']] = 0
-        tmp_mask[tmp_mask > 0] = 255
-        tmp_mask = np.uint8(tmp_mask)
-        contours, _ = cv2.findContours(tmp_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        if 0 not in contours[0] and f_check_shape(contours[0]):
-            label_mask_temp[label_mask_temp == obj['label']] = 0
-            label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]] = label_mask_temp
-        intp = f_contour_interpolate(label_mask_temp, obj['label'])
-        label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]][intp == obj['label']] = obj['label']
-    map = f_border_map(label_mask)
-    label_mask[map > 0] = 0
-    label_mask[np.where(label_mask > 0)] = 1
+    #post_mask=watershed_segmentation(mask)
     return np.uint8(label_mask)
 
 
