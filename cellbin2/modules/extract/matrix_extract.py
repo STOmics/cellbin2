@@ -56,7 +56,7 @@ def extract4stitched(
                                     scale_x=1., scale_y=1.,
                                     template_points=track_points)
 
-        # 对_gene_mat插值放大
+        # _gene_mat
         cbimwrite(str(m_naming.heatmap).replace('.tif', f'_bin{binx}.tif'), cm.heatmap)
         gene_mat = cm._gene_mat
         gene_mat = f_ij_16_to_8(gene_mat)
@@ -134,6 +134,12 @@ def extract4matrix(
             cellmask = cell_correct_mask_path
             filter_pipline(geffile, cellmask, output_filter_file=os.path.join(path, f"{m_naming.sn}.filter.txt"),
                         output_filter_gef=os.path.join(path, f"{m_naming.sn}.filter.gef"))
+            filter_mask_path = os.path.join(path, "filtered_cellmask.tif")
+            save_cell_bin_data(
+                c_inp,
+                str(os.path.join(path, f"{m_naming.sn}.filter.gef")),
+                filter_mask_path
+            )
         if image_file.tech == TechType.Transcriptomics:
             generate_stereo_file(
                 save_path=p_naming.stereo,
