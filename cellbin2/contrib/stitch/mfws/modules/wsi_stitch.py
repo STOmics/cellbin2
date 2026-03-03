@@ -62,17 +62,17 @@ class StitchingWSI(object):
                         int(i * self.fov_height * (1 - self._overlap_y))
                     ]
 
-        x0 = np.min(self.fov_location[:, :, 0])
-        y0 = np.min(self.fov_location[:, :, 1])
-        self.fov_location[:, :, 0] -= x0
-        self.fov_location[:, :, 1] -= y0
         x1 = np.max(self.fov_location[:, :, 0])
         y1 = np.max(self.fov_location[:, :, 1])
         self.mosaic_width, self.mosaic_height = [x1 + self.fov_width, y1 + self.fov_height]
 
-    def mosaic(self, src_image: dict, loc=None, down_sample=1, multi=False, fuse_flag=True):
+    def mosaic(self, src_image: dict, loc=None, down_sample=1, multi=False, fuse_flag=True, bar_disable=False):
         self.fov_rows, self.fov_cols = loc.shape[:2]
         self._init_parm(src_image)
+        self._fuse_size = int(min(self._overlap_y * self.fov_height, self._overlap_x * self.fov_width))
+
+        self._set_location(loc)
+
         if self.fov_width * self._overlap_x > self._fuse_size:
             kx = [i * (90 / self._fuse_size) for i in range(0, self._fuse_size)][::-1]  # fusion ratio
             fuse_flag_x = True
@@ -84,17 +84,32 @@ class StitchingWSI(object):
         else:
             fuse_flag_y = False
 
-        self._set_location(loc)
-        h, w = (int(self.mosaic_height / down_sample), int(self.mosaic_width / down_sample))
+        h, w = (math.ceil(self.mosaic_height / down_sample), math.ceil(self.mosaic_width / down_sample))
         if self.fov_channel == 1:
-            self.buffer = np.zeros((h + 1, w + 1), dtype=self.fov_dtype)
+            self.buffer = np.zeros((h, w), dtype=self.fov_dtype)
         else:
-            self.buffer = np.zeros((h + 1, w + 1, self.fov_channel), dtype=self.fov_dtype)
+            self.buffer = np.zeros((h, w, self.fov_channel), dtype=self.fov_dtype)
+
+        for i in range(self.fov_rows):
+            for j in range(self.fov_cols):
+                if rc_key(i, j) in src_image.keys():
+                    img = src_image[rc_key(i, j)]
+                    arr = img.get_image()
+                    x, y = self.fov_location[i, j]
+                    x_, y_ = (int(x / down_sample), int(y / down_sample))
+                    _h, _w = arr.shape[:2]
+                    b_h, b_w = int(np.ceil(_h / down_sample)), int(np.ceil(_w / down_sample))
+                    _arr = cv.resize(arr, (b_w, b_h))
+                    if self.fov_channel == 1:
+                        self.buffer[y_: y_ + b_h, x_: x_ + b_w] = _arr
+                    else:
+                        self.buffer[y_: y_ + b_h, x_: x_ + b_w, :] = _arr
 
         if multi:
             pass
         else:
-            for i in tqdm.tqdm(range(self.fov_rows), desc='FOVs Stitching', mininterval=5, colour='green', unit='col', ncols=100):
+            for i in tqdm.tqdm(range(self.fov_rows), desc='FOVs Stitching', mininterval=5,
+                               colour='green', unit='col', ncols=100, disable=bar_disable):
                 for j in range(self.fov_cols):
                     blend_flag_h = False
                     blend_flag_v = False

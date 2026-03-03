@@ -27,7 +27,6 @@ class Stitching(object):
             channel: int = 0,
             proc_count: int = 1,
             fusion: int = 0,
-            down_sample: int = 1,
             **kwargs
     ):
         """
@@ -52,7 +51,6 @@ class Stitching(object):
         self.proc_count = proc_count
 
         self.fusion = fusion
-        self.down_sample = down_sample
 
         # internal parameters
         self._fov_location: Union[None, np.ndarray] = None
@@ -134,7 +132,10 @@ class Stitching(object):
         lm.create_location(method)
 
         self._fov_location = lm.fov_loc_array
-
+        x0 = np.min(self._fov_location[:, :, 0])
+        y0 = np.min(self._fov_location[:, :, 1])
+        self._fov_location[:, :, 0] -= x0
+        self._fov_location[:, :, 1] -= y0
         glog.info("location calculation time, {}s".format(round(time.time() - start_time, 2)))
 
     def _get_jitter(self, image_dict: dict,  fft_channel: int = 0, multi=5):
@@ -215,8 +216,8 @@ class Stitching(object):
 
         self._fov_location = loc
 
-        img = self.stitch_by_location(image_dict, loc)
-        return img
+        # img = self.stitch_by_location(image_dict, loc)
+        # return img
 
     def stitch_by_mfws(self, image_dict: dict):
         """ stitching by algorithm """
@@ -224,13 +225,14 @@ class Stitching(object):
         image_dict = self._slice_images(image_dict)
 
         self._get_loc_by_mfws(image_dict)
-        img = self.stitch_by_location(image_dict, self._fov_location)
+        # img = self.stitch_by_location(image_dict, self._fov_location)
+        #
+        # return img
 
-        return img
-
-    def stitch_by_location(self, image_dict: dict, loc: np.ndarray):
+    def stitch_by_location(self, image_dict: dict, loc: np.ndarray, down_sample: int = 1, bar_disable: bool = False):
         """ stitching based on coordinates, channel multiplexing in multi-channel scenarios """
         self._init_param(image_dict)
+        image_dict = self._slice_images(image_dict)
 
         wsi = StitchingWSI()
         wsi.set_overlap(self.overlap)
@@ -239,8 +241,10 @@ class Stitching(object):
             loc,
             multi=False,
             fuse_flag=True if self.fusion else False,
-            down_sample=self.down_sample
+            down_sample=down_sample,
+            bar_disable=bar_disable
         )
+        # self._mosaic_height, self._mosaic_width = wsi.mosaic_height, wsi.mosaic_width
 
         return wsi.buffer
 
@@ -278,4 +282,11 @@ class Stitching(object):
     @property
     def mosaic_size(self,):
         """ Original resolution mosaic size """
-        return self._mosaic_height, self._mosaic_width
+        x1 = np.max(self.fov_location[:, :, 0])
+        y1 = np.max(self.fov_location[:, :, 1])
+        self._mosaic_width, self._mosaic_height = [x1 + self._fov_width, y1 + self._fov_height]
+        return self._mosaic_width, self._mosaic_height
+
+    @property
+    def fov_dtype(self, ):
+        return self._fov_dtype

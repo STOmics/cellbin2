@@ -5,3 +5,7 @@
 🌟 File  : __init__.py.py
 🌟 Description  : 
 """
+
+from . import stitching, wsi_stitch, scan_method
+
+

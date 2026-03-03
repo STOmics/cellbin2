@@ -8,7 +8,6 @@
 """
 import os
 import argparse
-
 import glog
 import numpy as np
 import tifffile as tif
@@ -256,9 +255,11 @@ def stitching(
     )
 
     if StitchingMethod(scope_flag) == StitchingMethod.Hardware:
-        img = sti.stitch_by_rule(imd)
+        sti.stitch_by_rule(imd)
     else:
-        img = sti.stitch_by_mfws(imd)
+        sti.stitch_by_mfws(imd)
+
+    img = sti.stitch_by_location(imd, sti.fov_location, down_sample=down_sample)
 
     if os.path.isdir(output_path):
         tif.imwrite(os.path.join(output_path, 'mfws.tif'), img)

@@ -14,7 +14,7 @@ print(f"Version: {info['version']}")
 
 
 setup(
-    name='MFWS',
+    name='mfws',
     version=info['version'],
     description='Multiple Fast Fourier Transform weighted stitching algorithm.',
     # long_description_content_type="text/markdown",
@@ -24,7 +24,7 @@ setup(
     author_email='bgi@genomics.cn',
     url='',
     install_requires=requires,
-    python_requires='==3.8.*',
+    python_requires='>=3.8',
     include_package_data=True,
     classifiers=[
         'Development Status :: 3 - Alpha',
