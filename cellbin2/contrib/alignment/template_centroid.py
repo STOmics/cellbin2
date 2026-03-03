@@ -159,7 +159,7 @@ if __name__ == '__main__':
     template_ref = ([240, 300, 330, 390, 390, 330, 300, 240, 420],
                     [240, 300, 330, 390, 390, 330, 300, 240, 420])
 
-    # 移动图像信息
+    # move image 
     moving_image = ChipFeature()
     moving_image.tech_type = TechType.DAPI
     moving_mat = cbimread(r'E:\03.users\liuhuanlin\01.data\cellbin2\stitch\A03599D1_DAPI.tif')
@@ -171,7 +171,7 @@ if __name__ == '__main__':
                            np.loadtxt(r"E:/03.users/liuhuanlin/01.data/cellbin2/stitch/DAPI_matrix_template.txt"))
     moving_image.set_template(img_tpl)
 
-    # 固定对象信息
+    # fix object information 
     fixed_image = ChipFeature()
     fixed_image.tech_type = TechType.Transcriptomics
     fixed_image.set_mat(r'E:\03.users\liuhuanlin\01.data\cellbin2\stitch\A03599D1_gene.tif')

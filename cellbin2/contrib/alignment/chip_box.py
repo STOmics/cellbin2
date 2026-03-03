@@ -251,7 +251,7 @@ if __name__ == '__main__':
     from cellbin2.matrix.box_detect import detect_chip_box
 
 
-    # 移动图像信息
+    # move image 
     moving_image = ChipFeature()
     moving_image.tech_type = TechType.DAPI
     moving_mat = cbimread(r"D:\02.data\temp\temp_cellbin2_test\register\D04499F1F2\D04499F1F2_ssDNA_stitch.tif")
@@ -282,7 +282,7 @@ if __name__ == '__main__':
     m_info = detect_chip(moving_mat.image, cfg=cfg, stain_type=TechType.DAPI, actual_size=(19992, 19992 * 2))
     moving_image.set_chip_box(m_info)
 
-    # 固定对象信息
+    # fix object information 
     fixed_image = ChipFeature()
     fixed_image.tech_type = TechType.Transcriptomics
     fixed_image.set_mat(r"D:\02.data\temp\temp_cellbin2_test\register\D04499F1F2\D04499F1F2_Transcriptomics.tif")

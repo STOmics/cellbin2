@@ -202,7 +202,7 @@ You can use ```mfws -h``` to view the usage, use ```mfws -v``` to view software 
 ### case 2: API
 
 ```python
-from mfws.mfws import stitching
+from mfws.main import stitching
 
 
 image_path = '/path/mfws/images'

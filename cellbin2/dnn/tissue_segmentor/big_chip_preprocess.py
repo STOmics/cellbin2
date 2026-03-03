@@ -51,7 +51,7 @@ def crop_image(image: npt.NDArray, chip_size: List) -> List:
     return crop_img_list
 
 
-def f_pre_ssdna_dapi_SAW_V_7_1(img: npt.NDArray, input_size: tuple, chip_size: List, stain_type: TechType) -> List:  #对应组织分割230523版本
+def f_pre_ssdna_dapi_SAW_V_7_1(img: npt.NDArray, input_size: tuple, chip_size: List, stain_type: TechType) -> List:  #corresponding to segmentation version 230523
     clog.info("preprocessing data type: ssDNA/DAPI")
     clog.info("version: SAW_V_7_1")
     img = f_resize(img, input_size, "BILINEAR")
@@ -138,7 +138,7 @@ class BigChipTissueSegPreprocess:
 
     def __call__(self, img: Union[str, npt.NDArray], stain_type: TechType, input_size: tuple):
 
-        # 支持读图
+        # support image reading 
         if isinstance(img, str):
             img = self.im_read(img)
 
@@ -147,19 +147,19 @@ class BigChipTissueSegPreprocess:
                     'the input image is an RGB image, bug the stain type is not HE,convert the RGB image to GRAY image')
                 img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 
-        # 基操
+        # basic operation
         img = np.squeeze(img)
         if img.dtype != 'uint8' and stain_type != TechType.IF:
             img = f_ij_16_to_8_v2(img)
 
-        # 不同染色不同操作
+        # different process for diffrent staining 
         pre_func = self.m_preprocess.get(stain_type)
 
         if stain_type == TechType.IF:
             img = pre_func(img)
             return img
         img_list = pre_func(img, input_size, self.chip_size, stain_type)
-        # 基操
+        # basic operation
         image_list_ = []
         for img in img_list:
             img = f_histogram_normalization(img)

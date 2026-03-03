@@ -1,0 +1,58 @@
+{
+  "image_process": {
+    "0": {
+      "file_path": "E:/pyproject/cellbin_stereocell_analysis/cellbin2/data/Q00327K8.tiff",
+      "tech_type": "DAPI",
+      "chip_detect": true,
+      "quality_control": true,
+      "registration": {
+        "fixed_image": -1,
+        "trackline": true,
+        "reuse": -1
+      },
+      "tissue_segmentation": false,
+      "cell_segmentation": true,
+      "channel_align": -1,
+      "magnification": 10,
+      "chip_matching": -1,
+      "tissue_filter": -1
+    },
+    "1": {
+      "file_path": "E:/pyproject/cellbin_stereocell_analysis/cellbin2/data/Q00327K8.raw.gef",
+      "tech_type": "Transcriptomics",
+      "chip_detect": false,
+      "quality_control": false,
+      "registration": {
+        "fixed_image": -1,
+        "trackline": true,
+        "reuse": -1
+      },
+      "tissue_segmentation": false,
+      "cell_segmentation": true,
+      "channel_align": -1,
+      "magnification": 10,
+      "chip_matching": -1,
+      "tissue_filter": -1
+    }
+  },
+  "molecular_classify": {
+    "Transcriptomics": {
+      "exp_matrix": 1,
+      "cell_mask": {
+        "nuclei":[0],
+        "interior": [],
+        "boundary":[],
+        "matrix":[]
+      },
+      "correct_r": 10,
+      "extra_method": ""
+    }
+  },
+  "run": {
+      "qc": false,
+      "alignment": true,
+      "matrix_extract": true,
+      "report": false,
+      "annotation": false
+  }
+}

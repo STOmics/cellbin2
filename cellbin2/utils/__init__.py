@@ -1,4 +1,4 @@
-# 支撑功能
+# Support Function
 import numpy as np
 import h5py
 import os
@@ -23,7 +23,7 @@ def dict2h5(dct, h5):
             sub = h5.create_group(k)
             dict2h5(v, sub)
         elif type(v) is np.ndarray:
-            h5.create_dataset(k, data=v, compression="lzf")  # TODO: 压缩后h5 view看不到，等不需要debug了再开
+            h5.create_dataset(k, data=v, compression="lzf")  # TODO: cannot view h5 view after compression, open when no debug required 
         else:
             h5.attrs[k] = v
 
@@ -106,7 +106,7 @@ class Dict2Obj(object):
 
 
 class DictEncoder(json.JSONEncoder):
-    """ 适配json各种数据类型 """
+    """ adapt to various json data types """
 
     def default(self, o: Any) -> Any:
         if isinstance(o, np.ndarray):

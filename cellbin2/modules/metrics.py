@@ -15,43 +15,43 @@ from cellbin2.contrib.clarity import ClarityQC
 from cellbin2.utils.rpi import readrpi
 
 from cellbin2.utils import ipr
-from cellbin2.utils.plot_funcs import template_painting, chip_box_painting
+from cellbin2.utils.plot_funcs import template_painting, chip_box_painting, cell_seg_painting
 from cellbin2.utils import dict2json
 from cellbin2.utils.common import TechType
 from cellbin2.modules.naming import DumpPipelineFileNaming
 from cellbin2.contrib.alignment.basic import ChipBoxInfo
 
 
-# 这里定义metrics所需要的所有入参，后面再加也需要用这个方式
+# define all the input parameters required by metrics, use this method to add other parameters in the future
 class MatrixArray(BaseModel):
-    bin1_matrix: str = Field(..., description="原始Bin1矩阵路径")
-    tissue_bin_matrix: str = Field(..., description="TissueBin矩阵路径")
-    cell_bin_matrix: str = Field(..., description="CellBin修正前的矩阵的绝对路径")
-    cell_bin_adjusted_matrix: str = Field(..., description="CellBin修正后的矩阵的绝对路径")
-    matrix_type: TechType = Field(..., description="测序矩阵采用的技术类型，包含：Transcriptomics 和 Protein")
+    bin1_matrix: str = Field(..., description="path for original Bin1 matrix")
+    tissue_bin_matrix: str = Field(..., description="path for TissueBin matrix")
+    cell_bin_matrix: str = Field(..., description="absolute path for raw CellBin matrix")
+    cell_bin_adjusted_matrix: str = Field(..., description="absolute path for adjusted CellBin matrix")
+    matrix_type: TechType = Field(..., description="sequencing matrix technology types, including Transcriptomics and Protein")
 
 
 class ImageSource(BaseModel):
-    stitch_image: str = Field(..., description="拼接图路径")
+    stitch_image: str = Field(..., description="path for stitch image")
     cell_mask: str = Field(default=..., description="cell mask")
-    registration_image: str = Field(default=..., description="配准图")
+    registration_image: str = Field(default=..., description="registration image")
     tissue_mask: str = Field(default=..., description="tissue mask")
     cell_correct_mask: str = Field(default=..., description="cell correct mask")
 
 
 class FileSource(BaseModel):
-    ipr_file: str = Field(..., description="图像分析记录文件绝对路径")
-    rpi_file: str = Field(..., description="图像金字塔文件绝对路径")
-    matrix_list: List[MatrixArray] = Field(..., description="对每个Bin1矩阵进行多种提取方式后的新矩阵列表")
-    sn: str = Field(..., description="这些gef文件的芯片号")
-    image_dict: Dict[str, ImageSource] = Field(..., description="cellbin2 的文件，要求跟ipr的命名一致")
+    ipr_file: str = Field(..., description="absolute path of image analysis record file")
+    rpi_file: str = Field(..., description="absolute path of the image pyramid file")
+    matrix_list: List[MatrixArray] = Field(..., description="list of new matrices generated from multiple extraction methods applied to each Bin1 matrix")
+    sn: str = Field(..., description="chip id for the gef files")
+    image_dict: Dict[str, ImageSource] = Field(..., description="cellbin2 file must be named the same as ipr")
 
 
 BIN_OUTPUT_VIEW = 10
 
 
 class Metrics(object):
-    """ 指标：基于流程结果，汇总及计算各个模块指标，服务于报告 """
+    """ Metrics: aggregate and compute module-specific metrics from pipeline results for report generation """
 
     def __init__(self, filesource: FileSource, output_path: str):
         self.filesource = filesource
@@ -82,21 +82,21 @@ class Metrics(object):
             print("-" * 50)
             self.output_figure_path = os.path.join(self._output_path, "assets")
             print(f"Creat report required path in {self.output_figure_path}")
-            ### RNA 目录
+            ### RNA menu
             self.output_figure_path_rna_cellbin = os.path.join(self.output_figure_path, "rna", "cellbin")
             os.makedirs(self.output_figure_path_rna_cellbin, exist_ok=True)
             self.output_figure_path_rna_adjusted = os.path.join(self.output_figure_path, "rna", "adjusted")
             os.makedirs(self.output_figure_path_rna_adjusted, exist_ok=True)
-            ### protein 目录
+            ### protein menu
             self.output_figure_path_protein_cellbin = os.path.join(self.output_figure_path, "protein", "cellbin")
             self.output_figure_path_protein_adjusted = os.path.join(self.output_figure_path, "protein", "adjusted")
             os.makedirs(self.output_figure_path_protein_cellbin, exist_ok=True)
             os.makedirs(self.output_figure_path_protein_adjusted, exist_ok=True)
             print("-" * 50)
-            ### image 目录
+            ### image menu
             self.output_figure_path_image = os.path.join(self.output_figure_path, "image")
             os.makedirs(self.output_figure_path_image, exist_ok=True)
-            # 临时目录
+            # temperary menu
             self.output_tmp_dir = os.path.join(self.output_figure_path_image, "tmp")
             os.makedirs(self.output_tmp_dir, exist_ok=True)
         else:
@@ -257,6 +257,7 @@ class Metrics(object):
                 self.output_data["matrix"]["RNA"]["distribution"]["CellBin"]["MID_data"] = datadict["MID"]
                 self.output_data["matrix"]["RNA"]["distribution"]["CellBin"]["celldiameter_data"] = datadict[
                     "celldiameter"]
+                self.output_data["matrix"]["RNA"]["distribution"]["CellBin"]["cellarea_data"] = datadict["cellarea"]
                 self.output_data["matrix"]["RNA"]["distribution"]["CellBin"]["genetype_data"] = datadict["genetype"]
             if self._RNAmultiMatrix.adjustedbin is not None:
                 datadict = self._RNAmultiMatrix.adjustedbin.plot_statistic_vio(
@@ -264,18 +265,21 @@ class Metrics(object):
                 self.output_data["matrix"]["RNA"]["distribution"]["Adjusted"]["MID_data"] = datadict["MID"]
                 self.output_data["matrix"]["RNA"]["distribution"]["Adjusted"]["celldiameter_data"] = datadict[
                     "celldiameter"]
+                self.output_data["matrix"]["RNA"]["distribution"]["Adjusted"]["cellarea_data"] = datadict["cellarea"]
                 self.output_data["matrix"]["RNA"]["distribution"]["Adjusted"]["genetype_data"] = datadict["genetype"]
             if self._ProteinmultiMatrix is not None and self._ProteinmultiMatrix.cellbin is not None:
                 datadict = self._ProteinmultiMatrix.cellbin.plot_statistic_vio(self.output_figure_path_protein_cellbin)
                 self.output_data["matrix"]["Protein"]["distribution"]["CellBin"]["MID_data"] = datadict["MID"]
-                self.output_data["matrix"]["Protein"]["distribution"]["CellBin"]["celldiameter_data"] = datadict["MID"]
-                self.output_data["matrix"]["Protein"]["distribution"]["CellBin"]["genetype_data"] = datadict["MID"]
+                self.output_data["matrix"]["Protein"]["distribution"]["CellBin"]["celldiameter_data"] = datadict["celldiameter"]
+                self.output_data["matrix"]["Protein"]["distribution"]["CellBin"]["cellarea_data"] = datadict["cellarea"]
+                self.output_data["matrix"]["Protein"]["distribution"]["CellBin"]["genetype_data"] = datadict["genetype"]
             if self._ProteinmultiMatrix is not None and self._ProteinmultiMatrix.adjustedbin is not None:
                 datadict = self._ProteinmultiMatrix.adjustedbin.plot_statistic_vio(
                     self.output_figure_path_protein_adjusted)
                 self.output_data["matrix"]["Protein"]["distribution"]["Adjusted"]["MID_data"] = datadict["MID"]
-                self.output_data["matrix"]["Protein"]["distribution"]["Adjusted"]["celldiameter_data"] = datadict["MID"]
-                self.output_data["matrix"]["Protein"]["distribution"]["Adjusted"]["genetype_data"] = datadict["MID"]
+                self.output_data["matrix"]["Protein"]["distribution"]["Adjusted"]["celldiameter_data"] = datadict["celldiameter"]
+                self.output_data["matrix"]["Protein"]["distribution"]["Adjusted"]["cellarea_data"] = datadict["cellarea"]
+                self.output_data["matrix"]["Protein"]["distribution"]["Adjusted"]["genetype_data"] = datadict["genetype"]
 
         pass
 
@@ -346,7 +350,7 @@ class Metrics(object):
             return
         else:
             _ipr, channel_images = ipr.read(self.filesource.ipr_file)
-            # if len(self.filesource.image_dict) != len(_ipr.layers):  TODO: 先关了，先测单个染色的
+            # if len(self.filesource.image_dict) != len(_ipr.layers):  TODO: turn off, test single staining image first
             #     raise Exception(
             #         f"the stain file is {len(self.filesource.image_dict)}, which is not match .ipr file number")
             # (self.output_data["image_ipr"]["ManualState"],
@@ -358,22 +362,50 @@ class Metrics(object):
                 self.output_data["image_ipr"][layer] = {}
                 self.output_data["image_ipr"][layer]["image_info"] = {key.lower(): value for key, value in
                                                                       c_info.ImageInfo.get_attrs().items()}
+                #Save image size (retain only integers)
                 self.output_data["image_ipr"][layer]["image_info"]["image_size"] = \
-                    os.path.getsize(self.filesource.image_dict[layer].stitch_image) * 8 / 1000000
+                    round(os.path.getsize(self.filesource.image_dict[layer].stitch_image) * 8 / 1000000)
                 self.output_data["image_ipr"][layer]["QC_info"] = {key.lower(): value for key, value in
                                                                    c_info.QCInfo.get_attrs().items()}
                 self.output_data["image_ipr"][layer]["register_info"] = {key.lower(): value for key, value in
                                                                          c_info.Register.get_attrs().items()}
                 #### Image clarity fig
-                clarity_matrix = c_info.QCInfo.ClarityPreds
-                if len(clarity_matrix) != 0:
-                    clarity_arr = ClarityQC.post_process(clarity_matrix)
-                    from PIL import Image
-                    img = Image.fromarray(clarity_arr)
-                    clarity_fig_path = os.path.join(self.output_figure_path_image, f"{layer}_clarity.png")
-                    img.save(os.path.join(clarity_fig_path))
-                    self.output_data["image_ipr"][layer]["clarity"] = os.path.relpath(clarity_fig_path,
-                                                                                      self._output_path)
+                try:
+                    clarity_matrix = c_info.QCInfo.ClarityPreds
+                    print(f"Processing clarity for {layer}")
+                    print(f"ClarityPreds type: {type(clarity_matrix)}")
+                    print(f"ClarityPreds shape: {clarity_matrix.shape if hasattr(clarity_matrix, 'shape') else 'No shape'}")
+                    print(f"ClarityPreds size: {clarity_matrix.size if hasattr(clarity_matrix, 'size') else 'No size'}")
+                    
+                    # more robust check for clarity_matrix
+                    if clarity_matrix is not None:
+                        if hasattr(clarity_matrix, 'size') and clarity_matrix.size > 0:
+                            clarity_arr = ClarityQC.post_process(clarity_matrix)
+                            from PIL import Image
+                            img = Image.fromarray(clarity_arr)  
+                            clarity_fig_path = os.path.join(self.output_figure_path_image, f"{layer}_clarity.png")
+                            img.save(clarity_fig_path)
+                            self.output_data["image_ipr"][layer]["clarity"] = os.path.relpath(clarity_fig_path,
+                                                                                              self._output_path)
+                            print(f"Generated clarity image: {clarity_fig_path}")
+                        elif hasattr(clarity_matrix, '__len__') and len(clarity_matrix) > 0:
+                            # try else
+                            clarity_arr = ClarityQC.post_process(clarity_matrix)
+                            from PIL import Image
+                            img = Image.fromarray(clarity_arr)  
+                            clarity_fig_path = os.path.join(self.output_figure_path_image, f"{layer}_clarity.png")
+                            img.save(clarity_fig_path)
+                            self.output_data["image_ipr"][layer]["clarity"] = os.path.relpath(clarity_fig_path,
+                                                                                              self._output_path)
+                            print(f"Generated clarity image from sequence: {clarity_fig_path}")
+                        else:
+                            print(f"Clarity matrix exists but is empty for {layer}")
+                    else:
+                        print(f"No clarity data for {layer}")
+                except Exception as e:
+                    print(f"Error generating clarity for {layer}: {e}")
+                    import traceback
+                    traceback.print_exc()
 
     def set_cellseg_data(self):
         def _set_imagedict(src, outline=[]):
@@ -407,8 +439,38 @@ class Metrics(object):
                 os.remove(tmp_save_p)
                 outline = [j for j in i[1]]
                 self.output_data["image_ipr"][layer]["cellseg"]["images"].append(_set_imagedict(c, outline))
+            
+            # Generate cellseg overview only (keep original 5 small images above)
+            try:
+                corrected_mask_path = self.filesource.image_dict[layer].cell_correct_mask
+                if not os.path.exists(corrected_mask_path):
+                    corrected_mask_path = None
+                    
+                img, edge_image_list, density_image_list = cell_seg_painting(
+                    image_data=self.filesource.image_dict[layer].registration_image,
+                    cell_mask_data=self.filesource.image_dict[layer].cell_mask,
+                    tissue_seg_data=self.filesource.image_dict[layer].tissue_mask,
+                    image_type=layer,
+                    corrected_mask_data=corrected_mask_path
+                )
+                
+                # Save only the main cell seg overview image
+                cellseg_overview_name = os.path.join(self.output_figure_path_image, f"{layer}_cellseg_overview.png")
+                cv2.imwrite(cellseg_overview_name, img)
+                self.output_data["image_ipr"][layer]["cellseg"]["overview"] = os.path.relpath(cellseg_overview_name, self._output_path)
+                
+                # Save the 5 cellseg small images (from density_image_list)
+                for i, small_img in enumerate(density_image_list[:5]):  # Only take first 5
+                    cellseg_small_name = os.path.join(self.output_figure_path_image, f"{layer}_cellseg_{i+1}.png")
+                    cv2.imwrite(cellseg_small_name, small_img)
+                    self.output_data["image_ipr"][layer]["cellseg"][f"cellseg{i+1}"] = os.path.relpath(cellseg_small_name, self._output_path)
+                    
+            except Exception as e:
+                print(f"Failed to generate cellseg overview for {layer}: {e}")
+            
             cell_intensity_name = os.path.join(self.output_figure_path_image, f"{layer}_cell_intensity.png")
             fig.savefig(cell_intensity_name)
+            tmp_save_p = os.path.join(self.output_tmp_dir, 'temp.png')
             fig.savefig(tmp_save_p)
             # with open('./temp.png', "rb") as f:
             #     img_c = f.read()
@@ -488,15 +550,15 @@ class Metrics(object):
 
 def calculate(param: FileSource, output_path: str):
     """
-    :param param: CellBin结果文件（多个）
-    :param output_path: 指标统计结束后生成的临时及静态文件，服务于报告生成
+    :param param: CellBin result files (multiple)
+    :param output_path: temporary and static files generated after metrics calculation, for report generation 
     :return: None
     """
     pass
     # TODO: zhangying
     mcs = Metrics(param, output_path=output_path)
     mcs.set_report_para()
-    mcs.save_json_file(os.path.join(mcs.pipe_naming.metrics))  # 命名统一管理
+    mcs.save_json_file(os.path.join(mcs.pipe_naming.metrics))  # unified naming management
 
 
 def main():
@@ -504,7 +566,7 @@ def main():
     main_s_type = "ssDNA"
     # path = r"/media/Data/wqs/hedongdong/tissue_segmentation/cellbin2_test/report_test_data/SS200000135TL_D1_demo"
     path = r"F:\01.users\hedongdong\cellbin2_test\report_result\pipline\SS200000135TL_D1"
-    sn = "SS200000135TL_D1"  ###芯片号
+    sn = "SS200000135TL_D1"  ###chip id
     ipr_file = glob(os.path.join(path, f"**.ipr"))[0]
     rpi_file = glob(os.path.join(path, f"**.rpi"))[0]
     tissue_gef = glob(os.path.join(path, f"**.tissue.gef"))[0]

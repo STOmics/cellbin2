@@ -22,7 +22,13 @@ CONFIG_PATH = os.path.join(CURR_PATH, 'config')
 # DEFAULT_WEIGHTS_DIR = os.path.join(CURR_PATH, "weights")
 
 CONFIG_FILE = os.path.join(CONFIG_PATH, 'cellbin.yaml')
-CHIP_MASK_FILE = os.path.join(CONFIG_PATH, 'chip_mask.json')
+
+
+from cellbin2.utils.stereo_chip_name import load_chip_mask
+CHIP_MASK_FILE = os.path.join(CONFIG_PATH, 'chip_mask.json.enc')
+
+
+
 DEFAULT_PARAM_FILE = os.path.join(CONFIG_PATH, 'default_param.json')
 SUPPORTED_TRACK_STAINED_TYPES = (TechType.ssDNA.name, TechType.DAPI.name, TechType.HE.name)
 SUPPORTED_STAINED_Types = []
@@ -66,7 +72,7 @@ class CellBinPipeline(object):
         # naming
         self._naming: Optional[naming.DumpPipelineFileNaming] = None
 
-        # 内部需要的
+        # required by internal
         self.pp: ProcParam
         self.config: Config
 
@@ -180,7 +186,7 @@ class CellBinPipeline(object):
             files = pp.get_image_files(do_image_qc=False, do_scheduler=True, cheek_exists=True)
             ipr_file = str(self._naming.ipr)
             rpi_file = str(self._naming.rpi)
-            # 图片类的输入
+            # input image type
             ipr_r, channel_images = ipr.read(ipr_file)
             src_img_dict = {}
             for c_name, c_info in channel_images.items():
@@ -223,7 +229,7 @@ class CellBinPipeline(object):
 
             fs = metrics.FileSource(
                 ipr_file=ipr_file, rpi_file=rpi_file, matrix_list=matrix_list, sn=self._chip_no,
-                image_dict=src_img_dict)  # TODO 蛋白矩阵没放进去
+                image_dict=src_img_dict)  # TODO no protein matrix yet 
             metrics.calculate(param=fs, output_path=self._output_path)
             clog.info("Metrics generated")
 
@@ -252,17 +258,21 @@ class CellBinPipeline(object):
         Returns:
             None
         """
-        if self._kit.endswith("R"):
+        if self._kit.endswith("_R"):
             self.research = True
         self.config = Config(self._config_file, self._weights_root)
         if self._param_file is None:
             if self._input_image is None:
                 raise Exception(f"the input image can not be empty if param file is not provided")
-            tech, version = self._kit.split("V")
-            if self._kit.endswith("R"):
-                param_file = os.path.join(CONFIG_PATH, tech.strip(" ") + " R" + ".json")
+            # Remove _R suffix before splitting if it exists
+            tech = self._kit.split("V")[0]
+            tech = tech.strip().replace(" ", "_").rstrip("_")
+
+            # Remove any trailing underscore from tech
+            if self._kit.endswith("_R"):
+                param_file = os.path.join(CONFIG_PATH, tech + "_R.json")
             else:
-                param_file = os.path.join(CONFIG_PATH, tech.strip(" ") + ".json")
+                param_file = os.path.join(CONFIG_PATH, tech + ".json")
             pp = read_param_file(file_path=param_file, cfg=self.config)
             new_pp = ProcParam(run=pp.run)
             # track image (ssDNA, HE, DAPI)
@@ -277,7 +287,7 @@ class CellBinPipeline(object):
             nuclear_cell_idx = im_count
             im_count += 1
 
-            # 转录组矩阵
+            # Transcriptomics matrix 
             if self._matrix_path is not None:
                 trans_tp = pp.image_process[TechType.Transcriptomics.name]
                 trans_tp.file_path = self._matrix_path
@@ -323,17 +333,19 @@ class CellBinPipeline(object):
 
             # end of image part info parsing
 
-            # 矩阵提取
+            # extract matrix 
             if trans_exp_idx != -1:
                 trans_m_tp = pp.molecular_classify[TechType.Transcriptomics.name]
                 trans_m_tp.exp_matrix = trans_exp_idx
-                trans_m_tp.cell_mask = [nuclear_cell_idx]
+                trans_m_tp.cell_mask["nuclei"] = [nuclear_cell_idx]
+                trans_m_tp.correct_r = pp.molecular_classify[TechType.Transcriptomics.name].correct_r
                 new_pp.molecular_classify['0'] = trans_m_tp
 
             if protein_exp_idx != -1:
                 protein_m_tp = pp.molecular_classify[TechType.Protein.name]
                 protein_m_tp.exp_matrix = protein_exp_idx
-                protein_m_tp.cell_mask = [nuclear_cell_idx]
+                protein_m_tp.cell_mask["nuclei"] = [nuclear_cell_idx]
+                protein_m_tp.correct_r = pp.molecular_classify[TechType.Protein.name].correct_r
                 new_pp.molecular_classify['1'] = protein_m_tp
             if new_pp.run.report is False and self._if_report is True:
                 new_pp.run.report = True
@@ -393,11 +405,11 @@ class CellBinPipeline(object):
         # self.pipe_run_state = PipelineRunState(self._chip_no, self._output_path)
 
         self.usr_inp_to_param()
-        self.image_quality_control()  # 图像质控
-        self.image_analysis()  # 图像分析
-        self.m_extract()  # 矩阵提取
-        self.metrics()  # 指标计算
-        self.export_report()  # 生成报告
+        self.image_quality_control()  # image quality control 
+        self.image_analysis()  # image analysis 
+        self.m_extract()  # matrix extraction 
+        self.metrics()  # metrics calculation 
+        self.export_report()  # report generation 
 
 
 @process_decorator('GiB')
@@ -522,10 +534,10 @@ if __name__ == '__main__':  # main()
                 f"-pr A03599D1.protein.raw.gef \\ \n" \
                 f"-w  /cellbin2/weights \\ \n" \
                 f"-o  /cellbin2/test/A03599D1_demo1_1 \\ \n" \
-                f"-k  \"Stereo-CITE T FF V1.0 R\" \\ \n" \
+                f"-k  \"Stereo-CITE_T_FF V1.0 R\" \\ \n" \
                 f"-r"
 
-    # 负责接收字典类的参数
+    # responsible for receiving dictionary class parameters
     class MoreimsKwargs(argparse.Action):
         def __call__(self, parser, namespace, values, option_string=None):
             mif_im_count = 0
@@ -564,7 +576,7 @@ if __name__ == '__main__':  # main()
                         help="The path of transcriptomics matrix file.")
     parser.add_argument("-pr", action="store", type=str, metavar="PROTEIN_MATRIX_FILE", dest="protein_matrix_file",
                         help="The path of protein matrix file.")
-    parser.add_argument("-k", action="store", type=str, default="Stereo-CITE T FF V1.0 R", metavar="KIT_VERSION",
+    parser.add_argument("-k", action="store", type=str, default="Stereo-CITE_T_FF V1.0 R", metavar="KIT_VERSION",
                         dest="kit", choices=KIT_VERSIONS + KIT_VERSIONS_R, help="Kit version")
     parser.add_argument("-p", action="store", type=str, help="The path of input param file.",
                         metavar="PARAM_FILE", dest="param_file")

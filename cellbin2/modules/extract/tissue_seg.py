@@ -17,6 +17,7 @@ def run_tissue_seg(
         save_path: Path,
         config: Config,
         chip_info: StereoChip,
+        binx: int = 1,
         channel_image: Optional[Union[ipr.ImageChannel, ipr.IFChannel]] = None
 ):
     """
@@ -38,7 +39,8 @@ def run_tissue_seg(
         weight_path_cfg=config.tissue_segmentation,
         input_path=image_path,
         stain_type=image_file.tech,
-        chip_size=chip_info.chip_specif
+        chip_size=chip_info.chip_specif,
+        binx=binx
     )
     tissue_mask_output = segment4tissue(tissue_input)
     tissue_mask = tissue_mask_output.tissue_mask

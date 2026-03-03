@@ -60,9 +60,11 @@ class ProcFile(BaseModel):
     quality_control: bool
     tissue_segmentation: bool
     cell_segmentation: bool
-    correct_r: int
     channel_align: int
     registration: ProcRegistration
+    magnification: int
+    chip_matching: int
+    tissue_filter: int
     _supported_matrix = ['.gef', '.gz', '.gem']
     _supported_image = ['.tif', '.tiff', '.TIF', '.TIFF']
 
@@ -112,14 +114,14 @@ class ProcFile(BaseModel):
         Generates a group name based on the serial number (sn) and pattern.
         """
         if pattern in self.tag:
-            start_index = self.tag.find(sn) + len(sn)
-            end_index = self.tag.find(pattern)
-            middle = self.tag[start_index: end_index]
-            middle = middle.strip("_")
-            if middle:
-                g_name = middle + "_" + self.tech.name
+            if sn in self.tag:
+                _n = self.tag.split(sn)
+                g_name = '_'.join(_n).strip("_")
             else:
-                g_name = sn + "_" + self.tech.name
+                _n = self.tag.split(pattern)
+                g_name = '_'.join(_n).strip("_") + f'_{pattern}'
+        elif self.tech == TechType.IF:
+            g_name = self.tag + f'_{pattern}'
         else:
             g_name = self.tech.name
         return g_name
@@ -168,12 +170,13 @@ class ProcMolecularFile(BaseModel):
 
     Attributes:
         exp_matrix (int): The experimental matrix.
-        cell_mask (List[int]): The cell mask.
+        cell_mask (Dict[str,List[int]]): The masks.
         extra_method (str): An additional molecular classification method, currently not used.
     """
     exp_matrix: int
-    cell_mask: List[int]
-    extra_method: str = ''  # 额外的分子归类方法，当前没有
+    cell_mask: Dict[str,List[int]] 
+    extra_method: str = ''  # additional molecular classification methods, currently not available
+    correct_r: int
 
 
 class Run(BaseModel):
@@ -258,8 +261,9 @@ class ProcParam(BaseModel):
                 if image.is_image and
                    (image.chip_detect or
                     image.quality_control or
-                    image.channel_align != -1 or
-                    image.registration.trackline)
+                    image.tech_type == "IF" or
+                    image.registration.trackline or
+                    image.chip_matching != -1)
             }
 
         if do_scheduler:
@@ -268,7 +272,8 @@ class ProcParam(BaseModel):
                 if image.tissue_segmentation or
                    image.cell_segmentation or
                    image.registration.trackline or
-                   image.channel_align != -1
+                   image.tech_type == "IF" or
+                   image.chip_matching != -1
             }
             # add matrix
             for idx, matrix in self.molecular_classify.items():

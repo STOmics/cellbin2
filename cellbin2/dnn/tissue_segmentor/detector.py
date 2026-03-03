@@ -68,17 +68,17 @@ class TissueSegmentationBcdu(object):
 
         clog.info(f'model input size:{self.INPUT_SIZE}')
 
-    def f_predict(self, img) -> TissueSegOutputInfo:
+    def f_predict(self, img, binx) -> TissueSegOutputInfo:
         pred_out = TissueSegOutputInfo()
         if self.stain_type == TechType.IF:
-            img = self.preprocess(img=img, stain_type=self.stain_type, input_size=None)
+            img = self.preprocess(img=img, stain_type=self.stain_type, input_size=None, binx=binx)
             threshold_list, pred = self.postprocess(img=img, stain_type=self.stain_type, src_shape=None, threshold_list=self.threshold_list)
             pred_out.tissue_mask = pred
 
             pred_out.threshold_list = threshold_list
             return pred_out
         src_shape = img.shape[:2]
-        img = self.pre_format(self.preprocess(img=img, stain_type=self.stain_type, input_size=self.INPUT_SIZE))
+        img = self.pre_format(self.preprocess(img=img, stain_type=self.stain_type, input_size=self.INPUT_SIZE, binx=binx))
 
         pred = self.model.f_predict(img)
         pred = self.postprocess(self.post_format(pred), stain_type=self.stain_type, src_shape=src_shape)
@@ -87,10 +87,10 @@ class TissueSegmentationBcdu(object):
         return pred_out
 
 
-    def f_predict_big_chip(self, img, chip_size) -> TissueSegOutputInfo:
+    def f_predict_big_chip(self, img, chip_size, binx) -> TissueSegOutputInfo:
         pred_out = TissueSegOutputInfo()
         if self.stain_type == TechType.IF:
-            img = self.preprocess(img=img, stain_type=self.stain_type, input_size=None)
+            img = self.preprocess(img=img, stain_type=self.stain_type, input_size=None, binx=1)
             threshold_list, pred = self.postprocess(img=img, stain_type=self.stain_type, threshold_list=self.threshold_list)
             pred_out.tissue_mask = pred
 

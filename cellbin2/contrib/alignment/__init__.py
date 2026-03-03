@@ -87,9 +87,9 @@ def registration(moving_image: ChipFeature,
     :param rot90_flag:
     :return: RegistrationInfo
     """
-    # TODO 临时兼容性改动
+    # TODO Temporary Compatibility Changes
     #  11/22 by lizepeng
-    if qc_info[0]:
+    if qc_info[0] :
         res_template = centroid(
             moving_image=moving_image,
             fixed_image=fixed_image,
@@ -155,7 +155,7 @@ if __name__ == '__main__':
     template_ref = ([240, 300, 330, 390, 390, 330, 300, 240, 420],
                     [240, 300, 330, 390, 390, 330, 300, 240, 420])
 
-    # 移动图像信息
+    # move image
     moving_image = ChipFeature()
     moving_image.tech_type = TechType.DAPI
     moving_mat = cbimread(r'E:\03.users\liuhuanlin\01.data\cellbin2\stitch\A03599D1_DAPI.tif')
@@ -176,7 +176,7 @@ if __name__ == '__main__':
                           is_available=True)
     moving_image.set_chip_box(img_box)
 
-    # 固定对象信息
+    # fix object information
     fixed_image = ChipFeature()
     fixed_image.tech_type = TechType.Transcriptomics
     fixed_image.set_mat(r'E:\03.users\liuhuanlin\01.data\cellbin2\stitch\A03599D1_gene.tif')
@@ -189,7 +189,7 @@ if __name__ == '__main__':
     matrix_box = ChipBoxInfo(left_top=[124., 1604.], left_bottom=[124., 21596.],
                              right_bottom=[20116., 21596.], right_top=[20116., 1604.])
 
-    # 多种方案的测试
+    # multi-method test 
     methods = [AlignMode.TemplateCentroid, AlignMode.Template00Pt, AlignMode.ChipBox, AlignMode.Voting]
     for m in methods[:1]:
         info = registration(moving_image=moving_image, fixed_image=fixed_image,

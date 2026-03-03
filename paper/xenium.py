@@ -13,7 +13,7 @@ def xenium_csv_to_gem(xenium_csv_file_path, gem_save_file_path):
         df = pd.read_csv(f)
         df.columns = df.columns.str.strip()
 
-    # 先除以 0.2125统一坐标，再四舍五入为整数
+    # First, divide by 0.2125 to unify the coordinates, and then round to an integer.
     # reference: https://cf.10xgenomics.com/supp/xenium/xenium_documentation.html
     df['x_location'] = (df['x_location'] / 0.2125).round().astype(int)
     df['y_location'] = (df['y_location'] / 0.2125).round().astype(int)

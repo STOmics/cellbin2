@@ -23,9 +23,9 @@ def trans_image(img_file: Union[np.ndarray, str],
         **kwargs:
             scale:
                 - list | tuple, [scale_x, scale_y]
-            rotate: 小角度旋转，正数表示逆时针旋转
-            rot90: 正整数表示逆时针旋转90°
-            offset: [x, y] 正数表示向左向下
+            rotate: small angle rotation, positive means counterclockwise rotation
+            rot90: positive integer indicates 90° counterclockwise rotation
+            offset: [x, y] positive indicate [left, down]
             dst_size: (height, width)
             flip_lr:
             flip_ud:

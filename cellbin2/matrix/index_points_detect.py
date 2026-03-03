@@ -11,9 +11,9 @@ class IndexPointsDetector(object):
 
     def get_mass(self, ):
         """
-        2023/09/20 @fxzhao 移除类型转换,不影响结果
+        2023/09/20 @fxzhao remove type convert, no impact for the results
         """
-        image = self.image.astype(float)  # 别动这里！！！
+        image = self.image.astype(float)  # IMPORTANT: NO EDIT
         image_x = np.sum(image, 0)
         xx = np.array(range(len(image_x)))
         xx_cal = xx * image_x

@@ -21,5 +21,4 @@ from .calibration import CalibrationParam
 
 
 class CellCorrect(BaseModel):
-    expand_r: int = Field(10, description="细胞修正半径")
-    process: int = Field(5, description='进程数')
+    process: int = Field(5, description="number of processes")

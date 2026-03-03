@@ -65,7 +65,7 @@ class TemplateReference(object):
             h=self.fov_h,
             w=self.fov_w,
             overlap=self.overlap,
-            save_dir=None,  # 非必须
+            save_dir=None,  # No need
         )
 
     def _detect_track_lines(self, ):

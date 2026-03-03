@@ -256,7 +256,7 @@ class TemplateReferenceV1(object):
 
             if point_qc[0] != self.template_center_pt[0]:
 
-                #旋转角
+                #rotation angle
                 rotation_dst = math.degrees(
                     math.atan((point_qc[1] - self.template_center_pt[1]) / (point_qc[0] - self.template_center_pt[0])))
                 rotation_src = math.degrees(
@@ -462,7 +462,7 @@ class TemplateReferenceV1(object):
             # self._qc_points_to_gloabal()
             self._global_qc_points_to_global()
             points_qc = np.zeros([0, 2])
-            count = 0  # 循环次数
+            count = 0  # loop times
             while count < max_item:
 
                 temp_scale_x = self.scale_x
@@ -628,13 +628,13 @@ class TemplateReferenceV1(object):
     # @staticmethod
     # def _cluster_points(adjacency_list: list = None):
     #     """
-    #     邻接表进行聚类
+    #     clustering by adjacency list
     #     """
     #     points_all_index_list = list(range(len(adjacency_list)))
     #     cluster_list = list()
     #
     #     def recurrence(temp_list, points_index_set, adjacency_list, k):
-    #         """递归找相邻对"""
+    #         """ find adjacency list by recursion """
     #         k += 1
     #         if len(temp_list) == 0:
     #             return points_index_set, k

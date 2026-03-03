@@ -25,8 +25,8 @@ pt_enhance_method = {
 
 
 class ClarityOutput(BaseModel):
-    score: float = Field(description="清晰度得分")
-    pred: np.ndarray = Field(description="预测结果")
+    score: float = Field(description="clarity score")
+    pred: np.ndarray = Field(description="predict result")
     cut_siz: tuple
     overlap: int
 
@@ -35,14 +35,14 @@ class ClarityOutput(BaseModel):
 
 
 class ClarityParam(BaseModel, BaseModule):
-    GPU: int = Field(0, description="推理使用的GPU编号")
-    num_threads: int = Field(0, description="推理使用的线程数")
+    GPU: int = Field(0, description="GPU id uesd for inference")
+    num_threads: int = Field(0, description="number of threads used for inference")
     # DEFAULT_STAIN_TYPE: TechType = TechType.ssDNA
     # SUPPORTED_STAIN_TYPE: tuple = (TechType.ssDNA, TechType.DAPI)
     ssDNA_weights_path: str = Field(
-        "clarity_eval_mobilev3small05064_DAPI_20230608_pytorch.onnx", description="ssDNA染色图对应的权重文件名")
+        "clarity_eval_mobilev3small05064_DAPI_20230608_pytorch.onnx", description="checkpoint file for ssDNA staining image")
     DAPI_weights_path: str = Field(
-        "clarity_eval_mobilev3small05064_DAPI_20230608_pytorch.onnx", description="DAPI染色图对应的权重文件名")
+        "clarity_eval_mobilev3small05064_DAPI_20230608_pytorch.onnx", description="checkpoint file for DAPI staining image")
 
     # def update_weights_path(self, weights_path: str):
     #     self.ssDNA_weights_path = os.path.join(weights_path, self.ssDNA_weights_path)
@@ -134,14 +134,14 @@ class ClarityQC(object):
 
             Args:
                 cfg: ClarityParam
-                stain_type: 染色类型
+                stain_type: staining type 
         """
         if stain_type not in SUPPORTED_STAIN_TYPE:
             clog.info(f"Clarity eval only support {[i.name for i in SUPPORTED_STAIN_TYPE]}, fail to initialize")
             return
         self.cfg: ClarityParam = cfg
         self.stain_type = stain_type
-        # 模型初始化
+        # model initialize
         self.cl_classify: Optional[OnnxMobileNet3] = None
         self.cl_classify = OnnxMobileNet3(
             weight_path=getattr(self.cfg, TechToWeightName[self.stain_type.value]),
@@ -161,7 +161,7 @@ class ClarityQC(object):
             self.color = COLOR_6
             self.weight_map = WEIGHT_MAP_6
 
-        # 结果
+        # result 
         self.counts: Dict[str, int] = {}
         self.score: float = -1.0
         self.preds: np.ndarray = np.array([])  # [[class, prob], ...]
@@ -229,7 +229,7 @@ class ClarityQC(object):
     def post_process(cls, preds: np.ndarray) -> np.ndarray:
         """
         Args:
-            preds: 需要从ipr中读取
+            preds: read from ipr 
 
         Returns:
             show_arr: numpy array

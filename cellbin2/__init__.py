@@ -1,4 +1,4 @@
-__version__ = '0.0.1'  # 软件版本号
+__version__ = '1.1.0'  # softerware version
 
 from os.path import dirname, realpath
 

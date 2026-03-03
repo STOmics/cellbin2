@@ -27,7 +27,7 @@ def rotate(ptx, pty, angle, original_shape, new_shape):
 @njit(parallel=True)
 def multiply_sum(a, b):
     """
-    2023/09/20 @fxzhao 计算矩阵相乘后的累加和
+    2023/09/20 @fxzhao calculate the cumulative sum after matrix multiplication
     """
     res = 0
     (h, w) = a.shape
@@ -92,7 +92,7 @@ class AlignByTrack:
         self.transformed_cfov_pts = None
         self.vision_cfov_pts = None
 
-        # 兼容HE类型数据的配准方法
+        # registration method compatible with HE type data
         self.new_method: bool = False
 
     def set_chip_template(self, chip_template):
@@ -124,7 +124,7 @@ class AlignByTrack:
     @staticmethod
     def adjust_cross(stitch_template, scale_x, scale_y, fov_stitched_shape,
                      new_shape, chip_template, rotation, flip=True):
-        scale_shape = np.array([fov_stitched_shape[0] * scale_y, fov_stitched_shape[1] * scale_x])  # 之前写反了!!!
+        scale_shape = np.array([fov_stitched_shape[0] * scale_y, fov_stitched_shape[1] * scale_x])
 
         stitch_template[:, 0] = stitch_template[:, 0] * scale_x
         stitch_template[:, 1] = stitch_template[:, 1] * scale_y
@@ -141,7 +141,7 @@ class AlignByTrack:
         )
 
         if flip:
-            new_px = new_shape[1] - 1 - new_px  # 翻转, 注意这里是用的图片的形状, 所以要-1
+            new_px = new_shape[1] - 1 - new_px  # flip, note that the shape of image is used here, so -1 is required for index calculation
             chip_xlen, chip_ylen = [len(chip_template[0]), len(chip_template[1])]
             ids[:, 0] = chip_xlen - 1 - ids[:, 0]
         pts_ids = np.hstack((new_px, new_py, ids))
@@ -173,7 +173,7 @@ class AlignByTrack:
     @staticmethod
     def cal_score(transformed_image, vision_image, offset, method=False):
         """
-        2023/09/20 @fxzhao 使用切片代替padding操作,加速并降低内存
+        2023/09/20 @fxzhao use slicing instead of padding to speed up and reduce memory usage
         """
         if method:
             left_x = int(round(abs(offset[0])))
@@ -260,6 +260,8 @@ class AlignByTrack:
         # get qualified pts
         dist = cdist(transformed_pts_temp + offset_guess, vision_pts)
         qualified = np.min(dist, axis=1) <= dist_thresh
+        if not np.any(qualified):
+            qualified = np.min(dist, axis=1) <= (dist_thresh + 390)
         transformed_pts_qualified = transformed_pts_temp[qualified]
         dist_qualified = dist[qualified]
         vision_pt_qualified = vision_pts[np.argmin(dist_qualified, axis=1)]
@@ -278,7 +280,8 @@ class AlignByTrack:
         score_max = np.Inf if self.new_method else 0
         offset_last = []
 
-        # 依次遍历上下左右9个FOV的匹配程度
+        # Iterate through the matching scores of 9 surrounding FOVs 
+        # Traverse the matching degree of 9 FOVs up, down, left, and right in sequence
         for row in self.search_range_x:
             for col in self.search_range_y:
                 offset_temp = [offset_ori[0] + col * self.fov_size, offset_ori[1] + row * self.fov_size]

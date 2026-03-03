@@ -1,7 +1,7 @@
 {
     "image_process": {
         "0": {
-            "file_path": "Path/Y00788P9.gem.gz",
+            "file_path": "Path/SN.gem.gz",
             "tech_type": "Transcriptomics",
             "chip_detect": false,
             "quality_control": false,
@@ -12,14 +12,21 @@
             },
             "tissue_segmentation": true,
             "cell_segmentation": true,
-            "correct_r": -1,
-            "channel_align": -1
+            "magnification": 10,
+            "channel_align": -1,
+            "tissue_filter": -1
         }
     },
     "molecular_classify": {
         "0": {
-            "exp_matrix": 1,
-            "cell_mask": [1],
+            "exp_matrix": 0,
+            "cell_mask": {
+                "nuclei":[],
+                "interior": [],
+                "boundary":[],
+                "matrix":[0]
+            },
+            "correct_r": 0,
             "extra_method": ""
         }
     },

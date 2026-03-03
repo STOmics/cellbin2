@@ -58,6 +58,7 @@ class ChipFeature(BaseModel):
     point00: Tuple[int, int] = (0, 0)
     mat: Union[str, CBImage] = ''
     anchor_point: Tuple[int, int] = (0, 0)
+    binx : int = 1
 
     class Config:
         arbitrary_types_allowed = True
@@ -192,15 +193,15 @@ class Alignment(object):
         Returns:
 
         """
-        # 中心旋转的变换矩阵
+        # central rotate transform matrix 
         mat_scale_rotate = self.scale_rotate2mat(scale, rotate)
         mat_center_f = self._matrix_eye_offset(-shape[1] / 2, -shape[0] / 2)
 
-        # 获得变换后的图像尺寸及offset
+        # get size and offset of transformed image 
         x, y, _, _ = self.get_scale_rotate_shape(shape, scale, rotate)
         mat_offset = self._matrix_eye_offset(x / 2, y / 2)
 
-        # 最终变换矩阵
+        # final transform matrix 
         mat_result = mat_offset * mat_scale_rotate * mat_center_f
         return mat_result
 
@@ -469,8 +470,8 @@ def transform_points(
     """
 
     Args:
-        points: n * 2/4大小数组 -- (x, y)
-        src_shape: 原始图像尺寸 -- (h, w)
+        points: n * 2/4 array size -- (x, y)
+        src_shape: original image size -- (h, w)
         scale:
         rotation:
         offset: This value is defined as the value obtained after completing all transformation operations -- (x, y)

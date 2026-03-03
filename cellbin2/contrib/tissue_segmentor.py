@@ -26,9 +26,10 @@ class TissueSegParam(BaseModel, BaseModule):
                                               description="name of the transcriptomics model")
     Protein_weights_path: str = Field(r"tissueseg_bcdu_rna_220909_tf.onnx",
                                       description="name of the Protein model")
-    IF_weights_path: Optional[str] = Field('-', description='IF 使用传统算法，没有相应的模型')
-    GPU: int = Field(-1, description='gpu编号，默认为-1，使用cpu')
+    IF_weights_path: Optional[str] = Field('-', description='IF using tradition algorithm, no model applied')
+    GPU: int = Field(-1, description='GPU id, default -1 (CPU)')
     num_threads: int = Field(1, description="name of the model")
+    best_tissue_mask_method: int = Field(0, description="0: use the best tissue mask, 1: use the tissue mask with the highest score")
 
     # def get_weights_path(self, stain_type):
     #     p = ''
@@ -48,11 +49,12 @@ class TissueSegParam(BaseModel, BaseModule):
 
 
 class TissueSegInputInfo(BaseModel):
-    weight_path_cfg: TissueSegParam = Field('', description='组织分割不同染色权重配置文件，需要权重的绝对路径')
-    input_path: Union[str, Path] = Field('', description='输入图像')
-    stain_type: TechType = Field('', description='输入图像的染色类型')
-    chip_size: Tuple[Union[float, int], Union[float, int]] = Field(None, description='芯片的高和宽')  # S0.5 -> float; S1 -> int
-    threshold_list: Tuple[int, int] = Field(None, description='输入阈值的下限和上限，仅针对IF图像')
+    weight_path_cfg: TissueSegParam = Field('', description='config file for different staining tissue segmentation, absolute path required for the checkpoint')
+    input_path: Union[str, Path] = Field('', description='input image ')
+    stain_type: TechType = Field('', description='staining type of input image ')
+    chip_size: Tuple[Union[float, int], Union[float, int]] = Field(None, description='height and width for the chip')  # S0.5 -> float; S1 -> int
+    threshold_list: Tuple[int, int] = Field(None, description='input lower and upper bound of threshold (applies to IF images only)')
+    binx: int = Field(1, description='binX for image')
 
 
 class TissueSegmentation:
@@ -133,6 +135,7 @@ class TissueSegmentation:
                                                  threshold_list=self.threshold_list,
                                                  preprocess=self.pre_process,
                                                  postprocess=self.post_process,
+
                                                  )
 
         # Load the model weights if the stain type is not IF
@@ -143,7 +146,7 @@ class TissueSegmentation:
         else:
             clog.info(f"Stain type: {self.stain_type} does not need model")
 
-    def run(self, img: Union[str, npt.NDArray]) -> TissueSegOutputInfo:
+    def run(self, img: Union[str, npt.NDArray], binx: int = 1) -> TissueSegOutputInfo:
         """
         Perform tissue segmentation on the input image.
 
@@ -156,9 +159,9 @@ class TissueSegmentation:
 
         clog.info("start tissue seg")
         if self.is_big_chip:
-            mask = self.tissue_seg.f_predict_big_chip(img=img, chip_size=self.chip_size)
+            mask = self.tissue_seg.f_predict_big_chip(img=img, chip_size=self.chip_size, binx=binx)
         else:
-            mask = self.tissue_seg.f_predict(img=img)
+            mask = self.tissue_seg.f_predict(img=img, binx=binx)
         clog.info("end tissue seg")
 
         return mask
@@ -222,8 +225,10 @@ def segment4tissue(input_data: TissueSegInputInfo) -> TissueSegOutputInfo:
     gpu = input_data.weight_path_cfg.GPU
     chip_size = input_data.chip_size
     threshold_list = input_data.threshold_list
+    binx = input_data.binx
 
     clog.info(f"input stain type:{s_type}")
+    clog.info(f"input bin_size:{binx}")
 
     support_model = SupportModel()
 
@@ -250,7 +255,7 @@ def segment4tissue(input_data: TissueSegInputInfo) -> TissueSegOutputInfo:
         chip_size=chip_size,
         is_big_chip=is_big_chip
     )
-    seg_mask = tissue_seg.run(img=img)
+    seg_mask = tissue_seg.run(img=img, binx=binx)
 
     return seg_mask
 
@@ -302,7 +307,7 @@ def main():
 
     input_path = args.input
     output_path = args.output
-    model_path = args.model  # 模型路径，以onnx结尾
+    model_path = args.model  # model path, end with onnx 
     user_s_type = args.stain
     gpu = args.gpu
     chip_size = args.chip_size

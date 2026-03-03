@@ -1,5 +1,5 @@
 """
-图像读取基类
+Image Reader Base Class
 """
 import os
 import tifffile

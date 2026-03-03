@@ -3,7 +3,7 @@
 
 ### case1
 one step run <br>
-use: Stereo-CITE T FF.json, Stereo-seq N FFPE.json, Stereo-seq T FF.json <br>
+use: Stereo-CITE_T_FF.json, Stereo-seq_N_FFPE.json, Stereo-seq_T_FF.json <br>
 data cover (image+matrix):
 - FF: ssDNA, H&E, DAPI+mIF
 - FFPE: ssDNA, H&E, DAPI

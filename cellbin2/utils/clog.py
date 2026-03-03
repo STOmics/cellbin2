@@ -1,4 +1,4 @@
-# 日志管理
+# Log Management
 import os
 import os.path as o_p
 import logging
@@ -42,13 +42,13 @@ class CustomFormatter(logging.Formatter):
     grey = "\x1b[38;20m"
     yellow = "\x1b[33;20m"
     red = "\x1b[31;20m"
-    green = "\x1b[32;20m"  # 添加绿色的转义序列
+    green = "\x1b[32;20m"  # add green escape sequence
     bold_red = "\x1b[31;1m"
     reset = "\x1b[0m"
     # format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
     # format = "[%(levelname).4s %(asctime)s p%(process)s %(funcName)s %(filename)s:%(lineno)s] %(message)s"
     format = "[%(levelname).4s %(asctime)s p%(process)s %(funcName)s %(filename)s:%(lineno)s]"
-    # 新增的格式字符串，用于单独设置 msg 的颜色
+    # new format string for independently configuring msg color
     msg_format = " %(message)s "
 
     FORMATS = {

@@ -16,16 +16,16 @@ from cellbin2.utils.pro_monitor import process_decorator
 
 
 class MaskManagerInfo(BaseModel):
-    tissue_mask: Any = Field(None, description='组织分割mask')
-    cell_mask: Any = Field(None, description='细胞分割mask')
-    chip_box: Optional[ChipBoxInfo] = Field(None, description='芯片框')
-    stain_type: TechType = Field(None, description='染色类型')
-    method: int = Field(None, description='使用方法，0：稳定版，1：研发版')
+    tissue_mask: Any = Field(None, description='tissue segmentation mask')
+    cell_mask: Any = Field(None, description='cell segmentation mask')
+    chip_box: Optional[ChipBoxInfo] = Field(None, description='chip box')
+    stain_type: TechType = Field(None, description='staining type')
+    method: int = Field(None, description='usage, 0 for stable version, 1 for development version')
 
 
 class BestTissueCellMaskInfo(BaseModel):
-    best_tissue_mask: Any = Field(None, description='融合后的组织分割mask')
-    best_cell_mask: Any = Field(None, description='融合后的细胞分割mask')
+    best_tissue_mask: Any = Field(None, description='fusioned tissue segmentation mask')
+    best_cell_mask: Any = Field(None, description='fusioned cell segmentation mask')
 
 
 class BestTissueCellMask:
@@ -73,9 +73,33 @@ class BestTissueCellMask:
 
     @staticmethod
     def best_cell_mask(tissue_mask: np.ndarray, cell_mask: np.ndarray) -> np.ndarray:
+        """
+        Filter cells by contours, removing cells not within the tissue region
+        
+        Parameters:
+        tissue_mask (numpy.ndarray): Tissue mask image
+        cell_mask (numpy.ndarray): Cell mask image
+        
+        Returns:
+        numpy.ndarray: Filtered cell mask image
+        """
         clog.info(f"calling function: best_cell_mask() ")
-        cell_mask_filter = cv2.bitwise_and(cell_mask, tissue_mask)
-        return cell_mask_filter
+        contours, _ = cv2.findContours(cell_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        for contour in contours:
+            x, y, w, h = cv2.boundingRect(contour)
+            tissue_roi = tissue_mask[y:y+h, x:x+w]
+            contour_roi = contour - np.array([x, y])
+
+            roi_mask = np.zeros(shape=(h, w), dtype=np.uint8)
+            cv2.fillPoly(roi_mask, pts=[contour_roi], color=(1,))
+
+            cell_and_tissue = cv2.bitwise_and(roi_mask, tissue_roi)
+
+            if not np.array_equal(cell_and_tissue, roi_mask):
+                cv2.fillPoly(cell_mask, pts=[contour], color=(0,))
+
+        return cell_mask
 
     @staticmethod
     def best_tissue_mask(tissue_mask: np.ndarray, cell_mask: np.ndarray, kernel_size: int) -> np.ndarray:
@@ -189,8 +213,8 @@ class BestTissueCellMask:
 
 def instance2semantics(ins: np.ndarray) -> np.ndarray:
     """
-    :param ins: 实例mask（0-N）
-    :return: 语义mask（0-1）
+    :param ins: Instance mask (0-N)
+    :return: Semantics mask (0-1)
     """
     ins_ = ins.copy()
     h, w = ins_.shape[:2]
@@ -212,17 +236,17 @@ def merge_cell_mask(
         conflict_cover: str = "nuclear"
 ) -> CBImage:
     """
-    :param nuclear_mask: 原始nuclear_mask
-        -- 实例格式（背景是0，然后各个细胞赋值一个ID），图像最大值是细胞的个数
-        -- 语义格式（01数组）
+    :param nuclear_mask: original nuclear_mask
+        -- instance format: (0 for background, each cell is assigned a unique ID), maximum pixel value is total number of cells
+        -- semantic format (binary mask)
 
-    :param membrane_mask: 原始membrane_mask
-        -- 实例格式（背景是0，然后各个细胞赋值一个ID），图像最大值是细胞的个数
-        -- 语义格式（01数组）
+    :param membrane_mask: original membrane_mask
+        -- instance format: (0 for background, each cell is assigned a unique ID), maximum pixel value is total number of cells
+        -- semantic format (binary mask)
 
-    :param conflict_cover: 冲突主体 nuclear | membrane
+    :param conflict_cover: conflict subjects nuclear | membrane
 
-    :return: 合并mask
+    :return: merged mask
     """
     if len(np.unique(nuclear_mask)) != 2:
         nuclear_mask_sem = instance2semantics(nuclear_mask)
@@ -259,9 +283,8 @@ def merge_cell_mask(
         nuclear_mask_sem = instance2semantics(nuclear_mask_ins)
         del nuclear_mask_ins
 
-    _ = membrane_mask_sem * 2 + nuclear_mask_sem * 1
-
-    return CBImage(_)
+    _ = membrane_mask_sem * 2 + nuclear_mask_sem * 1 #0 background，1 nuclei，2 cell
+    return CBImage(membrane_mask_sem)
 
 
 if __name__ == '__main__':
@@ -269,7 +292,7 @@ if __name__ == '__main__':
 
     chip_box = ChipBoxInfo()
 
-    # HE测试数据细胞分割mask和组织分割mask路径
+    # HE test data, path for cell segementation mask and tissue segmentation mask
     cell_mask_path = r"F:\01.users\hedongdong\cellbin2_test\cell_mask\C04042E3_HE_regist_v3_mask.tif"
     tissue_mask_path = r"F:\01.users\hedongdong\cellbin2_test\result_mask\C04042E3_HE_regist.tif"
 
@@ -282,7 +305,7 @@ if __name__ == '__main__':
     stain_type = TechType.DAPI
     method = 1
 
-    # # ssDNA测试数据细胞分割mask和组织分割mask路径
+    # # ssDNA test data, path for cell segementation mask and tissue segmentation mask 
     # cell_mask_path = r"F:\01.users\hedongdong\cellbin2_test\cell_mask\A04535A4C6_fov_stitched_v3_mask.tif"
     # tissue_mask_path = r"F:\01.users\hedongdong\cellbin2_test\result_mask\A04535A4C6_fov_stitched.tif"
     #
