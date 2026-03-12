@@ -543,22 +543,22 @@ def detect_chip(file_path: Union[str, np.ndarray],
 def main():
     cfg = ChipParam(
         **{"stage1_weights_path":
-               r"D:\hedongdong1\Workspace\01.chip_box_detect\algorithm_develop\old_model\chip_detect_obb8n_640_SD_202409_pytorch.onnx",
+               r"/",
            "stage2_weights_path":
-               r"D:\hedongdong1\Workspace\01.chip_box_detect\algorithm_develop\old_model\chip_detect_yolo8x_1024_SDH_stage2_202410_pytorch.onnx"})
+               r"/"})
 
-    file_path = r"D:\hedongdong1\Workspace\01.chip_box_detect\show_interface\test_data\C04144G513_ssDNA_stitch.tif"
+    file_path = r"/"
     info, debug_dic = detect_chip(file_path, cfg=cfg, stain_type=TechType.ssDNA, actual_size=(19992, 19992),
                                   is_debug=True)
     print(info.IsAvailable)
 
 
 if __name__ == '__main__':
-    # points = np.loadtxt(r"D:\02.data\temp\temp_cellbin2_test\trans_data_1\B03025E4\B03025E4_DAPI_stitch.txt")
+    # points = np.loadtxt(r"")
     #
     # cd = ChipDetector(cfg = None, stain_type = "DAPI")
     # cd.set_corner_points(points)
-    # cd.detect(r"D:\02.data\temp\temp_cellbin2_test\trans_data_1\A00792D3\label.tif", (19992, 19992))
+    # cd.detect(r"", (19992, 19992))
 
     main()
 
