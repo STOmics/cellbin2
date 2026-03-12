@@ -13,7 +13,10 @@ from cellbin2.contrib.alignment import ChipFeature
 from cellbin2.contrib.alignment.basic import Alignment, AlignMode, ChipBoxInfo
 from cellbin2.utils import clog
 from cellbin2.image import CBImage
-from cellbin2.contrib.alignment.basic import ChipBoxInfo
+from cellbin2.matrix import box_detect as bd
+from cellbin2.image import cbimread, cbimwrite
+#from cellbin2.contrib.param import TemplateInfo
+from cellbin2.contrib.chip_detector import ChipParam, detect_chip
 
 
 class MatrixBoxDetector(object):
@@ -350,60 +353,7 @@ def chip_align(
     return info
 
 
-def manual_chip_box_register(
-        image_path: str,
-        image_points: np.ndarray,
-        gene_path: str,
-        gene_points: np.ndarray
-):
-    from cellbin2.contrib.chip_detector import ChipDetector
-    from cellbin2.matrix.box_detect import MatrixBoxDetector
-
-    moving_image = ChipFeature()
-    moving_image.tech_type = TechType.DAPI
-    moving_mat = cbimread(image_path)
-    moving_image.set_mat(moving_mat)
-
-    cd = ChipDetector(cfg=cfg, stain_type=TechType.DAPI)
-    cd.set_corner_points(image_points)
-    cd.detect(image_path, actual_size=(19992 * 2, 19992 * 2))
-    info = {
-        'LeftTop': cd.left_top, 'LeftBottom': cd.left_bottom,
-        'RightTop': cd.right_top, 'RightBottom': cd.right_bottom,
-        'ScaleX': cd.scale_x, 'ScaleY': cd.scale_y, 'Rotation': cd.rotation,
-        'ChipSize': cd.chip_size, 'IsAvailable': cd.is_available
-    }
-
-    cbi = ChipBoxInfo(**info)
-    moving_image.set_chip_box(cbi)
-
-    fixed_image = ChipFeature()
-    fixed_image.tech_type = TechType.Transcriptomics
-    fixed_image.set_mat(gene_path)
-
-    mbd = MatrixBoxDetector()
-    cbi = ChipBoxInfo(LeftTop=gene_points[0], LeftBottom=gene_points[1],
-                      RightBottom=gene_points[2], RightTop=gene_points[3])
-
-    fixed_image.set_chip_box(cbi)
-
-    result = chip_align(moving_image, fixed_image)
-
-def calculate_centroid(img_array):
-    """计算图像的重心"""
-    rows, cols = np.where(img_array > 0)
-    values = img_array[rows, cols]
-    
-    total_mass = values.sum()
-    centroid_x = np.sum(values * cols) / total_mass
-    centroid_y = np.sum(values * rows) / total_mass
-    
-    return centroid_x, centroid_y
 def main():
-    from cellbin2.matrix import box_detect as bd
-    from cellbin2.image import cbimread, cbimwrite
-    #from cellbin2.contrib.param import TemplateInfo
-    from cellbin2.contrib.chip_detector import ChipParam, detect_chip
     from pathlib import Path
     _repo_root = str(Path(__file__).resolve().parents[3])
     if _repo_root not in sys.path:
@@ -412,22 +362,21 @@ def main():
     # move image loading
     moving_image = ChipFeature()
     moving_image.tech_type = TechType.DAPI
-    moving_mat = cbimread(r"D:\cellbin_data\芯片单细胞\manlin_data\染色图\H1-4-dapi\H1-4-dapi.tif")
+    moving_mat = cbimread(r"/")
     moving_image.set_mat(moving_mat)
     h_flipped_img = moving_mat.trans_image(flip_lr=True)
     h, w = h_flipped_img.shape[:2]
     #
     cfg = ChipParam(
         **{"stage1_weights_path":
-               r"D:\cellbin_data\models\chip_detect_11obbn_640_stage1_20250402_pytorch.onnx",
+               r"/",
            "stage2_weights_path":
-               r"D:\cellbin_data\models\chip_detect_yolo11x_1024_stage2_20250411_2e3_equ_pytorch.onnx"})
+               r"/"})
 
 
     #file_path = r"D:\cellbin_data\芯片单细胞\manlin_data\染色图\H1-3-ssdna\H1-3-ssdna.tif"
     m_info = detect_chip(h_flipped_img.image, cfg=cfg, stain_type=TechType.DAPI, 
-                     actual_size=(23520, 23520), is_debug=True)[0]
-    print(m_info)
+                     actual_size=(9996, 9996), is_debug=True)[0]
     canvas_size = (23520, 23520)
     moving_image.set_chip_box(m_info)
     
@@ -443,7 +392,7 @@ def main():
     
     #rotated_img = img.trans_image(rotate=rotation_angle, scale=[m_info.ScaleX, m_info.ScaleY], dst_size=canvas_size)
     rotated_img = h_flipped_img.trans_image(rotate=rotation_angle)
-    cbimwrite(r"D:\cellbin_data\芯片单细胞\manlin_data\染色图\H1-4\Y10202H1_dapi_regist_box.tif", rotated_img)
+    cbimwrite(r"/", rotated_img)
 
     #image_center = (rotated_img.shape[1]/2, rotated_img.shape[0]/2)  # 图像中心
     
@@ -476,12 +425,12 @@ def main():
     current_img = chip_resized.copy()
 
     for i in range(4):
-        if i > 0:  # 第一次不旋转，后面每次旋转90度
+        if i > 0:  
             current_img = cv.rotate(current_img, cv.ROTATE_90_CLOCKWISE)
         rotated_versions.append(current_img.copy())
 
     # Put in Matrix form
-    matrix_path = r"D:\cellbin_data\芯片单细胞\manlin_data\染色图\H1-4\Y10202H1-4-DAPI\Y10202H1-4_Transcriptomics.tif"
+    matrix_path = r"/"
     matrix = tifffile.imread(matrix_path)
     print(f"detect_chip_box source: {bd.__file__}")
     box = bd.detect_chip_box(matrix, chip_size = [1, 1])
@@ -495,16 +444,14 @@ def main():
     base_canvas = np.zeros(canvas_size, dtype=rotated_img.dtype)
 
     for i, rotated_chip in enumerate(rotated_versions):
-        # 创建新画布
         canvas = base_canvas.copy()
         
-        # 放置芯片
+        # put chip in the canvas
         canvas[regist_top_left_y:regist_top_left_y+target_size, regist_top_left_x:regist_top_left_x+target_size] = rotated_chip
         
-        # 保存结果
-        output_path = rf"D:\cellbin_data\芯片单细胞\manlin_data\染色图\H1-4\Y10202H1_dapi_regist_box_rotated_{i*90}deg.tif"
+        # savw
+        output_path = rf"/"
         cbimwrite(output_path, canvas)
-        print(f"保存旋转 {i*90}° 版本至: {output_path}")
 
 
     
