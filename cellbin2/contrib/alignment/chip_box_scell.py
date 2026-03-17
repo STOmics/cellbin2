@@ -20,7 +20,7 @@ from cellbin2.contrib.chip_detector import ChipParam, detect_chip
 
 
 class MatrixBoxDetector(object):
-    def __init__(self, binsize=21, down_size=4, morph_size=9, gene_base_size=19992/2):
+    def __init__(self, binsize=21, down_size=4, morph_size=9, gene_base_size=10000):
         self.gene_base_size = gene_base_size
         self.binsize = binsize
         self.down_size = down_size
@@ -167,7 +167,7 @@ class ChipAlignment(Alignment):
 
     def __init__(
             self,
-            flip_flag: bool = True,
+            flip_flag: bool = False,
             rot90_flag: bool = True
     ):
         super(ChipAlignment, self).__init__()
@@ -179,7 +179,7 @@ class ChipAlignment(Alignment):
         self._hflip = flip_flag
         self.no_trans_flag = False
 
-        self.max_length = 9996  # Maximum size of image downsampling
+        self.max_length = 10000  # Maximum size of image downsampling
 
     def registration_image(self,
                            file: Union[str, np.ndarray, CBImage]):
@@ -228,7 +228,7 @@ class ChipAlignment(Alignment):
         if self.no_trans_flag:
             self.align_transformed(fixed_image, moving_image)
         else:
-            transformed_image = self.transform_image(file=moving_image.mat)
+            transformed_image = self.transform_image(file=moving_image.mat) #transform moving image
 
             transformed_feature = ChipFeature()
             transformed_feature.set_mat(transformed_image)
@@ -237,10 +237,10 @@ class ChipAlignment(Alignment):
                 moving_image.mat.shape,
                 [1 / self._scale_x, 1 / self._scale_y],
                 self._rotation
-            )
+            ) # fetch transformation matrix M
 
             trans_points = self.get_points_by_matrix(moving_image.chip_box.chip_box, trans_mat)
-            transformed_feature.chip_box.set_chip_box(trans_points)
+            transformed_feature.chip_box.set_chip_box(trans_points) # set new corner point loations
 
             self.align_transformed(fixed_image, transformed_feature)
 
@@ -264,56 +264,75 @@ class ChipAlignment(Alignment):
         )
 
         coord_index = [0, 1, 2, 3]
-        if self.rot90_flag:
-            range_num = 4
-        else:
-            range_num = 1
-
-        if self.hflip:
-            new_box = self.transform_points(points=moving_image.chip_box.chip_box,
+        register_info = dict()
+        
+        down_size = max(fixed_image.mat.shape) // self.max_length
+        
+        for flip_state in [0, 1]:
+            if flip_state == 1:
+                new_box = self.transform_points(points=moving_image.chip_box.chip_box,
                                             shape=moving_image.mat.shape, flip=0)
-            new_mi = np.fliplr(moving_image.mat.image)
+                new_mi = np.fliplr(moving_image.mat.image)
+            else:
+                new_box = moving_image.chip_box.chip_box
+                new_mi = moving_image.mat.image
+            
+            if new_mi.ndim == 3:
+                new_mi = new_mi[:, :, 0]
+            
+            for rot_index in range(4):
+                register_image, M = self.get_matrix_by_points(
+                    new_box[coord_index, :] / down_size, 
+                    fixed_image.chip_box.chip_box / down_size,
+                    True, 
+                    new_mi[::down_size, ::down_size], 
+                    np.array(fixed_image.mat.shape) // down_size
+                )
+                
+                lu_x, lu_y = map(int, fixed_image.chip_box.chip_box[0] / down_size)
+                rd_x, rd_y = map(int, fixed_image.chip_box.chip_box[2] / down_size)
+                
+                _wsi_image = register_image[lu_y: rd_y, lu_x:rd_x]
+                _gene_image = fixed_image.mat.image[::down_size, ::down_size][lu_y: rd_y, lu_x:rd_x]
+                
+                ms = self.multiply_sum(_wsi_image, _gene_image)
+                
+                transform_key = f"flip_{flip_state}_rot_{rot_index}"
+                clog.info(f"Flip: {flip_state}, Rot: {rot_index * 90}°, Score: {ms}")
+                
+                register_info[transform_key] = {
+                    "score": ms, 
+                    "mat": M,
+                    "flip_state": flip_state,
+                    "rot_index": rot_index
+                }
+                
+                coord_index.append(coord_index.pop(0))
+        
+        best_info = sorted(register_info.items(), key=lambda x: x[1]["score"], reverse=True)[0]
+        best_transform = best_info[1]
+        
+        self._flip_state = best_transform["flip_state"]
+        self._rot90 = best_transform["rot_index"]
+        
+        clog.info(f"Best transform - Flip: {self._flip_state}, Rot: {self._rot90 * 90}°, Score: {best_transform['score']}")
+        
+        if self._flip_state == 1:
+            new_box = self.transform_points(points=moving_image.chip_box.chip_box,
+                                        shape=moving_image.mat.shape, flip=0)
         else:
             new_box = moving_image.chip_box.chip_box
-            new_mi = moving_image.mat.image
-
-        if new_mi.ndim == 3: new_mi = new_mi[:, :, 0]
-
-        down_size = max(fixed_image.mat.shape) // self.max_length
-
-        register_info = dict()
-        for index in range(range_num):
-            register_image, M = self.get_matrix_by_points(
-                new_box[coord_index, :] / down_size, fixed_image.chip_box.chip_box / down_size,
-                True, new_mi[::down_size, ::down_size], np.array(fixed_image.mat.shape) // down_size
-            )
-
-            lu_x, lu_y = map(int, fixed_image.chip_box.chip_box[0] / down_size)
-            rd_x, rd_y = map(int, fixed_image.chip_box.chip_box[2] / down_size)
-
-            _wsi_image = register_image[lu_y: rd_y, lu_x:rd_x]
-            _gene_image = fixed_image.mat.image[::down_size, ::down_size][lu_y: rd_y, lu_x:rd_x]
-
-            ms = self.multiply_sum(_wsi_image, _gene_image)
-            # _, res = self.dft_align(_gene_image, _wsi_image, method = "sim")
-
-            clog.info(f"Rot{index * 90}, Score: {ms}")
-            register_info[index] = {"score": ms, "mat": M}  # , "res": res}
-
-            coord_index.append(coord_index.pop(0))
-
-        best_info = sorted(register_info.items(), key=lambda x: x[1]["score"], reverse=True)[0]
-        if self.rot90_flag: self._rot90 = range_num - best_info[0]
+        
         _mat = self.get_coordinate_transformation_matrix(
-            moving_image.mat.shape, [1, 1], 90 * best_info[0]
+            moving_image.mat.shape, [1, 1], 90 * self._rot90
         )
         _box = self.get_points_by_matrix(new_box, _mat)
         _box = self.check_border(_box)
-        # self._offset = (fixed_image.chip_box.chip_box[0, 0] - (_box[0, 0] + _box[1, 0]) / 2,
-        #                 fixed_image.chip_box.chip_box[0, 1] - (_box[0, 1] + _box[3, 1]) / 2)
-
+        
         self._offset = (fixed_image.chip_box.chip_box[0, 0] - _box[0, 0],
                         fixed_image.chip_box.chip_box[0, 1] - _box[0, 1])
+        
+        return register_info
 
 
 def chip_align(
@@ -358,14 +377,14 @@ def main():
     _repo_root = str(Path(__file__).resolve().parents[3])
     if _repo_root not in sys.path:
         sys.path.insert(0, _repo_root)
-    from cellbin2.matrix.box_detect import detect_chip_box
+    #from cellbin2.matrix.box_detect import detect_chip_box
     # move image loading
     moving_image = ChipFeature()
-    moving_image.tech_type = TechType.DAPI
     moving_mat = cbimread(r"/")
     moving_image.set_mat(moving_mat)
-    h_flipped_img = moving_mat.trans_image(flip_lr=True)
-    h, w = h_flipped_img.shape[:2]
+    #h_flipped_img = moving_mat.trans_image(flip_lr=True)
+    h, w = moving_mat.shape[:2]
+    #moving_image.set_mat(h_flipped_img.image)
     #
     cfg = ChipParam(
         **{"stage1_weights_path":
@@ -373,85 +392,32 @@ def main():
            "stage2_weights_path":
                r"/"})
 
-
-    #file_path = r"D:\cellbin_data\芯片单细胞\manlin_data\染色图\H1-3-ssdna\H1-3-ssdna.tif"
-    m_info = detect_chip(h_flipped_img.image, cfg=cfg, stain_type=TechType.DAPI, 
-                     actual_size=(9996, 9996), is_debug=True)[0]
-    canvas_size = (23520, 23520)
+    m_info = detect_chip(moving_mat.image, cfg=cfg, 
+                     actual_size=(10000, 10000), is_debug=False, stain_type=TechType.DAPI)[0]
+    #canvas_size = (23520, 23520)
     moving_image.set_chip_box(m_info)
-    
-    chip_corners = [
-        m_info.LeftTop,   # LeftTop
-        m_info.LeftBottom,    # LeftBottom
-        m_info.RightTop,    # RightTop
-        m_info.RightBottom    # RightBottom
-    ]
 
-    
-    rotation_angle = m_info.Rotation  # 旋转角度
-    
-    #rotated_img = img.trans_image(rotate=rotation_angle, scale=[m_info.ScaleX, m_info.ScaleY], dst_size=canvas_size)
-    rotated_img = h_flipped_img.trans_image(rotate=rotation_angle)
-    cbimwrite(r"/", rotated_img)
-
-    #image_center = (rotated_img.shape[1]/2, rotated_img.shape[0]/2)  # 图像中心
-    
-    new_h, new_w = rotated_img.shape[:2]
-
-    theta = math.radians(rotation_angle)
-
-    # OpenCV rotation matrix
-    rotated_img = np.array(rotated_img._image)
-    M = cv.getRotationMatrix2D((w/2, h/2), rotation_angle, 1)
-    pts = np.array(chip_corners)
-    pts = np.hstack([pts, np.ones((4,1))])
-    rot = (M @ pts.T).T
-    # canvas padding compensate
-    rot[:,0] += (new_w - w)/2
-    rot[:,1] += (new_h - h)/2
-    moving_max_y = int(max(rot[1,1],rot[3,1]))
-    moving_min_y = int(min(rot[0,1],rot[2,1]))
-    moving_max_x = int(max(rot[2,0],rot[3,0]))
-    moving_min_x = int(min(rot[0,0],rot[1,0]))
-
-    moving_height, moving_width = moving_max_y - moving_min_y, moving_max_x - moving_min_x
-    chip_region = rotated_img[moving_min_y:moving_max_y, moving_min_x:moving_max_x]
-    target_size = 9996
-    chip_resized = cv.resize(chip_region, (target_size, target_size))
-
-
-    # 90 rot
-    rotated_versions = []
-    current_img = chip_resized.copy()
-
-    for i in range(4):
-        if i > 0:  
-            current_img = cv.rotate(current_img, cv.ROTATE_90_CLOCKWISE)
-        rotated_versions.append(current_img.copy())
 
     # Put in Matrix form
+    fixed_image = ChipFeature()
+    fixed_image.tech_type = TechType.Transcriptomics
+    fixed_image.set_mat(r"/")
+    f_info = detect_chip_box(fixed_image.mat.image, chip_size = (1, 1))
+    fixed_image.set_chip_box(f_info)
+
+    result = chip_align(moving_image, fixed_image)
+    print(result)
+    cbimwrite(r"/",  result["register_mat"]._image)
+
+
     matrix_path = r"/"
     matrix = tifffile.imread(matrix_path)
     print(f"detect_chip_box source: {bd.__file__}")
-    box = bd.detect_chip_box(matrix, chip_size = [1, 1])
-    print(box)
-    quit()
-    regist_centroid_x, regist_centroid_y = calculate_centroid(matrix)
+    #box = bd.detect_chip_box(matrix, chip_size = [1, 1])
+    box = f_info
     regist_top_left_x = int(box.LeftTop[0])
     regist_top_left_y = int(box.LeftTop[1])
     print(f"Box LeftTop: ({regist_top_left_x}, {regist_top_left_y})")
-
-    base_canvas = np.zeros(canvas_size, dtype=rotated_img.dtype)
-
-    for i, rotated_chip in enumerate(rotated_versions):
-        canvas = base_canvas.copy()
-        
-        # put chip in the canvas
-        canvas[regist_top_left_y:regist_top_left_y+target_size, regist_top_left_x:regist_top_left_x+target_size] = rotated_chip
-        
-        # savw
-        output_path = rf"/"
-        cbimwrite(output_path, canvas)
 
 
     
