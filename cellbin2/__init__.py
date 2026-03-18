@@ -1,4 +1,4 @@
-__version__ = '1.2.0'  # softerware version
+__version__ = '1.2.1'  # softerware version
 
 from os.path import dirname, realpath
 
