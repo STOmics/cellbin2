@@ -333,30 +333,12 @@ def multimodal_merge(nuclei_mask_path, cell_mask_path, interior_mask_path, overl
     return final_mask
 
 
-class MaskTile(NamedTuple):
-    """A class that defines a mask tile with overlap region on the left and above."""
-
-    # the row in the mask where the tile starts
-    row_start: int
-    # the col in the mask where the tile starts
-    col_start: int
-    # the end row (exclusive) of the tile
-    row_end: int
-    # the end col (exclusive) of the tile
-    col_end: int
-    # the row (exclusive) where overlap region ends
-    # equivalently, this is the first row of the unique part of the tile
-    unique_row_start: int
-    # the col (exclusive) where overlap region ends
-    # equivalently, this is the first col of the unique part of the tile
-    unique_col_start: int
-
 
 if __name__ == '__main__':
-    save_path = r"/storeData/USER/data/01.CellBin/00.user/wangaoli/data/result/时空多蛋白数据/chip/Q00148CA_test/multimodal"
-    nuclei_mask_path = r"/storeData/USER/data/01.CellBin/00.user/wangaoli/data/result/时空多蛋白数据/chip/Q00148CA_test/Q00148CA_DAPI_mask_raw.tif"
-    cell_mask_path = r"/storeData/USER/data/01.CellBin/00.user/wangaoli/data/result/时空多蛋白数据/chip/Q00148CA_test/Q00148CA_CY5_IF_mask_raw.tif"
-    interior_mask_path = r"/storeData/USER/data/01.CellBin/00.user/wangaoli/data/result/时空多蛋白数据/chip/Q00148CA_test/Q00148CA_TRITC_IF_mask_raw.tif"
+    save_path = r"\"
+    nuclei_mask_path = r"\"
+    cell_mask_path = r"\"
+    interior_mask_path = r"\"
     nuclei_mask_raw = cbimread(nuclei_mask_path, only_np=True)
     cell_mask_raw = cbimread(cell_mask_path, only_np=True)
     interior_mask_raw = cbimread(interior_mask_path, only_np=True)
