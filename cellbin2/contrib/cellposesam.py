@@ -259,13 +259,11 @@ def cellposesam_pred(img_path,
 demo = """
 python cellposesam.py \
 -i
-"xxx/B02512C5_after_tc_regist.tif"
+"xxx/SN_after_tc_regist.tif"
 -o
 xxx/tmp
 -m
-xxx/models
--n
-cyto2
+xxx/models/cpsam
 -g
 0
 """
