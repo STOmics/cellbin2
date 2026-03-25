@@ -21,10 +21,10 @@ CellBin is an image processing pipeline designed to delineate cell boundaries fo
 conda create --name env-cellbinv2 python=3.8
 conda activate env-cellbinv2
 # Install the cellbin2 from PyPI
-pip install cellbin2==1.1.0
-# Or install with optional dependencies
-pip install cellbin2[cp,rs]==1.1.0      # Editable install with basic extras
-pip install cellbin2[cp,rs,rp]==1.1.0   # # Editable install including report module
+pip install cellbin2==1.2.0
+# Install with optional dependencies
+pip install cellbin2[cp,rs]==1.2.0      # Editable install with basic extras. Recommended for most users.
+pip install cellbin2[cp,rs,rp]==1.2.0   # Editable install including report module.
 ```
 ### Option 2: Install from source
 ```shell

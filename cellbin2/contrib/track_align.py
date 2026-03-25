@@ -260,6 +260,8 @@ class AlignByTrack:
         # get qualified pts
         dist = cdist(transformed_pts_temp + offset_guess, vision_pts)
         qualified = np.min(dist, axis=1) <= dist_thresh
+        if not np.any(qualified):
+            qualified = np.min(dist, axis=1) <= (dist_thresh + 390)
         transformed_pts_qualified = transformed_pts_temp[qualified]
         dist_qualified = dist[qualified]
         vision_pt_qualified = vision_pts[np.argmin(dist_qualified, axis=1)]
