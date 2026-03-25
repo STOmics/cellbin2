@@ -9,6 +9,7 @@ import cv2
 
 from cellbin2.image import cbimread, cbimwrite
 from cellbin2.contrib.fast_correct import run_fast_correct
+from cellbin2.image.mask import f_instance2semantics
 import json
 from pathlib import Path
 
@@ -30,6 +31,7 @@ def export_cell_mask_to_geojson(final_cell_mask_path):
 
     # 1) read and clean cell mask
     final_cell_mask = cbimread(final_cell_mask_path, only_np=True)
+    final_cell_mask = f_instance2semantics(final_cell_mask)
     final_cell_mask = remove_small_objects(
         final_cell_mask.astype(np.bool8),
         min_size=15,

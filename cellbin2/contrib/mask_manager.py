@@ -260,7 +260,7 @@ def mask2geojson(mask_path):
         with open(geojson_path, "w", encoding="utf-8") as f:
             json.dump(geojson, f, ensure_ascii=False)
 
-        print(f"saved to: {geojson_path}")
+        clog.info(f"saved to: {geojson_path}")
 
 @process_decorator('GiB')
 def merge_cell_mask(
