@@ -25,11 +25,11 @@ from cellbin2.modules.extract.register import run_register, transform_to_registe
 from cellbin2.modules.extract.transform import run_transform
 from cellbin2.modules.extract.tissue_seg import run_tissue_seg
 from cellbin2.modules.extract.cell_seg import run_cell_seg
-from cellbin2.contrib.mask_manager import BestTissueCellMask, MaskManagerInfo
+from cellbin2.contrib.mask_manager import BestTissueCellMask, MaskManagerInfo, mask2geojson
 from cellbin2.modules.extract.matrix_extract import extract4stitched
 from cellbin2.contrib.chip_transform import chip_transform
 from cellbin2.modules.cellmask_fixer import CellMaskFixer
-from cellbin2.contrib.multimodal_cell_merge import cell_filter, overlap_v3, multimodal_merge, keep_large_nucleus_fragments
+from cellbin2.contrib.multimodal_cell_merge import cell_filter, overlap_v3, multimodal_merge, keep_large_nucleus_fragments, export_cell_mask_to_geojson
 
 
 class Scheduler(object):
@@ -503,6 +503,7 @@ class Scheduler(object):
                     transform_to_register(
                         cur_f_name=cur_f_name
                     )
+                mask2geojson(cur_f_name.cell_mask)
                 
 
     def run_merge_masks(self):
@@ -593,7 +594,6 @@ class Scheduler(object):
                     cbimwrite(final_cell_mask_path, fast_mask)
             # --------------------nuclei cell merge----------------------
             elif len(interior_mask) == 0 and len(cell_mask) != 0 and len(core_mask) != 0: 
-                from cellbin2.contrib.mask_manager import merge_cell_mask
                 save_path = os.path.join(self._output_path, "multimodal_mid_file")
                 os.makedirs(save_path, exist_ok=True)
                 output_nuclei_mask, cell_add_core = overlap_v3(merged_core_mask, merged_cell_mask, overlap_threshold=0.8, save_path=save_path)
@@ -616,26 +616,17 @@ class Scheduler(object):
             elif len(interior_mask) != 0 and len(cell_mask) != 0 and len(core_mask) != 0: 
                 save_path = os.path.join(self._output_path, "multimodal_mid_file")
                 os.makedirs(save_path, exist_ok=True)
-                merged_mask = multimodal_merge(merged_core_mask, merged_cell_mask, merged_interior_mask, overlap_threshold=0.5, save_path = save_path)
-                # expand nuclei
-                output_nuclei = os.path.join(save_path, "output_nuclei_mask.tif")
-                fast_mask = run_fast_correct(
-                    mask_path=output_nuclei,
-                    distance = distance,
-                    n_jobs=self.config.cell_correct.process
+                merged_mask = multimodal_merge(
+                    merged_core_mask,
+                    merged_cell_mask,
+                    merged_interior_mask,
+                    overlap_threshold=0.5,
+                    save_path=save_path,
+                    expand_distance=distance,
+                    expand_n_jobs=self.config.cell_correct.process,
+                    final_overlap_threshold=0.1,
                 )
-                expand_nuclei_path = os.path.join(save_path, "expand_nuclei.tif")
-                cbimwrite(expand_nuclei_path, fast_mask)
-                
-                # merge expanded nuclei with cell
-                expand_nuclei_path = os.path.join(save_path, "expand_nuclei.tif")
-                cell_mask_add_interior_path = os.path.join(save_path, "cell_mask_add_interior.tif")
-                cell_mask_add_interior = cbimread(cell_mask_add_interior_path, only_np=True)
-                
-                expand_nuclei = cbimread(expand_nuclei_path, only_np=True)
-                secondary_mask_final, final_mask = overlap_v3(expand_nuclei, cell_mask_add_interior, overlap_threshold=0.1, save_path="")
-                #final_mask = cbimread(os.path.join(save_path2, "cell_mask_add_interior.tif"), only_np=True)
-                cbimwrite(final_cell_mask_path, final_mask)
+                cbimwrite(final_cell_mask_path, merged_mask)
             # --------------------boundary only--------------------
             elif len(interior_mask) == 0 and len(cell_mask) != 0 and len(core_mask) == 0:
                 cbimwrite(final_cell_mask_path, merged_cell_mask)
@@ -661,9 +652,7 @@ class Scheduler(object):
                 else:
                     print("matrix mask not exist")
             if final_cell_mask_path.exists():
-                final_cell_mask = cbimread(final_cell_mask_path, only_np=True)
-                final_cell_mask = remove_small_objects(final_cell_mask.astype(np.bool8), min_size=15, connectivity=1).astype(np.uint8)
-                cbimwrite(final_cell_mask_path, final_cell_mask)
+                export_cell_mask_to_geojson(final_cell_mask_path)
                 if final_nuclear_path.exists():
                     filtered_core_mask = cell_filter(final_nuclear_path,final_cell_mask_path)
                     final_nuclear = cbimread(final_nuclear_path, only_np=True)

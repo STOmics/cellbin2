@@ -153,29 +153,8 @@ def cellposesam_pred_3c(
     model = models.CellposeModel(gpu = use_gpu, pretrained_model=model_dir, use_bfloat16=False)
     masks = []
     for i, patch in enumerate(tqdm.tqdm(patches, desc='Segment cells with [Cellpose]')):
-        mask = model.eval(patch, diameter=None, channels=chan)[0]
+        mask = model.eval(patch, diameter=None)[0]
         mask = f_instance2semantics_max(mask)
-        '''num_cells, instance_mask = cv2.connectedComponents(
-            (mask > 0).astype(np.uint8), 
-            connectivity=4
-        )
-        
-        sizes = []
-        for i in range(1, num_cells):
-            sizes.append(np.sum(instance_mask == i))
-        
-        if not sizes:  
-            masks.append(mask)
-            continue
-        avg_size = np.mean(sizes)
-        
-        new_mask = np.zeros_like(mask, dtype=np.uint8)
-        
-        for i in range(1, num_cells):
-            cell_size = np.sum(instance_mask == i)
-            
-            if cell_size <= avg_size * 5:
-                new_mask[instance_mask == i] = 1'''
         masks.append(mask)
     
     # merge mask patches
@@ -190,71 +169,6 @@ def cellposesam_pred_3c(
     return full_mask
 
 
-def cellposesam_pred(img_path, 
-                   use_gpu, 
-                   model_dir,
-                   cfg=None, 
-                   output_path=None,
-                   photo_size=2024,
-                   photo_step=2000,):
-    try:
-        import cellpose
-    except ImportError:
-        pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
-    if not cellpose.version.startswith('4.0.'):
-        pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
-    import cellpose
-
-    from cellpose import models, core, io, plot
-    try:
-        import patchify
-    except ImportError:
-        pip.main(['install', 'patchify==0.2.3'])
-    import patchify
-    use_gpu = False
-    overlap = photo_size - photo_step
-    if (overlap % 2) == 1:
-        overlap = overlap + 1
-    act_step = ceil(overlap / 2)
-    logging.getLogger('cellpose.models').setLevel(logging.WARNING)
-    model = models.CellposeModel(gpu = use_gpu, pretrained_model=model_dir, use_bfloat16=False)
-    img = io.imread(img_path)
-    img = f_ij_16_to_8(img)
-    img = f_rgb2gray(img, True)
-
-    res_image = np.pad(img, ((act_step, act_step), (act_step, act_step)), 'constant')
-    res_a = res_image.shape[0]
-    res_b = res_image.shape[1]
-    re_length = ceil((res_a - (photo_size - photo_step)) / photo_step) * photo_step + (
-            photo_size - photo_step)
-    re_width = ceil((res_b - (photo_size - photo_step)) / photo_step) * photo_step + (
-            photo_size - photo_step)
-    regray_image = np.pad(res_image, ((0, re_length - res_a), (0, re_width - res_b)), 'constant')
-    patches = patchify.patchify(regray_image, (photo_size, photo_size), step=photo_step)
-    wid = patches.shape[0]
-    high = patches.shape[1]
-    a_patches = np.full((wid, high, (photo_size - overlap), (photo_size - overlap)), 255, dtype=np.uint8)
-
-    for i in tqdm.tqdm(range(wid), desc='Segment cells with [Cellpose]'):
-        for j in range(high):
-            img_data = patches[i, j, :, :]
-            masks = model.eval(img_data, diameter=None, channels=[0, 0])[0]
-            masks = f_instance2semantics_max(masks)
-            a_patches[i, j, :, :] = masks[act_step:(photo_size - act_step),
-                                    act_step:(photo_size - act_step)]
-
-    patch_nor = patchify.unpatchify(a_patches,
-                                    ((wid) * (photo_size - overlap), (high) * (photo_size - overlap)))
-    nor_imgdata = np.array(patch_nor)
-    after_wid = patch_nor.shape[0]
-    after_high = patch_nor.shape[1]
-    cropped_1 = nor_imgdata[0:(after_wid - (re_length - res_a)), 0:(after_high - (re_width - res_b))]
-    cropped_1 = np.uint8(remove_small_objects(cropped_1 > 0, min_size=2))
-    if output_path is not None:
-        name = os.path.splitext(os.path.basename(img_path))[0]
-        c_mask_path = os.path.join(output_path, f"{name}_v3_mask.tif")
-        cbimwrite(output_path=c_mask_path, files=cropped_1, compression=True)
-    return cropped_1
 
 demo = """
 python cellposesam.py \

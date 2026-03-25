@@ -7,10 +7,128 @@ import numpy as np
 from scipy import ndimage
 import cv2
 
-from cellbin2.contrib.cellpose_segmentor import f_instance2semantics
 from cellbin2.image import cbimread, cbimwrite
-from cellbin2.utils.pro_monitor import process_decorator
+from cellbin2.contrib.fast_correct import run_fast_correct
+import json
+from pathlib import Path
+
+import rasterio
+from rasterio.features import shapes
+from skimage.measure import regionprops
 from skimage.morphology import remove_small_objects
+from cellbin2.utils import clog
+
+
+def export_cell_mask_to_geojson(final_cell_mask_path):
+    final_cell_mask_path = Path(final_cell_mask_path)
+    output_path = final_cell_mask_path.parent
+    geojson_path = Path(str(final_cell_mask_path).replace(".tif", ".geojson"))
+
+    multimodal_mid_dir = output_path / "multimodal_mid_file"
+    interior_mask_path = multimodal_mid_dir / "interior_mask_final.tif"
+    nuclei_mask_path = multimodal_mid_dir / "output_nuclei_mask.tif"
+
+    # 1) read and clean cell mask
+    final_cell_mask = cbimread(final_cell_mask_path, only_np=True)
+    final_cell_mask = remove_small_objects(
+        final_cell_mask.astype(np.bool8),
+        min_size=15,
+        connectivity=1
+    ).astype(np.uint8)
+
+    # keep original behavior
+    cbimwrite(final_cell_mask_path, final_cell_mask)
+
+    # 2) read source masks
+    interior_mask = None
+    nuclei_mask = None
+
+    if interior_mask_path.exists():
+        interior_mask = cbimread(interior_mask_path, only_np=True)
+        interior_mask = (interior_mask > 0).astype(np.uint8)
+
+    if nuclei_mask_path.exists():
+        nuclei_mask = cbimread(nuclei_mask_path, only_np=True)
+        nuclei_mask = (nuclei_mask > 0).astype(np.uint8)
+
+    # 3) 4-connectivity labeling
+    structure_4 = np.array([
+        [0, 1, 0],
+        [1, 1, 1],
+        [0, 1, 0]
+    ], dtype=np.uint8)
+
+    labeled_mask, num_labels = ndimage.label(final_cell_mask > 0, structure=structure_4)
+
+    # 4) read transform / crs
+    try:
+        with rasterio.open(final_cell_mask_path) as src:
+            transform = src.transform
+            crs = src.crs
+    except Exception:
+        transform = rasterio.transform.from_origin(0, 0, 1, 1)
+        crs = None
+
+    # 5) precompute source for each label by centroid
+    label_to_source = {}
+
+    props = regionprops(labeled_mask)
+    for obj in props:
+        label_id = int(obj.label)
+
+        # centroid in pixel coordinates (row, col)
+        cy, cx = obj.centroid
+        cy = int(round(cy))
+        cx = int(round(cx))
+
+        cy = np.clip(cy, 0, labeled_mask.shape[0] - 1)
+        cx = np.clip(cx, 0, labeled_mask.shape[1] - 1)
+
+        source = "boundary"
+
+        if interior_mask is not None:
+            if cy < interior_mask.shape[0] and cx < interior_mask.shape[1]:
+                if interior_mask[cy, cx] > 0:
+                    source = "interior"
+
+        if source == "boundary" and nuclei_mask is not None:
+            if cy < nuclei_mask.shape[0] and cx < nuclei_mask.shape[1]:
+                if nuclei_mask[cy, cx] > 0:
+                    source = "nuclear"
+
+        label_to_source[label_id] = source
+
+    # 6) polygonize the whole labeled image once
+    features = []
+    for geom, value in shapes(
+        labeled_mask.astype(np.int32),
+        mask=(labeled_mask > 0),
+        transform=transform,
+        connectivity=4
+    ):
+        label_id = int(value)
+        if label_id <= 0:
+            continue
+
+        source = label_to_source.get(label_id, "boundary")
+
+        features.append({
+            "type": "Feature",
+            "properties": {
+                "source": source
+            },
+            "geometry": geom
+        })
+
+    geojson = {
+        "type": "FeatureCollection",
+        "features": features
+    }
+
+    with open(geojson_path, "w", encoding="utf-8") as f:
+        json.dump(geojson, f, ensure_ascii=False)
+
+    clog.info(f"Saved GeoJSON to: {geojson_path}")
 
 MAX_INPUT_LABEL_VALUE: Final[int] = np.iinfo(np.uint32).max
 
@@ -256,89 +374,160 @@ def overlap_v3(secondary_mask_raw, primary_mask_raw, overlap_threshold=0.2, save
     return secondary_mask_final, save_primary_mask
 
 def interior_filter(interior_mask: np.ndarray, nuclei_mask: np.ndarray) -> np.ndarray:
-        """
-        Filter cells by contours, removing interior not overlaped with nuclei
-        
-        Parameters:
-        tissue_mask (numpy.ndarray): Tissue mask image
-        cell_mask (numpy.ndarray): Cell mask image
-        
-        Returns:
-        numpy.ndarray: Filtered cell mask image
-        """
-        contours, _ = cv2.findContours(interior_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    """
+    Filter cells by contours, removing interior not overlaped with nuclei
+    
+    Parameters:
+    tissue_mask (numpy.ndarray): Tissue mask image
+    cell_mask (numpy.ndarray): Cell mask image
+    
+    Returns:
+    numpy.ndarray: Filtered cell mask image
+    """
+    contours, _ = cv2.findContours(interior_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        for contour in contours:
-            x, y, w, h = cv2.boundingRect(contour)
-            nuclei_roi = nuclei_mask[y:y+h, x:x+w]
-            contour_roi = contour - np.array([x, y])
+    for contour in contours:
+        x, y, w, h = cv2.boundingRect(contour)
+        nuclei_roi = nuclei_mask[y:y+h, x:x+w]
+        contour_roi = contour - np.array([x, y])
 
-            roi_mask = np.zeros(shape=(h, w), dtype=np.uint8)
-            cv2.fillPoly(roi_mask, pts=[contour_roi], color=(1,))
+        roi_mask = np.zeros(shape=(h, w), dtype=np.uint8)
+        cv2.fillPoly(roi_mask, pts=[contour_roi], color=(1,))
 
-            interior_and_nuclei = cv2.bitwise_and(roi_mask, nuclei_roi)
+        interior_and_nuclei = cv2.bitwise_and(roi_mask, nuclei_roi)
 
-            total_area = np.sum(roi_mask > 0)
-            if total_area > 0:
-                overlap_ratio = np.sum(interior_and_nuclei > 0) / total_area
-                if overlap_ratio < 0.1:
-                    cv2.fillPoly(interior_mask, pts=[contour], color=(0,))
+        total_area = np.sum(roi_mask > 0)
+        if total_area > 0:
+            overlap_ratio = np.sum(interior_and_nuclei > 0) / total_area
+            if overlap_ratio < 0.1:
+                cv2.fillPoly(interior_mask, pts=[contour], color=(0,))
 
-        return interior_mask
+    return interior_mask
 
 
 
 # @process_decorator('GiB')
-def multimodal_merge(nuclei_mask_path, cell_mask_path, interior_mask_path, overlap_threshold=0.5, save_path=""):
+def multimodal_merge(
+        nuclei_mask_path,
+        cell_mask_path,
+        interior_mask_path,
+        overlap_threshold=0.5,
+        save_path="",
+        expand_distance=10,
+        expand_n_jobs=5,
+        final_overlap_threshold=0.1,
+):
     """
     assume input instance mask
+
     overlap between cell mask and interior mask:
     1. overlap == 0, keep both mask
     2. overlap > 0.5, keep cell mask only
     3. 0 < overlap < 0.5, keep cell mask and the non-overlap area of interior mask
 
-    cell mask: cell mask +  processed interior mask
-    nuc mask:
-        1. nuc has less than 0.5 overlap with cell, save cell only
+    cell mask: cell mask + processed interior mask
+
+    nuclei merge logic:
+        1. nuc has less than threshold overlap with cell, save both
         2. nuc has 0 overlap with cell, save both nuc and cell
-        3. nuc has more than 0.5 overlap with cell, save cell only
+        3. nuc has more than threshold overlap with cell, save cell only
+
+    Then:
+        1. run_fast_correct on output_nuclei_mask
+        2. merge expanded nuclei with cell_add_interior again
     """
+    import os
+    from os.path import join
+
     nuclei_mask_raw = cbimread(nuclei_mask_path, only_np=True)
     cell_mask_raw = cbimread(cell_mask_path, only_np=True)
     interior_mask_raw = cbimread(interior_mask_path, only_np=True)
 
-    interior_mask_final, cell_add_interior = overlap_v3(interior_mask_raw, cell_mask_raw, overlap_threshold=0.5, save_path=save_path)
-    #filter_mask,_ = overlap_v3(interior_mask_final, nuclei_mask_raw, overlap_threshold=1, save_path=save_path)
+    # ----------------------------- merge interior into cell ---------------------------------
+    interior_mask_final, cell_add_interior = overlap_v3(
+        interior_mask_raw,
+        cell_mask_raw,
+        overlap_threshold=0.5,
+        save_path=save_path
+    )
+
     interior_mask_final = instance2semantics(interior_mask_final)
-    nuclei_mask_raw = instance2semantics(nuclei_mask_raw)
-    filter_mask = interior_filter(interior_mask_final, nuclei_mask_raw)
-    #delete_mask = cv2.subtract(interior_mask_final, filter_mask)
-    
-    #cbimwrite(join(save_path, f"filter_mask.tif"), instance2semantics(delete_mask) * 255)
-    cbimwrite(join(save_path, f"cell_add_interior_before_filter.tif"), instance2semantics(cell_add_interior) * 255)
-    #cell_add_interior = np.where(delete_mask>0, 0, cell_add_interior)
+    nuclei_mask_semantic = instance2semantics(nuclei_mask_raw)
+    filter_mask = interior_filter(interior_mask_final, nuclei_mask_semantic)
+
+    if save_path != "":
+        cbimwrite(
+            join(save_path, "cell_add_interior_before_filter.tif"),
+            instance2semantics(cell_add_interior) * 255
+        )
+
     cell_add_interior = cv2.bitwise_or(cell_mask_raw, filter_mask)
-    
+
     if save_path != "":
-        cbimwrite(join(save_path, f"interior_mask_final.tif"), interior_mask_final * 255)
-        cbimwrite(join(save_path, f"cell_mask_add_interior.tif"), instance2semantics(cell_add_interior) * 255)
-    #-----------------------------start merging nuclei---------------------------------------------------------
-    
-    output_nuclei_mask, final_mask = overlap_v3(nuclei_mask_raw, cell_add_interior, overlap_threshold=0.8, save_path=save_path)
-    final_mask = instance2semantics(final_mask)
+        cbimwrite(join(save_path, "interior_mask_final.tif"), interior_mask_final * 255)
+        cbimwrite(
+            join(save_path, "cell_mask_add_interior.tif"),
+            instance2semantics(cell_add_interior) * 255
+        )
+
+    # ----------------------------- first merge nuclei with cell ------------------------------
+    output_nuclei_mask, first_merged_mask = overlap_v3(
+        nuclei_mask_raw,
+        cell_add_interior,
+        overlap_threshold=0.8,
+        save_path=save_path
+    )
+
+    first_merged_mask = instance2semantics(first_merged_mask)
+
     if save_path != "":
-        cbimwrite(join(save_path, f"output_nuclei_mask.tif"), instance2semantics(output_nuclei_mask) * 255)
-        cbimwrite(join(save_path, f"cell_mask_add_interior_add_nuclei.tif"), final_mask * 255)
-    final_mask = final_mask.astype(np.uint8)
+        output_nuclei_path = join(save_path, "output_nuclei_mask.tif")
+        cbimwrite(output_nuclei_path, instance2semantics(output_nuclei_mask) * 255)
+        cbimwrite(
+            join(save_path, "cell_mask_add_interior_add_nuclei.tif"),
+            first_merged_mask * 255
+        )
+    else:
+        output_nuclei_path = None
+
+    # ----------------------------- expand nuclei --------------------------------------------
+    if output_nuclei_path is not None and os.path.exists(output_nuclei_path):
+        fast_mask = run_fast_correct(
+            mask_path=output_nuclei_path,
+            distance=expand_distance,
+            n_jobs=expand_n_jobs
+        )
+    else:
+        fast_mask = output_nuclei_mask
+
+    if save_path != "":
+        expand_nuclei_path = join(save_path, "expand_nuclei.tif")
+        cbimwrite(expand_nuclei_path, fast_mask)
+
+    # ----------------------------- second merge expanded nuclei with cell --------------------
+    secondary_mask_final, final_mask = overlap_v3(
+        fast_mask,
+        cell_add_interior,
+        overlap_threshold=final_overlap_threshold,
+        save_path=""
+    )
+
+    final_mask = instance2semantics(final_mask).astype(np.uint8)
+
+    if save_path != "":
+        cbimwrite(join(save_path, "secondary_mask_final.tif"),
+                  instance2semantics(secondary_mask_final) * 255)
+        cbimwrite(join(save_path, "final_cell_mask.tif"), final_mask * 255)
+
     return final_mask
 
 
 
 if __name__ == '__main__':
-    save_path = r"\"
-    nuclei_mask_path = r"\"
-    cell_mask_path = r"\"
-    interior_mask_path = r"\"
+    save_path = r"/"
+    nuclei_mask_path = r"/"
+    cell_mask_path = r"/"
+    interior_mask_path = r"/"
     nuclei_mask_raw = cbimread(nuclei_mask_path, only_np=True)
     cell_mask_raw = cbimread(cell_mask_path, only_np=True)
     interior_mask_raw = cbimread(interior_mask_path, only_np=True)

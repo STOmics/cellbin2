@@ -6,6 +6,11 @@ import numpy as np
 import tifffile
 from skimage.measure import label
 from skimage.morphology import remove_small_objects
+from pathlib import Path
+import rasterio
+from rasterio.features import shapes
+from shapely.geometry import shape, mapping
+import json
 
 from cellbin2.image import CBImage
 from cellbin2.contrib.alignment.basic import ChipBoxInfo
@@ -228,6 +233,34 @@ def instance2semantics(ins: np.ndarray) -> np.ndarray:
     ins_[np.where(ins_ > 0)] = 1
     return np.array(ins_, dtype=np.uint8)
 
+def mask2geojson(mask_path):
+        geojson_path = Path(str(mask_path).replace(".tif", ".geojson"))
+
+        features = []
+
+        # generate geojson from tif
+        with rasterio.open(mask_path) as src:
+            mask = src.read(1)
+            transform = src.transform
+            crs = src.crs
+
+            for geom, value in shapes(mask, mask=(mask > 0), transform=transform):
+                if value == 1:
+                    features.append({
+                        "type": "Feature",
+                        "properties": {"value": int(value)},
+                        "geometry": geom
+                    })
+
+        geojson = {
+            "type": "FeatureCollection",
+            "features": features
+        }
+
+        with open(geojson_path, "w", encoding="utf-8") as f:
+            json.dump(geojson, f, ensure_ascii=False)
+
+        print(f"saved to: {geojson_path}")
 
 @process_decorator('GiB')
 def merge_cell_mask(

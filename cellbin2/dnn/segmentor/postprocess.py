@@ -157,15 +157,20 @@ def f_postprocess_rna(mask):
     return pred
 
 
-def f_postprocess_cellpose(mask, overlap_mask=None):
+def f_postprocess_cellpose(mask, overlap_mask=None, area_ratio_thresh=5.0):
     """
     Only apply watershed for cells overlaped with the patches overlap area.
     To prevent over split.
+
+    After watershed, remove cells whose area is larger than
+    area_ratio_thresh * mean_cell_area.
     """
     clog.info(f"Start post processing")
+
     label_mask = label(mask, connectivity=2)
     props = regionprops(label_mask, label_mask)
-    for idx, obj in enumerate(props):
+
+    for obj in props:
         bbox = obj['bbox']
         need_watershed = False
         if overlap_mask is None:
@@ -184,9 +189,22 @@ def f_postprocess_cellpose(mask, overlap_mask=None):
             tmp_mask = np.uint32(tmp_mask)
             tmp_mask[tmp_mask > 0] = obj['label']
             label_mask_temp[tmp_area > 0] = tmp_mask[tmp_area > 0]
-            label_mask[bbox[0]: bbox[2], bbox[1]: bbox[3]][tmp_area > 0] = label_mask_temp[tmp_area > 0]
+            label_mask[bbox[0]:bbox[2], bbox[1]:bbox[3]][tmp_area > 0] = label_mask_temp[tmp_area > 0]
+
+    # start area filter
+    label_mask = label(label_mask > 0, connectivity=2)
+
+    props_after = regionprops(label_mask)
+    if len(props_after) > 0:
+        areas = np.array([obj.area for obj in props_after], dtype=np.float32)
+        ref_area = np.median(areas)
+        max_area = ref_area * 5
+
+        for obj in props_after:
+            if obj.area > max_area:
+                label_mask[label_mask == obj.label] = 0
+
     label_mask[label_mask > 0] = 1
-    #post_mask=watershed_segmentation(mask)
     return np.uint8(label_mask)
 
 
