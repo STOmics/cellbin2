@@ -37,7 +37,7 @@
           "github": "https://github.com/STOmics/cellbin2/releases/download/weights-v1.0.0/nucleitorch_0"
       },
       "cyto3": {
-          "bgipan": "https://bgipan.genomics.cn/v3.php/download/ln-file?FileId=13737321&ShareKey=67EMndMYi6GrQk7XI7Yz&VersionId=8450446&UserId=38259&Password=qLIp&Policy=eyJBSyI6IjBlNjE5YzFjYzZlMGRhZTZlZmMzMjMxMDVjN2I4YWM1IiwiQWF0IjoxLCJBaWQiOiJKc1FDc2pGM3lyN0tBQ3lUIiwiQ2lkIjoiYTFkMTM0MjAtNTI5ZS00YzFhLWEzMGMtMGI0YzA0NzM5ZTBlIiwiRXAiOjkwMCwiRGF0ZSI6IlR1ZSwgMDkgRGVjIDIwMjUgMDc6Mzk6NDUgR01UIn0%3D&Signature=6989aa4d78de5e4f942714064809afb57c965455",
+          "bgipan": "https://bgipan.genomics.cn/v3.php/download/ln-file?FileId=13737321&ShareKey=tX7Kd2axt2Aoo1F0YihF&VersionId=8450446&UserId=38407&Policy=eyJBSyI6IjA3YzA0NGZhZTY4ZmEyY2U1YjYwZTg1MGQ3ODMyZDJhIiwiQWF0IjoxLCJBaWQiOiJKc1FDc2pGM3lyN0tBQ3lUIiwiQ2lkIjoiM2JiMmRlYmEtZGJlNy00Y2IyLWI3ODYtOTMwOGQwNTJmOThlIiwiRXAiOjkwMCwiRGF0ZSI6IlRodSwgMjYgTWFyIDIwMjYgMDk6MDI6NDcgR01UIn0%3D&Signature=a52dacdac496ac0db2d6e3d042c210ddd6205813",
           "github": "https://github.com/STOmics/cellbin2/releases/download/weights-v1.0.0/cyto3"
       }
     },
