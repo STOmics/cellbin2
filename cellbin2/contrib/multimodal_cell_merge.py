@@ -9,7 +9,6 @@ import cv2
 
 from cellbin2.image import cbimread, cbimwrite
 from cellbin2.contrib.fast_correct import run_fast_correct
-from cellbin2.image.mask import f_instance2semantics
 import json
 from pathlib import Path
 
@@ -25,21 +24,27 @@ import numpy as np
 def break_diagonal_connections(binary_mask):
     """
     Break diagonal connections in a binary mask.
+    Faster numpy-vectorized version.
     """
     m = (binary_mask > 0).astype(np.uint8)
     out = m.copy()
-    h, w = m.shape
 
-    for y in range(h - 1):
-        for x in range(w - 1):
-            block = m[y:y+2, x:x+2]
+    a = m[:-1, :-1]   # top-left
+    b = m[:-1, 1:]    # top-right
+    c = m[1:, :-1]    # bottom-left
+    d = m[1:, 1:]     # bottom-right
 
-            # 1 0
-            # 0 1
-            if block[0, 0] == 1 and block[1, 1] == 1 and block[0, 1] == 0 and block[1, 0] == 0:
-                out[y + 1, x + 1] = 0
-            elif block[0, 1] == 1 and block[1, 0] == 1 and block[0, 0] == 0 and block[1, 1] == 0:
-                out[y + 1, x] = 0
+    # 1 0
+    # 0 1
+    pattern1 = (a == 1) & (b == 0) & (c == 0) & (d == 1)
+
+    # 0 1
+    # 1 0
+    pattern2 = (a == 0) & (b == 1) & (c == 1) & (d == 0)
+
+    # 对应删除位置
+    out[1:, 1:][pattern1] = 0
+    out[1:, :-1][pattern2] = 0
 
     return out
 def export_cell_mask_to_geojson(final_cell_mask_path):
