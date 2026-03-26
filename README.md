@@ -32,7 +32,7 @@ pip install cellbin2[cp,rs,rp]==1.2.0   # Editable install including report modu
 conda create --name env-cellbinv2 python=3.8
 conda activate env-cellbinv2
 # Clone the repository
-git clone https://github.com/STOmics/cellbin2
+git clone -b feature/multimodal https://github.com/STOmics/cellbin2
 # Install package dependencies
 cd cellbin2
 pip install -e .[cp,rs]    # Editable install with basic extras
