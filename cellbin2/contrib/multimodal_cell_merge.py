@@ -19,7 +19,29 @@ from skimage.measure import regionprops
 from skimage.morphology import remove_small_objects
 from cellbin2.utils import clog
 
+import numpy as np
 
+
+def break_diagonal_connections(binary_mask):
+    """
+    Break diagonal connections in a binary mask.
+    """
+    m = (binary_mask > 0).astype(np.uint8)
+    out = m.copy()
+    h, w = m.shape
+
+    for y in range(h - 1):
+        for x in range(w - 1):
+            block = m[y:y+2, x:x+2]
+
+            # 1 0
+            # 0 1
+            if block[0, 0] == 1 and block[1, 1] == 1 and block[0, 1] == 0 and block[1, 0] == 0:
+                out[y + 1, x + 1] = 0
+            elif block[0, 1] == 1 and block[1, 0] == 1 and block[0, 0] == 0 and block[1, 1] == 0:
+                out[y + 1, x] = 0
+
+    return out
 def export_cell_mask_to_geojson(final_cell_mask_path):
     final_cell_mask_path = Path(final_cell_mask_path)
     output_path = final_cell_mask_path.parent
@@ -31,7 +53,7 @@ def export_cell_mask_to_geojson(final_cell_mask_path):
 
     # 1) read and clean cell mask
     final_cell_mask = cbimread(final_cell_mask_path, only_np=True)
-    final_cell_mask = f_instance2semantics(final_cell_mask)
+    final_cell_mask = break_diagonal_connections(final_cell_mask)
     final_cell_mask = remove_small_objects(
         final_cell_mask.astype(np.bool8),
         min_size=15,
