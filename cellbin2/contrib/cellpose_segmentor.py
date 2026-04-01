@@ -1,5 +1,7 @@
 import os
 import sys
+
+import tifffile
 import cv2
 from math import ceil
 import pip
@@ -62,26 +64,61 @@ def split_image_into_patches(
     return patches, positions
 
 def merge_masks_with_or(
-    masks: List[np.ndarray], 
-    positions: List[Tuple[int, int, int, int]], 
-    original_shape: Tuple[int, int]
+    masks: List[np.ndarray],
+    positions: List[Tuple[int, int, int, int]],
+    original_shape: Tuple[int, int],
+    overlap: int = 48
 ) -> np.ndarray:
+    """
+    Merge semantic masks by center-crop stitching instead of logical OR.
 
+    Rule:
+    - each patch only contributes its responsible central region
+    - overlap area is split between neighboring patches
+    - no OR is used
+
+    Args:
+        masks: list of semantic masks, each patch is 0/1
+        positions: list of (y_start, x_start, y_end, x_end)
+        original_shape: full image shape (H, W)
+        overlap: overlap size used when splitting patches
+
+    Returns:
+        merged semantic mask, uint8
+    """
     h, w = original_shape
     full_mask = np.zeros((h, w), dtype=np.uint8)
-    
+
+    half1 = overlap // 2
+    half2 = overlap - half1
+
     for mask, (y_start, x_start, y_end, x_end) in zip(masks, positions):
         patch_h = y_end - y_start
         patch_w = x_end - x_start
-        
+
         valid_mask = mask[:patch_h, :patch_w]
-        
-        # process overlap area with logic or 
-        full_mask[y_start:y_end, x_start:x_end] = np.logical_or(
-            full_mask[y_start:y_end, x_start:x_start+patch_w],
-            valid_mask
-        ).astype(np.uint8)
-    
+
+        # decide responsible region inside this patch
+        top_crop = 0 if y_start == 0 else half1
+        left_crop = 0 if x_start == 0 else half1
+        bottom_crop = 0 if y_end == h else half2
+        right_crop = 0 if x_end == w else half2
+
+        src_y1 = top_crop
+        src_y2 = patch_h - bottom_crop
+        src_x1 = left_crop
+        src_x2 = patch_w - right_crop
+
+        dst_y1 = y_start + src_y1
+        dst_y2 = y_start + src_y2
+        dst_x1 = x_start + src_x1
+        dst_x2 = x_start + src_x2
+
+        if src_y1 >= src_y2 or src_x1 >= src_x2:
+            continue
+
+        full_mask[dst_y1:dst_y2, dst_x1:dst_x2] = valid_mask[src_y1:src_y2, src_x1:src_x2].astype(np.uint8)
+
     return full_mask
 
 
@@ -157,21 +194,86 @@ def poolingOverlap(mat, ksize, stride=None, method='max', pad=False):
     return result
 
 
-def f_instance2semantics_max(ins):
+def f_instance2semantics_robust(
+    ins: np.ndarray,
+    boundary_expand: int = 0,
+    keep_outer_boundary: bool = True
+) -> np.ndarray:
     """
-    Processes an instance segmentation mask to remove small objects and converts it to a semantic segmentation mask.
+    Robustly convert instance mask to semantic mask.
+
+    Principle:
+    - Start from foreground mask: ins > 0
+    - Detect pixels that touch a DIFFERENT non-zero instance in 8-neighborhood
+    - Remove only those inter-instance boundary pixels
+    - Optionally dilate the removed boundary slightly
 
     Args:
-        ins (numpy.ndarray): The instance segmentation mask.
+        ins:
+            Instance mask. 0 = background, >0 = instance id.
+        boundary_expand:
+            Extra dilation iterations on detected inter-instance boundary.
+            0 means only remove the direct touching boundary.
+            1 is sometimes useful if merge later tends to reconnect thin gaps.
+        keep_outer_boundary:
+            If True, only remove boundaries between different non-zero instances.
+            Foreground-background outer contour is kept.
+            This is usually what you want for semantic mask.
 
     Returns:
-        numpy.ndarray: The semantic segmentation mask.
+        Semantic binary mask, uint8, values in {0, 1}.
     """
-    ins_m = poolingOverlap(ins, ksize=(2, 2), stride=(1, 1), pad=True, method='mean')
-    mask = np.uint8(np.subtract(np.float64(ins), ins_m))
-    ins[mask != 0] = 0
-    ins = f_instance2semantics(ins)
-    return ins
+    ins = np.asarray(ins)
+    if ins.ndim != 2:
+        raise ValueError(f"`ins` must be 2D, got shape={ins.shape}")
+
+    h, w = ins.shape
+    fg = ins > 0
+    boundary = np.zeros((h, w), dtype=bool)
+
+    # 8-neighborhood
+    shifts = [
+        (-1, -1), (-1, 0), (-1, 1),
+        ( 0, -1),          ( 0, 1),
+        ( 1, -1), ( 1, 0), ( 1, 1),
+    ]
+
+    for dy, dx in shifts:
+        # source window on current image
+        y1 = max(0, -dy)
+        y2 = min(h, h - dy)
+        x1 = max(0, -dx)
+        x2 = min(w, w - dx)
+
+        # shifted neighbor window
+        yy1 = max(0, dy)
+        yy2 = min(h, h + dy)
+        xx1 = max(0, dx)
+        xx2 = min(w, w + dx)
+
+        center = ins[y1:y2, x1:x2]
+        neigh = ins[yy1:yy2, xx1:xx2]
+
+        if keep_outer_boundary:
+            # only detect boundary between DIFFERENT non-zero instances
+            diff = (center > 0) & (neigh > 0) & (center != neigh)
+        else:
+            # also treat fg-bg transitions as removable boundary
+            diff = (center != neigh) & ((center > 0) | (neigh > 0))
+
+        boundary[y1:y2, x1:x2] |= diff
+
+    if boundary_expand > 0:
+        kernel = np.ones((3, 3), np.uint8)
+        boundary = cv2.dilate(
+            boundary.astype(np.uint8),
+            kernel,
+            iterations=boundary_expand
+        ).astype(bool)
+
+    sem = fg.astype(np.uint8)
+    sem[boundary] = 0
+    return sem
 
 
 def main(
@@ -181,7 +283,7 @@ def main(
     stain_type= None,
     output_path=None,
     patch_size: int = 4096,
-    overlap: int = 24
+    overlap: int = 48
 ) -> np.ndarray:
 
     try:
@@ -227,7 +329,7 @@ def main(
     masks = []
     for i, patch in enumerate(tqdm.tqdm(patches, desc='Segment cells with [Cellpose]')):
         mask = model.eval(patch, diameter=None, channels=[0, 0])[0]
-        mask = f_instance2semantics_max(mask)
+        mask = f_instance2semantics_robust(mask)
         '''num_cells, instance_mask = cv2.connectedComponents(
             (mask > 0).astype(np.uint8), 
             connectivity=4
@@ -252,7 +354,9 @@ def main(
         masks.append(mask)
     
     # merge mask patches
-    full_mask = merge_masks_with_or(masks, positions, img.shape[:2])
+    full_mask = merge_masks_with_or(masks, positions, img.shape[:2], overlap=overlap)
+    c_mask_path = r"D:\\cellbin_data\\watershed_bugfix\\test_b4watershed-CY5_IF_mask.tif"
+    cbimwrite(output_path=c_mask_path, files=full_mask, compression=True)
     #full_mask = apply_watershed(full_mask)
     full_mask = f_postprocess_cellpose(full_mask, overlap_mask)
 
