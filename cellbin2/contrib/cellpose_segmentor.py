@@ -1,16 +1,12 @@
 import os
 import sys
 
-import tifffile
 import cv2
 from math import ceil
 import pip
 import tqdm
 import numpy.typing as npt
 import numpy as np
-from skimage.morphology import remove_small_objects
-
-from cellbin2.image.mask import f_instance2semantics
 from cellbin2.image import cbimread, cbimwrite
 from cellbin2.dnn.segmentor.postprocess import f_postprocess_cellpose
 from cellbin2.contrib.cell_segmentor import CellSegParam
@@ -355,8 +351,6 @@ def main(
     
     # merge mask patches
     full_mask = merge_masks_with_or(masks, positions, img.shape[:2], overlap=overlap)
-    c_mask_path = r"D:\\cellbin_data\\watershed_bugfix\\test_b4watershed-CY5_IF_mask.tif"
-    cbimwrite(output_path=c_mask_path, files=full_mask, compression=True)
     #full_mask = apply_watershed(full_mask)
     full_mask = f_postprocess_cellpose(full_mask, overlap_mask)
 
