@@ -515,7 +515,7 @@ def multimodal_merge(
     )
 
     final_mask = instance2semantics(final_mask).astype(np.uint8)
-    final_mask = break_diagonal_connections(final_mask)
+    #final_mask = break_diagonal_connections(final_mask)
 
     if save_path != "":
         cbimwrite(join(save_path, "secondary_mask_final.tif"),
