@@ -8,6 +8,7 @@ from skimage.feature import peak_local_max
 from skimage.filters import sobel
 from skimage.measure import label, regionprops
 import cv2
+from skimage.morphology import remove_small_objects
 
 from cellbin2.image.mask import f_instance2semantics
 from cellbin2.image.morphology import f_deep_watershed
@@ -137,7 +138,6 @@ def watershed_segmentation(binary_image, sigma=3.5):
     return labels_cut, tmp
 
 def f_postprocess_rna(mask):
-    from skimage.morphology import remove_small_objects
     clog.info(f"Start rna post processing")
     label_mask = label(mask, connectivity=2)
     props = regionprops(label_mask, label_mask)
@@ -189,7 +189,10 @@ def f_postprocess_cellpose(mask, overlap_mask=None, area_ratio_thresh=5.0):
             tmp_mask = np.uint32(tmp_mask)
             tmp_mask[tmp_mask > 0] = obj['label']
             label_mask_temp[tmp_area > 0] = tmp_mask[tmp_area > 0]
-            label_mask[bbox[0]:bbox[2], bbox[1]:bbox[3]][tmp_area > 0] = label_mask_temp[tmp_area > 0]
+            ys, ye, xs, xe = bbox[0], bbox[2], bbox[1], bbox[3]
+            sub = label_mask[ys:ye, xs:xe].copy()
+            sub[tmp_area > 0] = label_mask_temp[tmp_area > 0]
+            label_mask[ys:ye, xs:xe] = sub
 
     # start area filter
     label_mask = label(label_mask > 0, connectivity=2)
@@ -205,6 +208,8 @@ def f_postprocess_cellpose(mask, overlap_mask=None, area_ratio_thresh=5.0):
                 label_mask[label_mask == obj.label] = 0
 
     label_mask[label_mask > 0] = 1
+    label_mask = remove_small_objects(label_mask.astype(np.bool8), min_size=80, connectivity=2)
+    
     return np.uint8(label_mask)
 
 

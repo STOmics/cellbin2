@@ -1,14 +1,12 @@
 import os
 import sys
+
 import cv2
 from math import ceil
 import pip
 import tqdm
 import numpy.typing as npt
 import numpy as np
-from skimage.morphology import remove_small_objects
-
-from cellbin2.image.mask import f_instance2semantics
 from cellbin2.image import cbimread, cbimwrite
 from cellbin2.dnn.segmentor.postprocess import f_postprocess_cellpose
 from cellbin2.contrib.cell_segmentor import CellSegParam
@@ -61,118 +59,207 @@ def split_image_into_patches(
     
     return patches, positions
 
-def merge_masks_with_or(
-    masks: List[np.ndarray], 
-    positions: List[Tuple[int, int, int, int]], 
-    original_shape: Tuple[int, int]
+def _make_patch_weight_soft(
+    patch_h: int,
+    patch_w: int,
+    edge_fade: int
 ) -> np.ndarray:
+    if edge_fade <= 0:
+        return np.ones((patch_h, patch_w), dtype=np.float32)
 
+    y = np.arange(patch_h, dtype=np.float32)
+    x = np.arange(patch_w, dtype=np.float32)
+
+    dist_top = y
+    dist_bottom = patch_h - 1 - y
+    dist_left = x
+    dist_right = patch_w - 1 - x
+
+    dy = np.minimum(dist_top, dist_bottom)
+    dx = np.minimum(dist_left, dist_right)
+    d = np.minimum(dy[:, None], dx[None, :])
+
+    w = np.clip(d / float(edge_fade), 0.0, 1.0)
+    w = 0.05 + 0.95 * w
+    return w.astype(np.float32)
+
+
+def merge_masks_with_overlap_only_max(
+    masks: List[np.ndarray],
+    positions: List[Tuple[int, int, int, int]],
+    original_shape: Tuple[int, int],
+    overlap: int = 48,
+    threshold: float = 0.5
+) -> np.ndarray:
+    """
+    Semantic-mask merge with strict separation:
+
+    1) non-overlap region: copied directly, never modified again
+    2) overlap region only: weighted max fusion
+
+    Args:
+        masks: list of semantic masks (0/1)
+        positions: list of (y_start, x_start, y_end, x_end)
+        original_shape: (H, W)
+        overlap: used only for edge-fade weight width
+        threshold: threshold for overlap-region weighted max score
+
+    Returns:
+        merged semantic mask, uint8
+    """
     h, w = original_shape
+
+    # real coverage from actual patch positions
+    coverage = np.zeros((h, w), dtype=np.uint16)
+    for y_start, x_start, y_end, x_end in positions:
+        coverage[y_start:y_end, x_start:x_end] += 1
+
+    non_overlap_global = (coverage == 1)
+    overlap_global = (coverage > 1)
+
+    # final output
     full_mask = np.zeros((h, w), dtype=np.uint8)
-    
+
+    # overlap score canvas only
+    full_score = np.zeros((h, w), dtype=np.float32)
+
+    edge_fade = max(1, overlap)
+
     for mask, (y_start, x_start, y_end, x_end) in zip(masks, positions):
         patch_h = y_end - y_start
         patch_w = x_end - x_start
-        
-        valid_mask = mask[:patch_h, :patch_w]
-        
-        # process overlap area with logic or 
-        full_mask[y_start:y_end, x_start:x_end] = np.logical_or(
-            full_mask[y_start:y_end, x_start:x_start+patch_w],
-            valid_mask
-        ).astype(np.uint8)
-    
+
+        valid_mask = mask[:patch_h, :patch_w].astype(np.uint8)
+        weight = _make_patch_weight_soft(patch_h, patch_w, edge_fade=edge_fade)
+
+        # global masks restricted to this patch window
+        non_overlap_roi = non_overlap_global[y_start:y_end, x_start:x_end]
+        overlap_roi = overlap_global[y_start:y_end, x_start:x_end]
+
+        # 1) only fill non-overlap pixels here; these pixels are unique-owner pixels
+        if np.any(non_overlap_roi):
+            dst = full_mask[y_start:y_end, x_start:x_end]
+            dst[non_overlap_roi] = valid_mask[non_overlap_roi]
+            full_mask[y_start:y_end, x_start:x_end] = dst
+
+        # 2) only accumulate score on overlap pixels
+        if np.any(overlap_roi):
+            patch_score = valid_mask.astype(np.float32) * weight
+            roi_score = full_score[y_start:y_end, x_start:x_end]
+            roi_score[overlap_roi] = np.maximum(roi_score[overlap_roi], patch_score[overlap_roi])
+            full_score[y_start:y_end, x_start:x_end] = roi_score
+
+    # 3) finalize overlap pixels only
+    full_mask[overlap_global] = (full_score[overlap_global] > threshold).astype(np.uint8)
+
     return full_mask
 
 
-def asStride(arr, sub_shape, stride):
-    """
-    Get a strided sub-matrices view of an ndarray.
 
-    This function is similar to `skimage.util.shape.view_as_windows()`.
+def cellpose_instance2semantics(
+    ins: np.ndarray,
+    boundary_expand: int = 0,
+    keep_outer_boundary: bool = True
+) -> np.ndarray:
+    """
+    Robustly convert instance mask to semantic mask.
+
+    Principle:
+    - Start from foreground mask: ins > 0
+    - Detect pixels that touch a DIFFERENT non-zero instance in 8-neighborhood
+    - Remove only those inter-instance boundary pixels
+    - Optionally dilate the removed boundary slightly
 
     Args:
-        arr (ndarray): The input ndarray.
-        sub_shape (tuple): The shape of the sub-matrices.
-        stride (tuple): The step size along each axis.
+        ins:
+            Instance mask. 0 = background, >0 = instance id.
+        boundary_expand:
+            Extra dilation iterations on detected inter-instance boundary.
+            0 means only remove the direct touching boundary.
+            1 is sometimes useful if merge later tends to reconnect thin gaps.
+        keep_outer_boundary:
+            If True, only remove boundaries between different non-zero instances.
+            Foreground-background outer contour is kept.
+            This is usually what you want for semantic mask.
 
     Returns:
-        ndarray: A view of strided sub-matrices.
+        Semantic binary mask, uint8, values in {0, 1}.
     """
-    s0, s1 = arr.strides[:2]
-    m1, n1 = arr.shape[:2]
-    m2, n2 = sub_shape
-    view_shape = (1 + (m1 - m2) // stride[0], 1 + (n1 - n2) // stride[1], m2, n2) + arr.shape[2:]
-    strides = (stride[0] * s0, stride[1] * s1, s0, s1) + arr.strides[2:]
-    subs = np.lib.stride_tricks.as_strided(arr, view_shape, strides=strides)
-    return subs
+    ins = np.asarray(ins)
+    if ins.ndim != 2:
+        raise ValueError(f"`ins` must be 2D, got shape={ins.shape}")
 
+    h, w = ins.shape
+    fg = ins > 0
+    boundary = np.zeros((h, w), dtype=bool)
 
-def poolingOverlap(mat, ksize, stride=None, method='max', pad=False):
+    # 8-neighborhood
+    shifts = [
+        (-1, -1), (-1, 0), (-1, 1),
+        ( 0, -1),          ( 0, 1),
+        ( 1, -1), ( 1, 0), ( 1, 1),
+    ]
+
+    for dy, dx in shifts:
+        # source window on current image
+        y1 = max(0, -dy)
+        y2 = min(h, h - dy)
+        x1 = max(0, -dx)
+        x2 = min(w, w - dx)
+
+        # shifted neighbor window
+        yy1 = max(0, dy)
+        yy2 = min(h, h + dy)
+        xx1 = max(0, dx)
+        xx2 = min(w, w + dx)
+
+        center = ins[y1:y2, x1:x2]
+        neigh = ins[yy1:yy2, xx1:xx2]
+
+        if keep_outer_boundary:
+            # only detect boundary between DIFFERENT non-zero instances
+            diff = (center > 0) & (neigh > 0) & (center != neigh)
+        else:
+            # also treat fg-bg transitions as removable boundary
+            diff = (center != neigh) & ((center > 0) | (neigh > 0))
+
+        boundary[y1:y2, x1:x2] |= diff
+
+    if boundary_expand > 0:
+        kernel = np.ones((3, 3), np.uint8)
+        boundary = cv2.dilate(
+            boundary.astype(np.uint8),
+            kernel,
+            iterations=boundary_expand
+        ).astype(bool)
+
+    sem = fg.astype(np.uint8)
+    sem[boundary] = 0
+    return sem
+
+def build_overlap_mask(
+    positions: List[Tuple[int, int, int, int]],
+    original_shape: Tuple[int, int]
+) -> np.ndarray:
     """
-    Perform overlapping pooling on 2D or 3D data.
+    Build real overlap mask from actual patch positions.
+
+    A pixel is marked True if it is covered by more than one patch.
 
     Args:
-        mat (ndarray): The input array to pool.
-        ksize (tuple of 2): Kernel size in (ky, kx).
-        stride (tuple of 2, optional): Stride of the pooling window. If None, it defaults to the kernel size (non - overlapping pooling).
-        method (str, optional): Pooling method, 'max' for max - pooling, 'mean' for mean - pooling.
-        pad (bool, optional): Whether to pad the input matrix or not. If not padded, the output size will be (n - f)//s+1, where n is the matrix size, f is the kernel size, and s is the stride. If padded, the output size will be ceil(n/s).
+        positions: list of (y_start, x_start, y_end, x_end)
+        original_shape: (H, W)
 
     Returns:
-        ndarray: The pooled matrix.
+        overlap_mask: bool ndarray, shape (H, W)
     """
+    h, w = original_shape
+    coverage = np.zeros((h, w), dtype=np.uint16)
 
-    m, n = mat.shape[:2]
-    ky, kx = ksize
-    if stride is None:
-        stride = (ky, kx)
-    sy, sx = stride
-
-    _ceil = lambda x, y: int(np.ceil(x / float(y)))
-
-    # Replace zeros with NaNs to handle them in max and mean calculations
-    mat = np.where(mat == 0, np.nan, mat)
-
-    if pad:
-        # Calculate the padded size
-        ny = _ceil(m, sy)
-        nx = _ceil(n, sx)
-        size = ((ny - 1) * sy + ky, (nx - 1) * sx + kx) + mat.shape[2:]
-        mat_pad = np.full(size, np.nan)
-        mat_pad[:m, :n, ...] = mat
-    else:
-        # Ensure the matrix is large enough for the kernel if not padding
-        mat_pad = mat[:(m - ky) // sy * sy + ky, :(n - kx) // sx * sx + kx, ...]
-
-    # Create a view of the matrix with the specified stride
-    view = asStride(mat_pad, ksize, stride)
-    if method == 'max':
-        # Perform max-pooling and convert NaNs back to zeros
-        result = np.nanmax(view, axis=(2, 3))
-    else:
-        # Perform mean-pooling and convert NaNs back to zeros
-        result = np.nanmean(view, axis=(2, 3))
-    result = np.nan_to_num(result)
-    return result
-
-
-def f_instance2semantics_max(ins):
-    """
-    Processes an instance segmentation mask to remove small objects and converts it to a semantic segmentation mask.
-
-    Args:
-        ins (numpy.ndarray): The instance segmentation mask.
-
-    Returns:
-        numpy.ndarray: The semantic segmentation mask.
-    """
-    ins_m = poolingOverlap(ins, ksize=(2, 2), stride=(1, 1), pad=True, method='mean')
-    mask = np.uint8(np.subtract(np.float64(ins), ins_m))
-    ins[mask != 0] = 0
-    ins = f_instance2semantics(ins)
-    return ins
-
+    for y_start, x_start, y_end, x_end in positions:
+        coverage[y_start:y_end, x_start:x_end] += 1
+    overlap_mask = coverage > 1
+    return overlap_mask
 
 def main(
     file_path: str, 
@@ -181,7 +268,7 @@ def main(
     stain_type= None,
     output_path=None,
     patch_size: int = 4096,
-    overlap: int = 24
+    overlap: int = 48
 ) -> np.ndarray:
 
     try:
@@ -205,54 +292,24 @@ def main(
     patches, positions = split_image_into_patches(img, patch_size, overlap)
 
     # mark overlap area
-    overlap_mask = np.zeros(img.shape[:2], dtype=bool)
-    h, w = img.shape[:2]
-
-    stride = patch_size - overlap
-
-    for x in range(stride, w, stride):
-        x_start = max(0, x - overlap)
-        x_end = min(w, x + overlap)
-        if x_start < x_end:
-            overlap_mask[:, x_start:x_end] = True
-
-    for y in range(stride, h, stride):
-        y_start = max(0, y - overlap)
-        y_end = min(h, y + overlap)
-        if y_start < y_end:
-            overlap_mask[y_start:y_end, :] = True
+    overlap_mask = build_overlap_mask(positions, img.shape[:2])
     
     # patch segmentation
     model = models.CellposeModel(gpu = gpu, pretrained_model=model_dir)
     masks = []
     for i, patch in enumerate(tqdm.tqdm(patches, desc='Segment cells with [Cellpose]')):
         mask = model.eval(patch, diameter=None, channels=[0, 0])[0]
-        mask = f_instance2semantics_max(mask)
-        '''num_cells, instance_mask = cv2.connectedComponents(
-            (mask > 0).astype(np.uint8), 
-            connectivity=4
-        )
-        
-        sizes = []
-        for i in range(1, num_cells):
-            sizes.append(np.sum(instance_mask == i))
-        
-        if not sizes:  
-            masks.append(mask)
-            continue
-        avg_size = np.mean(sizes)
-        
-        new_mask = np.zeros_like(mask, dtype=np.uint8)
-        
-        for i in range(1, num_cells):
-            cell_size = np.sum(instance_mask == i)
-            
-            if cell_size <= avg_size * 5:
-                new_mask[instance_mask == i] = 1'''
+        mask = cellpose_instance2semantics(mask)
         masks.append(mask)
     
     # merge mask patches
-    full_mask = merge_masks_with_or(masks, positions, img.shape[:2])
+    full_mask = merge_masks_with_overlap_only_max(
+        masks,
+        positions,
+        img.shape[:2],
+        overlap=overlap,
+        threshold=0.5
+    )
     #full_mask = apply_watershed(full_mask)
     full_mask = f_postprocess_cellpose(full_mask, overlap_mask)
 

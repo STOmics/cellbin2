@@ -18,7 +18,6 @@ from skimage.measure import regionprops
 from skimage.morphology import remove_small_objects
 from cellbin2.utils import clog
 
-import numpy as np
 
 
 def break_diagonal_connections(binary_mask):
@@ -190,33 +189,7 @@ def unique_nonzero_pairs_numpy(masks):
     return unique_pairs, counts
 
 
-# @process_decorator('GiB')
-def pair_map_by_largest_overlap(masks):
-    """Create mappings between two masks, using the largest overlap to pair.
 
-    Args:
-        masks (tuple[LabeledMask,LabeledMask]): The masks to compare and
-            generated unique pairings.
-
-    Returns:
-        np.ndarray[tuple[int], np.dtype[np.uint32]]: A map from the 1st mask to
-            the 1st.
-        np.ndarray[tuple[int], np.dtype[np.uint32]]: A map from the 2nd mask to
-            the 2nd.
-    """
-    nz_paired_labels, nz_counts = unique_nonzero_pairs_numpy(masks)
-
-    # assign each cell the nuclei with the most overlap
-    count_sort_ix = np.argsort(nz_counts, kind="stable")
-
-    mask_a, mask_b = masks
-
-    a_to_b = np.zeros(np.max(mask_a) + 1, dtype=np.uint32)
-    a_to_b[nz_paired_labels[count_sort_ix, 0]] = nz_paired_labels[count_sort_ix, 1]
-    b_to_a = np.zeros(np.max(mask_b) + 1, dtype=np.uint32)
-    b_to_a[nz_paired_labels[count_sort_ix, 1]] = nz_paired_labels[count_sort_ix, 0] 
-
-    return a_to_b, b_to_a
 def keep_large_nucleus_fragments(original_nucleus_mask: np.ndarray, filtered_nucleus_mask: np.ndarray, threshold=0.4) -> np.ndarray:
     """
     keep only big pieces of cell pieces
@@ -271,7 +244,7 @@ def secondary_mask_filter(final_nuclear_path,final_cell_mask_path):
         final_nuclear = cbimread(final_nuclear_path, only_np=True)
     else:
         final_nuclear = final_nuclear_path
-    if isinstance(final_nuclear_path, (str, os.PathLike, np.ndarray)):   
+    if isinstance(final_cell_mask_path, (str, os.PathLike, np.ndarray)):   
         final_cell_mask = cbimread(final_cell_mask_path, only_np=True)
     else:
         final_cell_mask = final_cell_mask_path
@@ -484,11 +457,11 @@ def multimodal_merge(
     nuclei_mask_semantic = instance2semantics(nuclei_mask_raw)
     filter_mask = interior_filter(interior_mask_final, nuclei_mask_semantic)
 
-    if save_path != "":
+    '''if save_path != "":
         cbimwrite(
             join(save_path, "cell_add_interior_before_filter.tif"),
             instance2semantics(cell_add_interior) * 255
-        )
+        )'''
 
     cell_add_interior = cv2.bitwise_or(cell_mask_raw, filter_mask)
 
@@ -513,7 +486,7 @@ def multimodal_merge(
         output_nuclei_path = join(save_path, "output_nuclei_mask.tif")
         cbimwrite(output_nuclei_path, instance2semantics(output_nuclei_mask) * 255)
         cbimwrite(
-            join(save_path, "cell_mask_add_interior_add_nuclei.tif"),
+            join(save_path, "merged_cell_mask.tif"),
             first_merged_mask * 255
         )
     else:
@@ -542,6 +515,7 @@ def multimodal_merge(
     )
 
     final_mask = instance2semantics(final_mask).astype(np.uint8)
+    final_mask = break_diagonal_connections(final_mask)
 
     if save_path != "":
         cbimwrite(join(save_path, "secondary_mask_final.tif"),
@@ -553,13 +527,28 @@ def multimodal_merge(
 
 
 if __name__ == '__main__':
-    save_path = r"/"
-    nuclei_mask_path = r"/"
-    cell_mask_path = r"/"
-    interior_mask_path = r"/"
-    nuclei_mask_raw = cbimread(nuclei_mask_path, only_np=True)
-    cell_mask_raw = cbimread(cell_mask_path, only_np=True)
-    interior_mask_raw = cbimread(interior_mask_path, only_np=True)
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-o", "--output", required=True, help="Output directory for merged results")
+    parser.add_argument("--nuc", required=True, help="Path to Nucleus (DAPI) mask file")
+    parser.add_argument("--mem", required=True, help="Path to Membrane (CY5) mask file")
+    parser.add_argument("--cyto", required=True, help="Path to Interior (TRITC) mask file")
+    args = parser.parse_args()
+    abs_output_path = os.path.abspath(args.output)
+    if not os.path.exists(abs_output_path):
+        os.makedirs(abs_output_path, exist_ok=True)
+        print(f"Created output directory: {abs_output_path}")
+
+    print(">>> Starting Distributed Mask Fusion")
+    print(f"Target Nuclei  (--nuc): {args.nuc}")
+    print(f"Target Interior (--cyto): {args.cyto}")
+    print(f"Target Membrane  (--mem): {args.mem}")
+
+    save_path = args.output
+    nuclei_mask_path = args.nuc
+    cell_mask_path = args.mem
+    interior_mask_path = args.cyto
     
     multimodal_merge(
         nuclei_mask_path=nuclei_mask_path,
@@ -567,3 +556,5 @@ if __name__ == '__main__':
         interior_mask_path=interior_mask_path,
         save_path=save_path
     )
+
+    print(f"\n[Success] Final Merged Mask: {os.path.join(abs_output_path, 'merged_cell_mask.tif')}")
