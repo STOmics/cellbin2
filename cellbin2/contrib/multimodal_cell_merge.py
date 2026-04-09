@@ -46,18 +46,13 @@ def break_diagonal_connections(binary_mask):
     out[1:, :-1][pattern2] = 0
 
     return out
-def export_cell_mask_to_geojson(final_cell_mask_path):
+def export_cell_mask_to_geojson(final_cell_mask_path, save_path):
     final_cell_mask_path = Path(final_cell_mask_path)
-    output_path = final_cell_mask_path.parent
-    geojson_path = Path(str(final_cell_mask_path).replace(".tif", ".geojson"))
-
-    multimodal_mid_dir = output_path / "multimodal_mid_file"
-    interior_mask_path = multimodal_mid_dir / "interior_mask_final.tif"
-    nuclei_mask_path = multimodal_mid_dir / "output_nuclei_mask.tif"
+    save_path = Path(save_path)
+    geojson_path = final_cell_mask_path.with_suffix(".geojson")
 
     # 1) read and clean cell mask
     final_cell_mask = cbimread(final_cell_mask_path, only_np=True)
-    #final_cell_mask = break_diagonal_connections(final_cell_mask)
     final_cell_mask = remove_small_objects(
         final_cell_mask.astype(np.bool8),
         min_size=15,
@@ -67,66 +62,118 @@ def export_cell_mask_to_geojson(final_cell_mask_path):
     # keep original behavior
     cbimwrite(final_cell_mask_path, final_cell_mask)
 
-    # 2) read source masks
-    interior_mask = None
-    nuclei_mask = None
-
-    if interior_mask_path.exists():
-        interior_mask = cbimread(interior_mask_path, only_np=True)
-        interior_mask = (interior_mask > 0).astype(np.uint8)
-
-    if nuclei_mask_path.exists():
-        nuclei_mask = cbimread(nuclei_mask_path, only_np=True)
-        nuclei_mask = (nuclei_mask > 0).astype(np.uint8)
-
-    # 3) 4-connectivity labeling
+    # 2) 4-connectivity labeling
     structure_4 = np.array([
         [0, 1, 0],
         [1, 1, 1],
         [0, 1, 0]
     ], dtype=np.uint8)
-
     labeled_mask, num_labels = ndimage.label(final_cell_mask > 0, structure=structure_4)
 
-    # 4) read transform / crs
-    try:
-        with rasterio.open(final_cell_mask_path) as src:
-            transform = src.transform
-            crs = src.crs
-    except Exception:
-        transform = rasterio.transform.from_origin(0, 0, 1, 1)
-        crs = None
+    # 3) decide mode
+    if (not save_path.exists()) or (not any(save_path.iterdir())):
+        mode = "all_nuclear"
+    elif (save_path / "interior_mask_copy.tif").exists():
+        mode = "interior_copy"
+    elif (save_path / "boundary_mask_copy.tif").exists():
+        mode = "boundary_copy"
+    else:
+        mode = "default"
 
-    # 5) precompute source for each label by centroid
+    clog.info(f"GeoJSON source mode: {mode}, num_labels={num_labels}")
+
+    # 4) read optional masks
+    interior_mask = None
+    boundary_mask = None
+    nuclei_mask = None
+
+    if mode == "interior_copy":
+        interior_mask_path = save_path / "interior_mask_copy.tif"
+        interior_mask = cbimread(interior_mask_path, only_np=True)
+        interior_mask = (interior_mask > 0).astype(np.uint8)
+
+    elif mode == "boundary_copy":
+        boundary_mask_path = save_path / "boundary_mask_copy.tif"
+        boundary_mask = cbimread(boundary_mask_path, only_np=True)
+        boundary_mask = (boundary_mask > 0).astype(np.uint8)
+
+    elif mode == "default":
+        interior_mask_path = save_path / "interior_mask_final.tif"
+        nuclei_mask_path = save_path / "output_nuclei_mask.tif"
+
+        if interior_mask_path.exists():
+            interior_mask = cbimread(interior_mask_path, only_np=True)
+            interior_mask = (interior_mask > 0).astype(np.uint8)
+
+        if nuclei_mask_path.exists():
+            nuclei_mask = cbimread(nuclei_mask_path, only_np=True)
+            nuclei_mask = (nuclei_mask > 0).astype(np.uint8)
+
+    # 5) compute source for each label by centroid
     label_to_source = {}
+    h, w = labeled_mask.shape
 
     props = regionprops(labeled_mask)
     for obj in props:
         label_id = int(obj.label)
 
-        # centroid in pixel coordinates (row, col)
         cy, cx = obj.centroid
         cy = int(round(cy))
         cx = int(round(cx))
+        cy = int(np.clip(cy, 0, h - 1))
+        cx = int(np.clip(cx, 0, w - 1))
 
-        cy = np.clip(cy, 0, labeled_mask.shape[0] - 1)
-        cx = np.clip(cx, 0, labeled_mask.shape[1] - 1)
+        source = "nuclear"
 
-        source = "boundary"
+        if mode == "all_nuclear":
+            source = "nuclear"
 
-        if interior_mask is not None:
-            if cy < interior_mask.shape[0] and cx < interior_mask.shape[1]:
-                if interior_mask[cy, cx] > 0:
-                    source = "interior"
+        elif mode == "interior_copy":
+            if (
+                interior_mask is not None
+                and cy < interior_mask.shape[0]
+                and cx < interior_mask.shape[1]
+                and interior_mask[cy, cx] > 0
+            ):
+                source = "interior"
+            else:
+                source = "nuclear"
 
-        if source == "boundary" and nuclei_mask is not None:
-            if cy < nuclei_mask.shape[0] and cx < nuclei_mask.shape[1]:
-                if nuclei_mask[cy, cx] > 0:
-                    source = "nuclear"
+        elif mode == "boundary_copy":
+            if (
+                boundary_mask is not None
+                and cy < boundary_mask.shape[0]
+                and cx < boundary_mask.shape[1]
+                and boundary_mask[cy, cx] > 0
+            ):
+                source = "boundary"
+            else:
+                source = "nuclear"
+
+        else:
+            if (
+                interior_mask is not None
+                and cy < interior_mask.shape[0]
+                and cx < interior_mask.shape[1]
+                and interior_mask[cy, cx] > 0
+            ):
+                source = "interior"
+            elif (
+                nuclei_mask is not None
+                and cy < nuclei_mask.shape[0]
+                and cx < nuclei_mask.shape[1]
+                and nuclei_mask[cy, cx] > 0
+            ):
+                source = "nuclear"
+            else:
+                source = "boundary"
 
         label_to_source[label_id] = source
 
-    # 6) polygonize the whole labeled image once
+    # 6) use pixel coordinates directly
+    transform = rasterio.transform.from_origin(0, 0, 1, 1)
+
+    # 7) polygonize whole labeled mask once
     features = []
     for geom, value in shapes(
         labeled_mask.astype(np.int32),
@@ -138,12 +185,10 @@ def export_cell_mask_to_geojson(final_cell_mask_path):
         if label_id <= 0:
             continue
 
-        source = label_to_source.get(label_id, "boundary")
-
         features.append({
             "type": "Feature",
             "properties": {
-                "source": source
+                "source": label_to_source.get(label_id, "nuclear")
             },
             "geometry": geom
         })
