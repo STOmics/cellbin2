@@ -456,9 +456,9 @@ def interior_filter(interior_mask: np.ndarray, nuclei_mask: np.ndarray) -> np.nd
 
 # @process_decorator('GiB')
 def multimodal_merge(
-        nuclei_mask_path,
-        cell_mask_path,
-        interior_mask_path,
+        nuclei_mask_raw,
+        cell_mask_raw,
+        interior_mask_raw,
         overlap_threshold=0.5,
         save_path="",
         expand_distance=10,
@@ -487,27 +487,17 @@ def multimodal_merge(
     import os
     from os.path import join
 
-    nuclei_mask_raw = cbimread(nuclei_mask_path, only_np=True)
-    cell_mask_raw = cbimread(cell_mask_path, only_np=True)
-    interior_mask_raw = cbimread(interior_mask_path, only_np=True)
-
     # ----------------------------- merge interior into cell ---------------------------------
     interior_mask_final, cell_add_interior = overlap_v3(
         interior_mask_raw,
         cell_mask_raw,
-        overlap_threshold=0.5,
+        overlap_threshold=overlap_threshold,
         save_path=save_path
     )
 
     interior_mask_final = instance2semantics(interior_mask_final)
     nuclei_mask_semantic = instance2semantics(nuclei_mask_raw)
     filter_mask = interior_filter(interior_mask_final, nuclei_mask_semantic)
-
-    '''if save_path != "":
-        cbimwrite(
-            join(save_path, "cell_add_interior_before_filter.tif"),
-            instance2semantics(cell_add_interior) * 255
-        )'''
 
     cell_add_interior = cv2.bitwise_or(cell_mask_raw, filter_mask)
 
@@ -599,7 +589,7 @@ def run_dual_modal(nuclei_mask_path: str, boundary_mask_path: str, save_path: st
     )
 
     output_nuclei_path = os.path.join(save_path, "output_nuclei_mask.tif")
-    cbimwrite(output_nuclei_path, output_nuclei_mask)
+    cbimwrite(output_nuclei_path, instance2semantics(output_nuclei_mask) * 255)
 
     fast_mask = run_fast_correct(
         mask_path=output_nuclei_path,
@@ -627,7 +617,6 @@ def run_pipeline(args):
     cell_mask_path = args.mem
     interior_mask_path = args.cyto
 
-    has_core = nuclei_mask_path is not None
     has_interior = interior_mask_path is not None
     has_boundary = cell_mask_path is not None
 
@@ -636,15 +625,19 @@ def run_pipeline(args):
     print(f"Target Interior (--cyto): {interior_mask_path}")
     print(f"Target Membrane (--mem): {cell_mask_path}")
 
-    if has_core and has_interior and has_boundary:
+    nuclei_mask = cbimread(nuclei_mask_path, only_np=True)
+
+    if has_interior and has_boundary:
+        cell_mask = cbimread(cell_mask_path, only_np=True)
+        interior_mask = cbimread(interior_mask_path, only_np=True)
         multimodal_merge(
-            nuclei_mask_path=nuclei_mask_path,
-            cell_mask_path=cell_mask_path,
-            interior_mask_path=interior_mask_path,
+            nuclei_mask_raw=nuclei_mask,
+            cell_mask_raw=cell_mask,
+            interior_mask_raw=interior_mask,
             save_path=save_path
         )
 
-    elif has_core and (has_interior or has_boundary):
+    elif has_interior or has_boundary:
         boundary_mask_path = cell_mask_path if has_boundary else interior_mask_path
         run_dual_modal(
             nuclei_mask_path=nuclei_mask_path,
