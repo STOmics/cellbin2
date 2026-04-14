@@ -1,6 +1,7 @@
 import os
 from os.path import join
 from typing import Final, NamedTuple, TypedDict, Tuple
+import argparse
 
 from skimage.measure import label
 import numpy as np
@@ -461,7 +462,7 @@ def multimodal_merge(
         overlap_threshold=0.5,
         save_path="",
         expand_distance=10,
-        expand_n_jobs=5,
+        expand_n_jobs=30,
         final_overlap_threshold=0.1,
 ):
     """
@@ -560,7 +561,7 @@ def multimodal_merge(
     )
 
     final_mask = instance2semantics(final_mask).astype(np.uint8)
-    #final_mask = break_diagonal_connections(final_mask)
+    final_mask = break_diagonal_connections(final_mask)
 
     if save_path != "":
         cbimwrite(join(save_path, "secondary_mask_final.tif"),
@@ -571,35 +572,96 @@ def multimodal_merge(
 
 
 
-if __name__ == '__main__':
-    import argparse
-
-    parser = argparse.ArgumentParser()
+def parse_args():
+    parser = argparse.ArgumentParser(description="Distributed Mask Fusion")
     parser.add_argument("-o", "--output", required=True, help="Output directory for merged results")
-    parser.add_argument("--nuc", required=True, help="Path to Nucleus (DAPI) mask file")
-    parser.add_argument("--mem", required=True, help="Path to Membrane (CY5) mask file")
-    parser.add_argument("--cyto", required=True, help="Path to Interior (TRITC) mask file")
-    args = parser.parse_args()
-    abs_output_path = os.path.abspath(args.output)
-    if not os.path.exists(abs_output_path):
-        os.makedirs(abs_output_path, exist_ok=True)
-        print(f"Created output directory: {abs_output_path}")
+    parser.add_argument("--nuc", required=True, help="Path to nucleus (DAPI) mask file")
+    parser.add_argument("--mem", default=None, help="Path to membrane (CY5) mask file")
+    parser.add_argument("--cyto", default=None, help="Path to interior (TRITC) mask file")
+    return parser.parse_args()
 
-    print(">>> Starting Distributed Mask Fusion")
-    print(f"Target Nuclei  (--nuc): {args.nuc}")
-    print(f"Target Interior (--cyto): {args.cyto}")
-    print(f"Target Membrane  (--mem): {args.mem}")
 
+def ensure_output_dir(output_dir: str) -> str:
+    abs_output_path = os.path.abspath(output_dir)
+    os.makedirs(abs_output_path, exist_ok=True)
+    return abs_output_path
+
+
+def run_dual_modal(nuclei_mask_path: str, boundary_mask_path: str, save_path: str):
+    nuclei_mask = cbimread(nuclei_mask_path, only_np=True)
+    boundary_mask = cbimread(boundary_mask_path, only_np=True)
+
+    output_nuclei_mask, _ = overlap_v3(
+        nuclei_mask,
+        boundary_mask,
+        overlap_threshold=0.8,
+        save_path=save_path,
+    )
+
+    output_nuclei_path = os.path.join(save_path, "output_nuclei_mask.tif")
+    cbimwrite(output_nuclei_path, output_nuclei_mask)
+
+    fast_mask = run_fast_correct(
+        mask_path=output_nuclei_path,
+        distance=10,
+        n_jobs=30,
+    )
+
+    expand_nuclei_path = os.path.join(save_path, "expand_nuclei.tif")
+    cbimwrite(expand_nuclei_path, fast_mask)
+
+    _, final_mask = overlap_v3(
+        fast_mask,
+        boundary_mask,
+        overlap_threshold=0.1,
+        save_path="",
+    )
+    final_mask = instance2semantics(final_mask).astype(np.uint8)
+    final_mask = break_diagonal_connections(final_mask)
+    cbimwrite(join(save_path, "final_cell_mask.tif"), final_mask * 255)
+
+
+def run_pipeline(args):
     save_path = args.output
     nuclei_mask_path = args.nuc
     cell_mask_path = args.mem
     interior_mask_path = args.cyto
-    
-    multimodal_merge(
-        nuclei_mask_path=nuclei_mask_path,
-        cell_mask_path=cell_mask_path,
-        interior_mask_path=interior_mask_path,
-        save_path=save_path
-    )
 
-    print(f"\n[Success] Final Merged Mask: {os.path.join(abs_output_path, 'merged_cell_mask.tif')}")
+    has_core = nuclei_mask_path is not None
+    has_interior = interior_mask_path is not None
+    has_boundary = cell_mask_path is not None
+
+    print(">>> Starting Distributed Mask Fusion")
+    print(f"Target Nuclei   (--nuc): {nuclei_mask_path}")
+    print(f"Target Interior (--cyto): {interior_mask_path}")
+    print(f"Target Membrane (--mem): {cell_mask_path}")
+
+    if has_core and has_interior and has_boundary:
+        multimodal_merge(
+            nuclei_mask_path=nuclei_mask_path,
+            cell_mask_path=cell_mask_path,
+            interior_mask_path=interior_mask_path,
+            save_path=save_path
+        )
+
+    elif has_core and (has_interior or has_boundary):
+        boundary_mask_path = cell_mask_path if has_boundary else interior_mask_path
+        run_dual_modal(
+            nuclei_mask_path=nuclei_mask_path,
+            boundary_mask_path=boundary_mask_path,
+            save_path=save_path
+        )
+
+    else:
+        raise ValueError("Invalid input: nucleus mask is required, and at least one of membrane/interior mask must be provided.")
+
+
+def main():
+    args = parse_args()
+    abs_output_path = ensure_output_dir(args.output)
+    run_pipeline(args)
+    print(f"\n[Success] Final Merged Mask: {os.path.join(abs_output_path, 'final_cell_mask.tif')}")
+
+
+if __name__ == "__main__":
+    main()
