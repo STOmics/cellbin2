@@ -82,7 +82,7 @@ def cellposesam_pred_3c(
         import cellpose
     except ImportError:
         pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
-    if not cellpose.version.startswith('4.0.'):
+    if not cellpose.version.startswith('4.'):
         pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
     import cellpose
     import logging
