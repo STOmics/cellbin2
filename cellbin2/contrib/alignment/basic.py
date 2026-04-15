@@ -518,8 +518,8 @@ if __name__ == "__main__":
     print(dst_points)
 
     _points, _ = transform_points(
-        np.loadtxt(r"D:\02.data\temp\A03599D1\00pt\temp_rot0.txt"),
+        np.loadtxt(r"/"),
         (22346, 24406),
         rotation = 90
     )
-    np.savetxt(r"D:\02.data\temp\A03599D1\00pt\temp_rot0__1.txt", _points)
+    np.savetxt(r"/", _points)

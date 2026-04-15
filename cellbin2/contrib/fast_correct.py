@@ -324,6 +324,10 @@ def run_fast_correct(
     """
     if not isinstance(mask_path, np.ndarray):
         mask_path = cbimread(mask_path, only_np=True)
+
+    if np.count_nonzero(mask_path) == 0:
+        return mask_path
+
     f_cor = Fast(
         mask_path,
         distance,

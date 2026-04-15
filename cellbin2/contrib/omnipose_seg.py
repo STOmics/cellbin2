@@ -1,6 +1,7 @@
 # RUN CELLPOSE
 import os
 import glob
+import sys
 import cv2
 from math import ceil
 import numpy as np
@@ -11,14 +12,18 @@ import tqdm
 import logging
 models_logger = logging.getLogger(__name__)
 import cv2
+from skimage.morphology import remove_small_objects
+from skimage.segmentation import find_boundaries
 from typing import Tuple, List 
 
 
 from cellbin2.image.augmentation import f_ij_16_to_8_v2 as f_ij_16_to_8
+from cellbin2.image.augmentation import f_rgb2gray
+from cellbin2.contrib.cellpose_segmentor import f_instance2semantics_max, poolingOverlap
+from cellbin2.image.mask import f_instance2semantics
 from cellbin2.image import cbimread, cbimwrite
-from cellbin2.dnn.segmentor.postprocess import f_postprocess_cellpose
+#from cellbin2.dnn.segmentor.postprocess import f_postprocess_cellpose
 from cellbin2.contrib.cell_segmentor import CellSegParam
-from cellbin2.contrib.cellpose_segmentor import cellpose_instance2semantics, merge_masks_with_overlap_only_max, build_overlap_mask
 from cellbin2.utils import clog
 
 
@@ -69,25 +74,59 @@ def split_image_into_patches(
 
 
 
-def cellposesam_pred_3c(
+def merge_masks_with_or(
+    masks: List[np.ndarray], 
+    positions: List[Tuple[int, int, int, int]], 
+    original_shape: Tuple[int, int]
+) -> np.ndarray:
+
+    h, w = original_shape
+    full_mask = np.zeros((h, w), dtype=np.uint8)
+    
+    for mask, (y_start, x_start, y_end, x_end) in zip(masks, positions):
+        patch_h = y_end - y_start
+        patch_w = x_end - x_start
+        
+        valid_mask = mask[:patch_h, :patch_w]
+        
+        # process overlap area with logic or 
+        full_mask[y_start:y_end, x_start:x_end] = np.logical_or(
+            full_mask[y_start:y_end, x_start:x_start+patch_w],
+            valid_mask
+        ).astype(np.uint8)
+    
+    return full_mask
+
+
+def omnipose_pred_3c(
     img_path: str, 
     use_gpu, 
-    model_dir,
+    model_dir = "",
     patch_size: int = 4096,
-    overlap: int = 48,
+    overlap: int = 24,
     output_path = None
 ) -> np.ndarray:
 
-    try:
+    '''try:
         import cellpose
     except ImportError:
         pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
-    if not cellpose.version.startswith('4.'):
+    if not cellpose.version.startswith('4.0.'):
         pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
     import cellpose
-    import logging
+    import logging'''
 
-    from cellpose import models, core, io, plot
+    '''current_dir = os.path.dirname(os.path.abspath(__file__))
+    cellpose_omni_path = os.path.join(current_dir, 'omnipose', 'src')
+    if cellpose_omni_path not in sys.path:
+        sys.path.insert(0, cellpose_omni_path)'''
+
+    from cellpose_omni import models
+    #import omnipose
+    from cellpose_omni import io, transforms 
+
+    '''from omnipose.gpu import use_gpu
+    device, use_GPU = use_gpu()'''
 
     logging.getLogger('cellpose').setLevel(logging.WARNING)
     img = io.imread(img_path)
@@ -96,15 +135,16 @@ def cellposesam_pred_3c(
         img = np.stack([img, img, img], axis=-1)
         chan = [0, 0]
     elif img.ndim == 3 and img.shape[2] == 3:
-        chan = [2, 0]  # RGB
+        chan = [3, 1]  # RGB
     elif img.ndim == 3 and img.shape[2] != 3: # rgb C H W
         img = np.transpose(img, (1, 2, 0))
-        chan = [2, 0]  # RGB
+        chan = [3, 1]  # RGB
     # patches
+
     patches, positions = split_image_into_patches(img, patch_size, overlap)
 
     # mark overlap area
-    overlap_mask = build_overlap_mask(positions, img.shape[:2])
+    overlap_mask = np.zeros(img.shape[:2], dtype=bool)
     h, w = img.shape[:2]
 
     stride = patch_size - overlap
@@ -122,26 +162,41 @@ def cellposesam_pred_3c(
             overlap_mask[y_start:y_end, :] = True
     
     # patch segmentation
-    model = models.CellposeModel(gpu = use_gpu, pretrained_model=model_dir, use_bfloat16=False)
+    model = models.CellposeModel(gpu=use_gpu, model_type="cyto2_omni")
     masks = []
     for i, patch in enumerate(tqdm.tqdm(patches, desc='Segment cells with [Cellpose]')):
-        mask = model.eval(patch, diameter=None)[0]
-        mask = cellpose_instance2semantics(mask)
+        mask = model.eval(patch,channels=chan)[0]
+        mask = f_instance2semantics_max(mask)
+        '''num_cells, instance_mask = cv2.connectedComponents(
+            (mask > 0).astype(np.uint8), 
+            connectivity=4
+        )
+        
+        sizes = []
+        for i in range(1, num_cells):
+            sizes.append(np.sum(instance_mask == i))
+        
+        if not sizes:  
+            masks.append(mask)
+            continue
+        avg_size = np.mean(sizes)
+        
+        new_mask = np.zeros_like(mask, dtype=np.uint8)
+        
+        for i in range(1, num_cells):
+            cell_size = np.sum(instance_mask == i)
+            
+            if cell_size <= avg_size * 5:
+                new_mask[instance_mask == i] = 1'''
         masks.append(mask)
     
     # merge mask patches
-    full_mask = merge_masks_with_overlap_only_max(
-        masks,
-        positions,
-        img.shape[:2],
-        overlap=overlap,
-        threshold=0.5
-    )
-    full_mask = f_postprocess_cellpose(full_mask, overlap_mask)
+    full_mask = merge_masks_with_or(masks, positions, img.shape[:2])
+    #full_mask = f_postprocess_cellpose(full_mask, overlap_mask)
     #full_mask = watershed(full_mask)
     if output_path:
         name = os.path.splitext(os.path.basename(img_path))[0]
-        c_mask_path = os.path.join(output_path, f"{name}_cpsam_mask_watershed.tif")
+        c_mask_path = os.path.join(output_path, f"{name}_omnipose_mask.tif")
         cbimwrite(output_path=c_mask_path, files=full_mask, compression=True)
 
     return full_mask
@@ -151,11 +206,11 @@ def cellposesam_pred_3c(
 demo = """
 python cellposesam.py \
 -i
-"xxx/SN_after_tc_regist.tif"
+"xxx/B02512C5_after_tc_regist.tif"
 -o
 xxx/tmp
 -m
-xxx/models/cpsam
+xxx/model
 -g
 0
 """
@@ -178,7 +233,7 @@ if __name__ == '__main__':
     if gpu == 0:
         use_gpu = False
 
-    mask =  cellposesam_pred_3c(img_path, 
+    mask =  omnipose_pred_3c(img_path, 
                     use_gpu = use_gpu, 
                     model_dir = model_path,
                     output_path=output_path)

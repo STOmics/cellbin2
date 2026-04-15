@@ -25,11 +25,11 @@ from cellbin2.modules.extract.register import run_register, transform_to_registe
 from cellbin2.modules.extract.transform import run_transform
 from cellbin2.modules.extract.tissue_seg import run_tissue_seg
 from cellbin2.modules.extract.cell_seg import run_cell_seg
-from cellbin2.contrib.mask_manager import BestTissueCellMask, MaskManagerInfo
+from cellbin2.contrib.mask_manager import BestTissueCellMask, MaskManagerInfo, mask2geojson
 from cellbin2.modules.extract.matrix_extract import extract4stitched
 from cellbin2.contrib.chip_transform import chip_transform
 from cellbin2.modules.cellmask_fixer import CellMaskFixer
-from cellbin2.contrib.multimodal_cell_merge import cell_filter, overlap_v3, multimodal_merge, keep_large_nucleus_fragments
+from cellbin2.contrib.multimodal_cell_merge import cell_filter, overlap_v3, multimodal_merge, keep_large_nucleus_fragments, export_cell_mask_to_geojson
 
 
 class Scheduler(object):
@@ -503,169 +503,150 @@ class Scheduler(object):
                     transform_to_register(
                         cur_f_name=cur_f_name
                     )
+                mask2geojson(cur_f_name.cell_mask)
                 
 
     def run_merge_masks(self):
         """
-        This method processes and merges cell masks for each molecular classification file.
-        It extracts the cell mask from the file, determines the naming convention, and merges
-        the masks if necessary. Finally, it corrects the cell mask using the fast correction
-        algorithm and saves the results.
-
-        :return: None
+        Process and merge masks for each molecular classification result.
         """
         for idx, m in self.molecular_classify_files.items():
-            core_mask = [] #list for nuclei masks
-            interior_mask = [] #list for interior masks
-            cell_mask = [] #list for boundary masks
-            matrix_mask = [] #list for matrix masks
-            clog.info('======>  Extract[{}], {}'.format(idx, m))
-            distance =  m.correct_r
-            final_nuclear_path = self.p_naming.final_nuclear_mask 
+            clog.info(f"======>  Extract[{idx}], {m}")
+
+            distance = m.correct_r
+            final_nuclear_path = self.p_naming.final_nuclear_mask
             final_t_mask_path = self.p_naming.final_tissue_mask
-            final_cell_mask_path = self.p_naming.final_cell_mask 
-            core_mask = m.cell_mask["nuclei"]
-            interior_mask = m.cell_mask["interior"]
-            cell_mask = m.cell_mask["boundary"]
-            matrix_mask = m.cell_mask["matrix"]
+            final_cell_mask_path = self.p_naming.final_cell_mask
+            mid_save_path = os.path.join(self._output_path, "multimodal_mid_file")
+            os.makedirs(mid_save_path, exist_ok=True)
 
+            core_ids = m.cell_mask["nuclei"]
+            interior_ids = m.cell_mask["interior"]
+            boundary_ids = m.cell_mask["boundary"]
+            matrix_ids = m.cell_mask["matrix"]
 
-            # integrate nuclei, interior, cell seperatly 
-            merged_cell_mask = None
-            merged_interior_mask = None
-            merged_core_mask = None
+            def _load_single_mask(mask_ids, mask_name):
+                if len(mask_ids) == 0:
+                    return None, None
+                if len(mask_ids) > 1:
+                    clog.warning(f"multiple {mask_name} masks exist")
+                    # TODO: merge multiple masks
+                    return None, None
 
-            if len(cell_mask) != 0: #cell mask exist
-                if len(cell_mask) == 1:
-                    im_naming = naming.DumpImageFileNaming(
+                im_naming = naming.DumpImageFileNaming(
                     sn=self.param_chip.chip_name,
-                    stain_type=self._files[cell_mask[0]].get_group_name(sn=self.param_chip.chip_name),
-                    save_dir=self._output_path
+                    stain_type=self._files[mask_ids[0]].get_group_name(sn=self.param_chip.chip_name),
+                    save_dir=self._output_path,
                 )
-                    if im_naming.cell_mask.exists():
-                        merged_cell_mask = cbimread(im_naming.cell_mask, only_np=True)
-                else:
-                    print("multiple cell masks exist")
-                    #TODO: merge multiple cell masks, return final_cell_mask = merged cell masks
-            
-            if len(interior_mask) != 0: #interior mask exist
-                if len(interior_mask) == 1:
-                    im_naming = naming.DumpImageFileNaming(
-                    sn=self.param_chip.chip_name,
-                    stain_type=self._files[interior_mask[0]].get_group_name(sn=self.param_chip.chip_name),
-                    save_dir=self._output_path
-                )
-                    if im_naming.cell_mask.exists():
-                        merged_interior_mask = cbimread(im_naming.cell_mask, only_np=True)
-                else:
-                    print("multiple interior masks exist")
-                    #TODO: merge multiple cell masks, return final_cell_mask = merged cell masks
-            
-            if len(core_mask) != 0: #core mask exist
-                if len(core_mask) == 1:
-                    im_naming = naming.DumpImageFileNaming(
-                    sn=self.param_chip.chip_name,
-                    stain_type=self._files[core_mask[0]].get_group_name(sn=self.param_chip.chip_name),
-                    save_dir=self._output_path
-                )
-                    if im_naming.cell_mask.exists():
-                        shutil.copy2(im_naming.cell_mask, final_nuclear_path)
-                    if im_naming.tissue_mask.exists():
-                        shutil.copy2(im_naming.tissue_mask, final_t_mask_path)
-                    final_nuclear_path = im_naming.cell_mask
-                    if im_naming.cell_mask.exists():
-                        merged_core_mask = cbimread(im_naming.cell_mask, only_np=True)
-                else:
-                    print("multiple core masks exist")
-                    #TODO: merge multiple cell masks, return final_cell_mask = merged cell masks
 
+                if im_naming.cell_mask.exists():
+                    return cbimread(im_naming.cell_mask, only_np=True), im_naming
+                return None, im_naming
 
-            #  --------------------nuclei expand--------------------
-            if len(interior_mask) == 0 and len(cell_mask) == 0 and len(core_mask) != 0:  
-                #merged_cell_mask_path = self._output_path + "core_extend_mask.tif"
-                to_fast = final_nuclear_path
-                if not os.path.exists(final_cell_mask_path) and os.path.exists(to_fast):
-                    fast_mask = run_fast_correct(
-                        mask_path=to_fast,
-                        distance = distance,
-                        n_jobs=self.config.cell_correct.process
-                    )
-                    cbimwrite(final_cell_mask_path, fast_mask)
-            # --------------------nuclei cell merge----------------------
-            elif len(interior_mask) == 0 and len(cell_mask) != 0 and len(core_mask) != 0: 
-                from cellbin2.contrib.mask_manager import merge_cell_mask
-                save_path = os.path.join(self._output_path, "multimodal_mid_file")
-                os.makedirs(save_path, exist_ok=True)
-                output_nuclei_mask, cell_add_core = overlap_v3(merged_core_mask, merged_cell_mask, overlap_threshold=0.8, save_path=save_path)
-                output_nuclei_path = os.path.join(save_path, f"output_nuclei_mask.tif")
+            merged_core_mask, core_naming = _load_single_mask(core_ids, "core")
+            merged_interior_mask, interior_naming = _load_single_mask(interior_ids, "interior")
+            merged_boundary_mask, boundary_naming = _load_single_mask(boundary_ids, "boundary")
+            _, matrix_naming = _load_single_mask(matrix_ids, "matrix")
+
+            has_core = merged_core_mask is not None
+            has_interior = merged_interior_mask is not None
+            has_boundary = merged_boundary_mask is not None
+            has_matrix = matrix_naming is not None and matrix_naming.cell_mask.exists()
+
+            # keep nuclei / tissue outputs synced
+            if core_naming is not None:
+                if core_naming.cell_mask.exists():
+                    shutil.copy2(core_naming.cell_mask, final_nuclear_path)
+                if core_naming.tissue_mask.exists():
+                    shutil.copy2(core_naming.tissue_mask, final_t_mask_path)
+
+            # -------------------- merge logic --------------------
+            if has_core and has_interior and has_boundary:
+                merged_mask = multimodal_merge(
+                    merged_core_mask,
+                    merged_boundary_mask,
+                    merged_interior_mask,
+                    overlap_threshold=0.5,
+                    save_path=mid_save_path,
+                    expand_distance=distance,
+                    expand_n_jobs=self.config.cell_correct.process,
+                    final_overlap_threshold=0.1,
+                )
+                cbimwrite(final_cell_mask_path, merged_mask)
+
+            elif has_core and (has_interior or has_boundary):
+                if has_boundary:
+                    boundary_mask = merged_boundary_mask
+                    if not has_interior:
+                        cbimwrite(os.path.join(mid_save_path, "interior_mask_copy.tif"), boundary_mask)
+                else:
+                    boundary_mask = merged_interior_mask
+                    cbimwrite(os.path.join(mid_save_path, "boundary_mask_copy.tif"), boundary_mask)
+
+                output_nuclei_mask, _ = overlap_v3(
+                    merged_core_mask,
+                    boundary_mask,
+                    overlap_threshold=0.8,
+                    save_path=mid_save_path,
+                )
+                output_nuclei_path = os.path.join(mid_save_path, "output_nuclei_mask.tif")
                 cbimwrite(output_nuclei_path, output_nuclei_mask)
-                # expand nuclei
+
                 fast_mask = run_fast_correct(
                     mask_path=output_nuclei_path,
-                    distance = distance,
-                    n_jobs=self.config.cell_correct.process
+                    distance=distance,
+                    n_jobs=self.config.cell_correct.process,
                 )
-                expand_nuclei_path = os.path.join(save_path, "expand_nuclei.tif")
+                expand_nuclei_path = os.path.join(mid_save_path, "expand_nuclei.tif")
                 cbimwrite(expand_nuclei_path, fast_mask)
-                # merge expanded nuclei with cell
-               
+
                 expand_nuclei = cbimread(expand_nuclei_path, only_np=True)
-                secondary_mask_final, final_mask = overlap_v3(expand_nuclei, merged_cell_mask, overlap_threshold=0.1, save_path="")
-                cbimwrite(final_cell_mask_path, final_mask)
-            # --------------------multimodal merge--------------------
-            elif len(interior_mask) != 0 and len(cell_mask) != 0 and len(core_mask) != 0: 
-                save_path = os.path.join(self._output_path, "multimodal_mid_file")
-                os.makedirs(save_path, exist_ok=True)
-                merged_mask = multimodal_merge(merged_core_mask, merged_cell_mask, merged_interior_mask, overlap_threshold=0.5, save_path = save_path)
-                # expand nuclei
-                output_nuclei = os.path.join(save_path, "output_nuclei_mask.tif")
-                fast_mask = run_fast_correct(
-                    mask_path=output_nuclei,
-                    distance = distance,
-                    n_jobs=self.config.cell_correct.process
+                _, final_mask = overlap_v3(
+                    expand_nuclei,
+                    boundary_mask,
+                    overlap_threshold=0.1,
+                    save_path="",
                 )
-                expand_nuclei_path = os.path.join(save_path, "expand_nuclei.tif")
-                cbimwrite(expand_nuclei_path, fast_mask)
-                
-                # merge expanded nuclei with cell
-                expand_nuclei_path = os.path.join(save_path, "expand_nuclei.tif")
-                cell_mask_add_interior_path = os.path.join(save_path, "cell_mask_add_interior.tif")
-                cell_mask_add_interior = cbimread(cell_mask_add_interior_path, only_np=True)
-                
-                expand_nuclei = cbimread(expand_nuclei_path, only_np=True)
-                secondary_mask_final, final_mask = overlap_v3(expand_nuclei, cell_mask_add_interior, overlap_threshold=0.1, save_path="")
-                #final_mask = cbimread(os.path.join(save_path2, "cell_mask_add_interior.tif"), only_np=True)
                 cbimwrite(final_cell_mask_path, final_mask)
-            # --------------------boundary only--------------------
-            elif len(interior_mask) == 0 and len(cell_mask) != 0 and len(core_mask) == 0:
-                cbimwrite(final_cell_mask_path, merged_cell_mask)
-            # --------------------interior only--------------------
-            elif len(interior_mask) != 0 and len(cell_mask) == 0 and len(core_mask) == 0:
+
+            elif has_core:
+                if (not final_cell_mask_path.exists()) and final_nuclear_path.exists():
+                    fast_mask = run_fast_correct(
+                        mask_path=final_nuclear_path,
+                        distance=distance,
+                        n_jobs=self.config.cell_correct.process,
+                    )
+                    cbimwrite(final_cell_mask_path, fast_mask)
+
+            elif has_boundary:
+                cbimwrite(final_cell_mask_path, merged_boundary_mask)
+
+            elif has_interior:
                 cbimwrite(final_cell_mask_path, merged_interior_mask)
-            # --------------------matrix fix--------------------
-            if len(matrix_mask) != 0: #matrix mask exist
-                if len(matrix_mask) == 1:
-                    im_naming = naming.DumpImageFileNaming(
-                    sn=self.param_chip.chip_name,
-                    stain_type=self._files[matrix_mask[0]].get_group_name(sn=self.param_chip.chip_name),
-                    save_dir=self._output_path
-                )
-                    matrix_mask_path = im_naming.cell_mask
-                else:
-                    print("multiple matrix masks exist")
-                    #TODO: merge multiple cell masks, return final_cell_mask = merged cell masks
+
+            # -------------------- matrix fix --------------------
+            if has_matrix:
+                matrix_mask_path = matrix_naming.cell_mask
                 if matrix_mask_path.exists() and final_nuclear_path.exists():
-                    cmf=CellMaskFixer(source_imge=str(matrix_mask_path),refer_image=str(final_nuclear_path),sn=self.param_chip.chip_name)
+                    cmf = CellMaskFixer(
+                        source_imge=str(matrix_mask_path),
+                        refer_image=str(final_nuclear_path),
+                        sn=self.param_chip.chip_name,
+                    )
                     cmf.fix_notsinglecell2mask(out_path=self._output_path, save=True)
-                    shutil.copy2(os.path.join(self._output_path, f"{self.param_chip.chip_name}_fixed_cell_mask.tif"), final_cell_mask_path)
+                    shutil.copy2(
+                        os.path.join(self._output_path, f"{self.param_chip.chip_name}_fixed_cell_mask.tif"),
+                        final_cell_mask_path,
+                    )
                 else:
-                    print("matrix mask not exist")
+                    clog.warning("matrix mask not exist")
+
+            # -------------------- post process --------------------
             if final_cell_mask_path.exists():
-                final_cell_mask = cbimread(final_cell_mask_path, only_np=True)
-                final_cell_mask = remove_small_objects(final_cell_mask.astype(np.bool8), min_size=15, connectivity=1).astype(np.uint8)
-                cbimwrite(final_cell_mask_path, final_cell_mask)
+                export_cell_mask_to_geojson(final_cell_mask_path, mid_save_path)
+
                 if final_nuclear_path.exists():
-                    filtered_core_mask = cell_filter(final_nuclear_path,final_cell_mask_path)
+                    filtered_core_mask = cell_filter(final_nuclear_path, final_cell_mask_path)
                     final_nuclear = cbimread(final_nuclear_path, only_np=True)
                     filtered_core_mask = keep_large_nucleus_fragments(final_nuclear, filtered_core_mask)
                     cbimwrite(final_nuclear_path, filtered_core_mask)

@@ -9,6 +9,8 @@ from pathlib import Path
 from cellbin2.utils import ipr
 from cellbin2.utils.rle import RLEncode
 from cellbin2.contrib import cellpose_segmentor
+from cellbin2.utils import clog
+from cellbin2.contrib.mask_manager import mask2geojson
 import os
 import numpy as np
 
@@ -35,20 +37,18 @@ def run_cell_seg(
     """
     # check input data stain type and its referred model
     stain_type = str(image_file.tech.name)
-    print(stain_type)
     cellseg_model_path = getattr(config.cell_segmentation, f"{stain_type}_weights_path")
     cellseg_model = os.path.basename(cellseg_model_path)
+    clog.info(f'{stain_type} image segmented by model: {cellseg_model}')
 
     if cellseg_model == 'cpsam':
         from cellbin2.contrib import cellposesam
-        cell_mask = cellposesam.cellposesam_pred(
+        cell_mask = cellposesam.cellposesam_pred_3c(
             img_path=str(image_path),
-            cfg=config.cell_segmentation,
             use_gpu=True,
             model_dir = cellseg_model_path
         )
     elif cellseg_model == 'cyto2torch_0' or cellseg_model == 'cyto3' or cellseg_model == 'cellpose3':
-        print("Using cellpose_segmentor for cell segmentation")
         cell_mask = cellpose_segmentor.segment4cell(
             input_path=str(image_path),
             cfg=config.cell_segmentation,
@@ -75,4 +75,5 @@ def run_cell_seg(
     #     bmr = RLEncode()
     #     c_mask_encode = bmr.encode(cell_mask)
     #     channel_image.CellSeg.CellMask = c_mask_encode
+    mask2geojson(save_path)
     return cell_mask

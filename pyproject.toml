@@ -32,7 +32,19 @@ dependencies = [
     "requests",
     "pandas==1.5.3",
     "pyvips-binary",  # if pip install pyvips error, comment it and use conda install instead. (conda install conda-forge/label/main::pyvips==2.2.3)
-    "pyvips" # if pip install pyvips error, comment it and use conda install instead. (conda install conda-forge/label/main::pyvips==2.2.3)
+    "pyvips", # if pip install pyvips error, comment it and use conda install instead. (conda install conda-forge/label/main::pyvips==2.2.3)
+
+    "geopandas==0.13.2",
+    "fiona==1.10.1",
+    "pyproj==3.5.0",
+    "rasterio==1.3.11",
+    "shapely==2.0.7",
+    "affine==2.4.0",
+    "attrs==25.3.0",
+    "click==8.1.8",
+    "click-plugins==1.1.1.2",
+    "cligj==0.7.2",
+    "snuggs==1.4.7"
 ]
 requires-python = ">=3.8"
 
