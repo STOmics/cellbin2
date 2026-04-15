@@ -31,9 +31,6 @@ dependencies = [
     "matplotlib==3.7.1",
     "requests",
     "pandas==1.5.3",
-    "pyvips-binary",  # if pip install pyvips error, comment it and use conda install instead. (conda install conda-forge/label/main::pyvips==2.2.3)
-    "pyvips", # if pip install pyvips error, comment it and use conda install instead. (conda install conda-forge/label/main::pyvips==2.2.3)
-
     "geopandas==0.13.2",
     "fiona==1.10.1",
     "pyproj==3.5.0",
