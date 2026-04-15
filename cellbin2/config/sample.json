@@ -10,7 +10,7 @@
         "trackline": false,
         "reuse": -1
       },
-      "tissue_segmentation": false,
+      "tissue_segmentation": true,
       "cell_segmentation": true,
       "magnification": 10,
       "chip_matching": -1,
@@ -102,7 +102,7 @@
     },
   "run": {
       "qc": false,
-      "alignment": false,
+      "alignment": true,
       "matrix_extract": true,
       "report": true,
       "annotation": false

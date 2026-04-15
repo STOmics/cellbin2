@@ -83,7 +83,7 @@ tissueSegmentation:
   best_tissue_mask_method: 0
 
 cellSegmentation:
-  ssDNA_weights_path: cellseg_bcdu_SHDI_221008_tf.onnx
+  ssDNA_weights_path: cpsam
   DAPI_weights_path: cellseg_bcdu_SHDI_221008_tf.onnx
   HE_weights_path: cellseg_bcdu_H_240823_tf.onnx
   IF_weights_path: cyto3
