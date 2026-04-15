@@ -54,6 +54,9 @@ include-package-data = true
 [tool.setuptools.dynamic]
 version = { attr = "cellbin2.__version__"}
 
+[tool.setuptools.package-data]
+"cellbin2.utils" = ["*.so", "*.pyd"]
+
 [tool.setuptools.packages.find]
 where = ["."]
 
