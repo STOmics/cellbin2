@@ -849,19 +849,41 @@ class TemplateReferenceV1(object):
         if image is None:
             return matrix, homo_template
         else:
-            import pyvips
-            if type(image) == str:
-                _image = pyvips.Image.new_from_file(image)
-            else:
-                _image = pyvips.Image.new_from_array(image)
-            m = list(matrix[:2, :2].flatten())
-            _image = _image.affine(m, interpolate=pyvips.Interpolate.new("nearest"), background=[0])
-            mat = vips2numpy(_image)
-            if mat.ndim == 3:
-                if mat.shape[2] != 3:
-                    mat = mat[:, :, 0]
+            try:
+                import pyvips
+                if type(image) == str:
+                    _image = pyvips.Image.new_from_file(image)
+                else:
+                    _image = pyvips.Image.new_from_array(image)
+                m = list(matrix[:2, :2].flatten())
+                _image = _image.affine(m, interpolate=pyvips.Interpolate.new("nearest"), background=[0])
+                mat = vips2numpy(_image)
+                if mat.ndim == 3:
+                    if mat.shape[2] != 3:
+                        mat = mat[:, :, 0]
+                return mat, homo_template
+            except Exception:
+                if type(image) == str:
+                    suffix = os.path.splitext(image)[1].lower()
+                    if suffix in [".tif", ".tiff"]:
+                        try:
+                            import tifffile
+                            mat = tifffile.imread(image)
+                        except Exception:
+                            mat = cv.imread(image, -1)
+                    else:
+                        mat = cv.imread(image, -1)
+                else:
+                    mat = image
 
-            return mat, homo_template
+                m2 = matrix[:2, :2].astype(np.float32)
+                m3 = np.hstack([m2, np.zeros((2, 1), dtype=np.float32)])
+                h, w = mat.shape[:2]
+                mat = cv.warpAffine(mat, m3, (w, h), flags=cv.INTER_NEAREST, borderValue=0)
+                if mat.ndim == 3:
+                    if mat.shape[2] != 3:
+                        mat = mat[:, :, 0]
+                return mat, homo_template
 
 
 if __name__ == '__main__':

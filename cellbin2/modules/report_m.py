@@ -240,7 +240,8 @@ class Report(object):
             return _temp
 
         self._json["image"]["summary"]["data"] = []
-        images_number = len(self.matrics_data["image_ipr"].keys()) - 2
+        image_ipr = self.matrics_data.get("image_ipr", {})
+        images_number = max(len(image_ipr.keys()) - 2, 0)
         self._json["image"]["summary"]["data"].append(_set_data_dict("The number of Images", images_number))
         self._json["image"]["summary"]["data"].append(_set_data_dict("ImageSizeX (mm)",
                                                                      int(self.matrics_data["image"]["param"][
@@ -248,19 +249,28 @@ class Report(object):
         self._json["image"]["summary"]["data"].append(_set_data_dict("ImageSizeY (mm)",
                                                                      int(self.matrics_data["image"]["param"][
                                                                              "sizey"]) * RESOLUTION))
-        layers = list(self.matrics_data["image_ipr"].keys())
-        layers.remove("ManualState")
-        layers.remove("StereoResepSwitch")
+        layers = [k for k in image_ipr.keys() if k not in ("ManualState", "StereoResepSwitch")]
         self._json["image"]["image_num"] = len(layers)
+        if len(layers) == 0:
+            return
 
         main_stain = set(layers) & set(['HE', 'DAPI', 'ssDNA'])
         if len(main_stain) > 1:
             # choice stain type
             layer_ = max(main_stain, key=lambda x: len(self.matrics_data["image_ipr"].get(x, {}).keys()))
-        else:
+        elif len(main_stain) == 1:
             layer_ = list(main_stain)[0]
+        else:
+            layer_ = layers[0]
         for num, layer in enumerate(layers):
             if layer != layer_:
+                continue
+            layer_data = self.matrics_data["image_ipr"].get(layer, {})
+            if not isinstance(layer_data, dict):
+                continue
+            if "image_info" not in layer_data or "QC_info" not in layer_data or "register_info" not in layer_data:
+                continue
+            if len(layer_data.get("image_info", {})) == 0:
                 continue
 
             self._json["image"]["summary"]["data"].append(_set_data_dict(f"Image_{num+1} name", layer))

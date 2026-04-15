@@ -41,8 +41,8 @@ class cbMatrix(object):
             if self.matrix_type == TechType.Transcriptomics:
 
                 self._cluster_exp = self._cluster_exp.tl.filter_cells(
-                    min_counts=100,
-                    min_genes=10,
+                    min_counts=1,
+                    min_genes=1,
                     max_genes=2500,
                     pct_counts_mt=5,
                 )

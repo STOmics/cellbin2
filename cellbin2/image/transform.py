@@ -3,11 +3,17 @@ Image Transform
 """
 import os
 import platform
+import cv2 as cv
 if platform.system() == 'Windows':
     vipsbin = r'E:\software\vips-dev-8.15.3\bin'
     os.environ['PATH'] = vipsbin + ';' + os.environ['PATH']
 
-import pyvips
+try:
+    import pyvips
+    _HAS_VIPS = True
+except Exception:
+    pyvips = None
+    _HAS_VIPS = False
 import numpy as np
 import math
 os.environ["G_MESSAGES_DEBUG"] = ""
@@ -91,202 +97,338 @@ def rotatedRectWithMaxArea(w, h, angle):
     return wr, hr
 
 
-class ImageTransform(pyvips.Image):
-    def __init__(self):
-        self.image = None
+if _HAS_VIPS:
+    class ImageTransform(pyvips.Image):
+        def __init__(self):
+            self.image = None
 
-    def set_image(self, image_path: str):
-        """
-        :param image_path: str | array
-        """
-        if isinstance(image_path, str):
-            self.image = self.new_from_file(image_path)
-        elif isinstance(image_path, np.ndarray):
-            self.image = self.new_from_array(image_path)
-        else:
-            print("Image path type error.")
+        def set_image(self, image_path: str):
+            """
+            :param image_path: str | array
+            """
+            if isinstance(image_path, str):
+                self.image = self.new_from_file(image_path)
+            elif isinstance(image_path, np.ndarray):
+                self.image = self.new_from_array(image_path)
+            else:
+                print("Image path type error.")
 
-    def offset(self, x_offset: int = 0, y_offset: int = 0, dst_size: tuple = None):
-        offset = [x_offset, y_offset]
-        self.__rigid_transform(offset=offset, dst_shape=dst_size)
-        arr = self.to_image()
-        return arr
+        def offset(self, x_offset: int = 0, y_offset: int = 0, dst_size: tuple = None):
+            offset = [x_offset, y_offset]
+            self.__rigid_transform(offset=offset, dst_shape=dst_size)
+            arr = self.to_image()
+            return arr
 
-    def scale(self, x_scale: float, y_scale: float):
-        self.__affine_transform(scale_x=x_scale, scale_y=y_scale)
-        arr = self.to_image()
-        return arr
+        def scale(self, x_scale: float, y_scale: float):
+            self.__affine_transform(scale_x=x_scale, scale_y=y_scale)
+            arr = self.to_image()
+            return arr
 
-    def resize(self, dst_size: tuple):
-        x_scale = dst_size[1] / self.image.width
-        y_scale = dst_size[0] / self.image.height
-        arr = self.scale(x_scale=x_scale, y_scale=y_scale)
-        return arr
+        def resize(self, dst_size: tuple):
+            x_scale = dst_size[1] / self.image.width
+            y_scale = dst_size[0] / self.image.height
+            arr = self.scale(x_scale=x_scale, y_scale=y_scale)
+            return arr
 
-    def rot90(self, rot90_type: int, ret_dst=True):
-        """
-        2023/09/21 @fxzhao add parameter ret_dst, default return True, otherwise return None
-        """
-        self.__rigid_transform(rot_type=rot90_type)
-        if ret_dst:
-            return self.to_image()
-        else:
-            return None
+        def rot90(self, rot90_type: int, ret_dst=True):
+            """
+            2023/09/21 @fxzhao add parameter ret_dst, default return True, otherwise return None
+            """
+            self.__rigid_transform(rot_type=rot90_type)
+            if ret_dst:
+                return self.to_image()
+            else:
+                return None
 
-    def rot(self, angle):
-        self.__affine_transform(rotation=angle)
-        arr = self.to_image()
-        return arr
+        def rot(self, angle):
+            self.__affine_transform(rotation=angle)
+            arr = self.to_image()
+            return arr
 
-    def rot_scale(self, x_scale: float, y_scale: float, angle: float, ):
-        self.__affine_transform(scale_x=x_scale, scale_y=y_scale, rotation=angle)
-        arr = self.to_image()
-        return arr
+        def rot_scale(self, x_scale: float, y_scale: float, angle: float, ):
+            self.__affine_transform(scale_x=x_scale, scale_y=y_scale, rotation=angle)
+            arr = self.to_image()
+            return arr
 
-    def flip(self, flip_type: str, ret_dst=True):
-        '''
-        :param flip_type: 'ver' | 'hor'
-        
-        2023/09/21 @fxzhao add parameter ret_dst, default True and return data, otherwise return None 
-        '''
-        self.__rigid_transform(flip=flip_type)
-        if ret_dst:
-            return self.to_image()
-        else:
-            return None
+        def flip(self, flip_type: str, ret_dst=True):
+            '''
+            :param flip_type: 'ver' | 'hor'
+            
+            2023/09/21 @fxzhao add parameter ret_dst, default True and return data, otherwise return None 
+            '''
+            self.__rigid_transform(flip=flip_type)
+            if ret_dst:
+                return self.to_image()
+            else:
+                return None
 
-    def rot_and_crop(self, angle):
-        """
-        Given the angle, return the maximum rectangle within the rotated rectangle.
+        def rot_and_crop(self, angle):
+            """
+            Given the angle, return the maximum rectangle within the rotated rectangle.
 
-        Args:
-            angle (): angle in degree
+            Args:
+                angle (): angle in degree
 
-        Returns:
-            arr_cropped: cropped rotated image
+            Returns:
+                arr_cropped: cropped rotated image
 
-        """
-        image_height, image_width = self.image.height, self.image.width
-        rot_arr = self.rot(angle)
-        arr_cropped = crop_around_center(
-            rot_arr,
-            *rotatedRectWithMaxArea(
-                w=image_width,
-                h=image_height,
-                angle=math.radians(angle)
+            """
+            image_height, image_width = self.image.height, self.image.width
+            rot_arr = self.rot(angle)
+            arr_cropped = crop_around_center(
+                rot_arr,
+                *rotatedRectWithMaxArea(
+                    w=image_width,
+                    h=image_height,
+                    angle=math.radians(angle)
+                )
             )
-        )
-        return arr_cropped
+            return arr_cropped
 
-    def __get_padding(self, rotate, h, w):
-        """
-        For pyvips rotation angle padding calculation
-        Used for pyvips rotation angle to make up for quantity
-        """
-        if 360 - rotate % 360 > 180:
-            k_x = 1
-            k_y = 0 if w % 2 == 0 else 1
-        elif 360 - rotate % 360 < 180:
-            k_x = 0 if h % 2 == 0 else 1
-            k_y = 1
-        else:
-            k_x = 1
-            k_y = 1
-        return k_x, k_y
+        def __get_padding(self, rotate, h, w):
+            """
+            For pyvips rotation angle padding calculation
+            Used for pyvips rotation angle to make up for quantity
+            """
+            if 360 - rotate % 360 > 180:
+                k_x = 1
+                k_y = 0 if w % 2 == 0 else 1
+            elif 360 - rotate % 360 < 180:
+                k_x = 0 if h % 2 == 0 else 1
+                k_y = 1
+            else:
+                k_x = 1
+                k_y = 1
+            return k_x, k_y
 
-    def __rigid_transform(self, flip=None, rot_type=None, offset=None, dst_shape=None):
-        """
-        2023/4/6 @dengzhonghan prioritize extending canvas over moving offset  
-        2023/5/6 @dengzhonghan merge canvas extending and offset moving, otherwise determine the size relation between two images
-        2023/9/19 @fxzhao fixed rotation issues by replacing affine transformation with pyvips' rot() method
-        2023/9/20 @lizepeng1 Resolved all remaining rotation issues in pyvips
-        rigid transformation
-        """
-        if flip is not None:
-            if flip == 'ver':
-                self.image = self.image.flipver()
-            elif flip == 'hor':
-                self.image = self.image.fliphor()
+        def __rigid_transform(self, flip=None, rot_type=None, offset=None, dst_shape=None):
+            """
+            2023/4/6 @dengzhonghan prioritize extending canvas over moving offset  
+            2023/5/6 @dengzhonghan merge canvas extending and offset moving, otherwise determine the size relation between two images
+            2023/9/19 @fxzhao fixed rotation issues by replacing affine transformation with pyvips' rot() method
+            2023/9/20 @lizepeng1 Resolved all remaining rotation issues in pyvips
+            rigid transformation
+            """
+            if flip is not None:
+                if flip == 'ver':
+                    self.image = self.image.flipver()
+                elif flip == 'hor':
+                    self.image = self.image.fliphor()
 
-        if rot_type is not None:
+            if rot_type is not None:
+                h = self.image.height
+                w = self.image.width
+                theta = np.radians(-rot_type * 90)
+                m = [np.cos(theta), -np.sin(theta), np.sin(theta), np.cos(theta)]
+                k_x, k_y = self.__get_padding(-rot_type * 90, h, w)
+                new_h = int(np.abs(w * np.sin(theta)) + np.abs(h * np.cos(theta)))
+                new_w = int(np.abs(w * np.cos(theta)) + np.abs(h * np.sin(theta)))
+                self.image = self.image.affine(m, idx=-int(w / 2), idy=-int(h / 2),
+                                               oarea=[-(new_w - int(new_w / 2)) + k_x,
+                                                      -(new_h - int(new_h / 2)) + k_y,
+                                                      new_w, new_h],
+                                               background=[0])
+            if offset is not None and dst_shape is not None:
+                x, y = offset
+                h, w = dst_shape
+                self.image = self.image.affine([1, 0, 0, 1],
+                                               interpolate=pyvips.Interpolate.new("nearest"),
+                                               idx=x, idy=y, oarea=[0, 0, w, h])
+
+        def __affine_transform(self, scale_x=None, scale_y=None, rotation=None):
+            """
+            affine transform
+            """
+            if scale_x is None:
+                scale_x = 1
+            if scale_y is None:
+                scale_y = 1
+            if rotation is None:
+                rotation = 0
+
+            theta = np.radians(rotation)
+            m = [scale_x * np.cos(theta), scale_x * np.sin(theta),
+                 -scale_y * np.sin(theta), scale_y * np.cos(theta)]
             h = self.image.height
             w = self.image.width
-            theta = np.radians(-rot_type * 90)
-            m = [np.cos(theta), -np.sin(theta), np.sin(theta), np.cos(theta)]
-            k_x, k_y = self.__get_padding(-rot_type * 90, h, w)
-            new_h = int(np.abs(w * np.sin(theta)) + np.abs(h * np.cos(theta)))
-            new_w = int(np.abs(w * np.cos(theta)) + np.abs(h * np.sin(theta)))
+            k_x, k_y = self.__get_padding(-rotation, h, w)
+            new_h = int((np.abs(w * np.sin(theta)) + np.abs(h * np.cos(theta))) * scale_y)
+            new_w = int((np.abs(w * np.cos(theta)) + np.abs(h * np.sin(theta))) * scale_x)
             self.image = self.image.affine(m, idx=-int(w / 2), idy=-int(h / 2),
                                            oarea=[-(new_w - int(new_w / 2)) + k_x,
                                                   -(new_h - int(new_h / 2)) + k_y,
                                                   new_w, new_h],
                                            background=[0])
-        # if rot_type is not None:
-        #     theta = np.radians(-rot_type * 90)
-        #     m = [np.cos(theta), -np.sin(theta), np.sin(theta), np.cos(theta)]
-        #     self.image = self.image.affine(m, interpolate=pyvips.Interpolate.new("nearest"),
-        #                                    background=[0])
-        # if dst_shape is not None:
-        #     h, w = dst_shape
-        #     self.image = self.image.affine([1, 0, 0, 1],
-        #                                    interpolate=pyvips.Interpolate.new("nearest"),
-        #                                    oarea=[0, 0, w, h])
-        if offset is not None and dst_shape is not None:
-            x, y = offset
-            h, w = dst_shape
-            self.image = self.image.affine([1, 0, 0, 1],
-                                           interpolate=pyvips.Interpolate.new("nearest"),
-                                           idx=x, idy=y, oarea=[0, 0, w, h])
 
-    def __affine_transform(self, scale_x=None, scale_y=None, rotation=None):
-        """
-        affine transform
-        """
-        if scale_x is None: scale_x = 1
-        if scale_y is None: scale_y = 1
-        if rotation is None: rotation = 0
+        @staticmethod
+        def numpy2vips(a):
+            height, width, bands = a.shape
+            linear = a.reshape(width * height * bands)
+            vi = pyvips.Image.new_from_memory(linear.data, width, height, bands,
+                                              dtype_to_format[str(a.dtype)])
+            return vi
 
-        theta = np.radians(rotation)
-        m = [scale_x * np.cos(theta), scale_x * np.sin(theta),
-             -scale_y * np.sin(theta), scale_y * np.cos(theta)]
-        h = self.image.height
-        w = self.image.width
-        k_x, k_y = self.__get_padding(-rotation, h, w)
-        new_h = int((np.abs(w * np.sin(theta)) + np.abs(h * np.cos(theta))) * scale_y)
-        new_w = int((np.abs(w * np.cos(theta)) + np.abs(h * np.sin(theta))) * scale_x)
-        self.image = self.image.affine(m, idx=-int(w / 2), idy=-int(h / 2),
-                                       oarea=[-(new_w - int(new_w / 2)) + k_x,
-                                              -(new_h - int(new_h / 2)) + k_y,
-                                              new_w, new_h],
-                                       background=[0])
-        # theta = np.radians(rotation)
-        # m = [scale_x * np.cos(theta), scale_x * np.sin(theta),
-        #      -scale_y * np.sin(theta), scale_y * np.cos(theta)]
-        # self.image = self.image.affine(m, interpolate=pyvips.Interpolate.new("nearest"), background=[0])
+        @staticmethod
+        def vips2numpy(vi):
+            return np.ndarray(buffer=vi.write_to_memory(),
+                              dtype=format_to_dtype[vi.format],
+                              shape=[vi.height, vi.width, vi.bands])
 
-    @staticmethod
-    def numpy2vips(a):
-        height, width, bands = a.shape
-        linear = a.reshape(width * height * bands)
-        vi = pyvips.Image.new_from_memory(linear.data, width, height, bands,
-                                          dtype_to_format[str(a.dtype)])
-        return vi
+        def to_image(self):
+            '''
+            pyvips -> array
+            '''
+            arr = self.vips2numpy(self.image)
+            if arr.ndim == 3:
+                if arr.shape[2] != 3:
+                    arr = arr[:, :, 0]
+            return arr
+else:
+    class ImageTransform:
+        def __init__(self):
+            self.image = None
 
-    @staticmethod
-    def vips2numpy(vi):
-        return np.ndarray(buffer=vi.write_to_memory(),
-                          dtype=format_to_dtype[vi.format],
-                          shape=[vi.height, vi.width, vi.bands])
+        def set_image(self, image_path: str):
+            if isinstance(image_path, str):
+                suffix = os.path.splitext(image_path)[1].lower()
+                if suffix in [".tif", ".tiff"]:
+                    try:
+                        import tifffile
+                        self.image = tifffile.imread(image_path)
+                    except Exception:
+                        self.image = cv.imread(image_path, -1)
+                else:
+                    self.image = cv.imread(image_path, -1)
+            elif isinstance(image_path, np.ndarray):
+                self.image = image_path
+            else:
+                print("Image path type error.")
 
-    def to_image(self):
-        '''
-        pyvips -> array
-        '''
-        arr = self.vips2numpy(self.image)
-        if arr.ndim == 3:
-            if arr.shape[2] != 3:
-                arr = arr[:, :, 0]
-        return arr
+        def offset(self, x_offset: int = 0, y_offset: int = 0, dst_size: tuple = None):
+            self.__rigid_transform(offset=[x_offset, y_offset], dst_shape=dst_size)
+            return self.to_image()
+
+        def scale(self, x_scale: float, y_scale: float):
+            self.__affine_transform(scale_x=x_scale, scale_y=y_scale)
+            return self.to_image()
+
+        def resize(self, dst_size: tuple):
+            h, w = self.image.shape[:2]
+            x_scale = dst_size[1] / w
+            y_scale = dst_size[0] / h
+            return self.scale(x_scale=x_scale, y_scale=y_scale)
+
+        def rot90(self, rot90_type: int, ret_dst=True):
+            self.__rigid_transform(rot_type=rot90_type)
+            if ret_dst:
+                return self.to_image()
+            return None
+
+        def rot(self, angle):
+            self.__affine_transform(rotation=angle)
+            return self.to_image()
+
+        def rot_scale(self, x_scale: float, y_scale: float, angle: float, ):
+            self.__affine_transform(scale_x=x_scale, scale_y=y_scale, rotation=angle)
+            return self.to_image()
+
+        def flip(self, flip_type: str, ret_dst=True):
+            self.__rigid_transform(flip=flip_type)
+            if ret_dst:
+                return self.to_image()
+            return None
+
+        def rot_and_crop(self, angle):
+            image_height, image_width = self.image.shape[:2]
+            rot_arr = self.rot(angle)
+            arr_cropped = crop_around_center(
+                rot_arr,
+                *rotatedRectWithMaxArea(
+                    w=image_width,
+                    h=image_height,
+                    angle=math.radians(angle)
+                )
+            )
+            return arr_cropped
+
+        def __rigid_transform(self, flip=None, rot_type=None, offset=None, dst_shape=None):
+            if flip is not None:
+                if flip == 'ver':
+                    self.image = cv.flip(self.image, 0)
+                elif flip == 'hor':
+                    self.image = cv.flip(self.image, 1)
+
+            if rot_type is not None:
+                self.__affine_transform(rotation=-rot_type * 90)
+
+            if offset is not None and dst_shape is not None:
+                x, y = offset
+                dst_h, dst_w = dst_shape
+                src_h, src_w = self.image.shape[:2]
+                if self.image.ndim == 2:
+                    dst = np.zeros((dst_h, dst_w), dtype=self.image.dtype)
+                else:
+                    dst = np.zeros((dst_h, dst_w, self.image.shape[2]), dtype=self.image.dtype)
+
+                dst_x0 = max(0, x)
+                dst_y0 = max(0, y)
+                dst_x1 = min(dst_w, x + src_w)
+                dst_y1 = min(dst_h, y + src_h)
+                src_x0 = max(0, -x)
+                src_y0 = max(0, -y)
+                src_x1 = src_x0 + max(0, dst_x1 - dst_x0)
+                src_y1 = src_y0 + max(0, dst_y1 - dst_y0)
+
+                if dst_x1 > dst_x0 and dst_y1 > dst_y0:
+                    dst[dst_y0:dst_y1, dst_x0:dst_x1] = self.image[src_y0:src_y1, src_x0:src_x1]
+                self.image = dst
+
+        def __affine_transform(self, scale_x=None, scale_y=None, rotation=None):
+            if scale_x is None:
+                scale_x = 1
+            if scale_y is None:
+                scale_y = 1
+            if rotation is None:
+                rotation = 0
+
+            img = self.image
+            h, w = img.shape[:2]
+            theta = np.radians(rotation)
+            a = scale_x * np.cos(theta)
+            b = scale_x * np.sin(theta)
+            c = -scale_y * np.sin(theta)
+            d = scale_y * np.cos(theta)
+
+            cx, cy = w / 2.0, h / 2.0
+            corners = np.array([[0, 0], [w, 0], [0, h], [w, h]], dtype=np.float32)
+            shifted = corners - np.array([cx, cy], dtype=np.float32)
+            mat2 = np.array([[a, b], [c, d]], dtype=np.float32)
+            transformed = shifted @ mat2.T
+            min_x, min_y = transformed.min(axis=0)
+            max_x, max_y = transformed.max(axis=0)
+            new_w = int(np.ceil(max_x - min_x))
+            new_h = int(np.ceil(max_y - min_y))
+            tx = -min_x
+            ty = -min_y
+
+            e = cx - a * cx - b * cy + tx
+            f = cy - c * cx - d * cy + ty
+            m = np.array([[a, b, e], [c, d, f]], dtype=np.float32)
+
+            self.image = cv.warpAffine(
+                img,
+                m,
+                (new_w, new_h),
+                flags=cv.INTER_NEAREST,
+                borderValue=0
+            )
+
+        def to_image(self):
+            arr = self.image
+            if arr.ndim == 3:
+                if arr.shape[2] != 3:
+                    arr = arr[:, :, 0]
+            return arr
 
 
 def main():

@@ -186,10 +186,21 @@ class CellBinPipeline(object):
             files = pp.get_image_files(do_image_qc=False, do_scheduler=True, cheek_exists=True)
             ipr_file = str(self._naming.ipr)
             rpi_file = str(self._naming.rpi)
-            # input image type
-            ipr_r, channel_images = ipr.read(ipr_file)
+            # Image channels are taken from IPR if available; otherwise infer from input params.
+            channel_names = []
+            if os.path.exists(ipr_file):
+                _, channel_images = ipr.read(ipr_file)
+                channel_names = list(channel_images.keys())
+            else:
+                ipr_file = ""
+                for _, v in files.items():
+                    if not v.is_image:
+                        continue
+                    g_name = v.get_group_name(self._chip_no)
+                    if g_name not in channel_names:
+                        channel_names.append(g_name)
             src_img_dict = {}
-            for c_name, c_info in channel_images.items():
+            for c_name in channel_names:
                 c_pipeline_name = naming.DumpImageFileNaming(
                     sn=self._chip_no, stain_type=c_name,
                     save_dir=self._output_path
@@ -213,11 +224,20 @@ class CellBinPipeline(object):
                 if cur_m_type not in matrix_dict:
                     cur_m_name = naming.DumpMatrixFileNaming(sn=self._chip_no, m_type=cur_m_type,
                                                              save_dir=self._output_path)
+                    bin1_matrix_path = str(matrix.file_path)
+                    if bin1_matrix_path.endswith('.gem') or bin1_matrix_path.endswith('.gem.gz'):
+                        if bin1_matrix_path.endswith('.gem.gz'):
+                            raw_gef_path = bin1_matrix_path[:-7] + '.raw.gef'
+                        else:
+                            raw_gef_path = bin1_matrix_path[:-4] + '.raw.gef'
+                        if os.path.exists(raw_gef_path):
+                            bin1_matrix_path = raw_gef_path
+
                     cur_m_src_files = metrics.MatrixArray(
                         tissue_bin_matrix=str(cur_m_name.tissue_bin_matrix),
                         cell_bin_matrix=str(cur_m_name.cell_bin_matrix),
                         cell_bin_adjusted_matrix=str(cur_m_name.cell_correct_bin_matrix),
-                        bin1_matrix=str(matrix.file_path),
+                        bin1_matrix=bin1_matrix_path,
                         matrix_type=matrix.tech
                     )
                     matrix_dict[cur_m_type] = cur_m_src_files

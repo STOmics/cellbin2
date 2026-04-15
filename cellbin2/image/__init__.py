@@ -320,8 +320,9 @@ def cbimread(
 
     """
     if isinstance(files, (list, tuple)):
-        # TODO
-        pass
+        if only_np:
+            return [CBImage(f).image for f in files]
+        return [CBImage(f) for f in files]
     elif isinstance(files, (str, os.PathLike, np.ndarray)):
         cbi = CBImage(files)
         if only_np:

@@ -3,7 +3,6 @@ import cv2
 
 
 from cellbin2.contrib.template.inferencev1.line_detector import TrackLineDetector
-from cellbin2.image.transform import ImageTransform
 from cellbin2.contrib.template.inferencev1.template_match import TemplateMatcher
 from cellbin2.image import CBImage, cbimread
 from cellbin2.image.augmentation import f_rgb2gray, dapi_enhance, f_gray2bgr
@@ -123,6 +122,7 @@ class TrackLineQC(object):
 
             ori_w, ori_h = img_obj.width, img_obj.height
             if angle is not None:
+                from cellbin2.image.transform import ImageTransform
                 ima_trans = ImageTransform()
                 ima_trans.set_image(img_obj.image)
                 new_arr = ima_trans.rot_and_crop(angle)

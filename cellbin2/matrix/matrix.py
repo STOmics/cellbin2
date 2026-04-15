@@ -318,15 +318,13 @@ def save_cell_bin_data(src_path: str, dst_path: str, cell_mask: str):
     dst_path = str(dst_path)
     cell_mask = str(cell_mask)
     from gefpy import cgef_writer_cy
-    if src_path.endswith(".gem.gz"):
-        gef_path = os.path.join(os.path.dirname(dst_path), os.path.basename(src_path).replace(".gem.gz", ".raw.gef"))
+    if src_path.endswith(".gem"):
+        gef_path = os.path.join(os.path.dirname(dst_path), os.path.basename(src_path).replace(".gem", ".raw.gef"))
         if os.path.exists(gef_path):
             src_path = gef_path
         else:
             gem_to_gef(src_path, gef_path)
             src_path = gef_path
-    if src_path.endswith(".gef"):
-        cell_mask = adjust_mask_shape(gef_path=src_path, mask_path=cell_mask)
     cgef_writer_cy.generate_cgef(dst_path, src_path, cell_mask, [256, 256])
     f_main(dst_path)
     return 0

@@ -143,16 +143,25 @@ class Metrics(object):
             self._set_image_param(h5)
             key_list = list(h5.keys())
             key_list.remove("metaInfo")
+            tissue_img = None
             for staintype in key_list:
                 if staintype == 'final':
                     continue
                 ## regist_img
-                regist_img = readrpi(h5, bin_size=self._rpi_bin, staintype=staintype, tType="Image")
-                self.output_data["image"]["register_img"][staintype] = self.image_array_to_base64(regist_img)
+                if "Image" in h5[staintype]:
+                    try:
+                        regist_img = readrpi(h5, bin_size=self._rpi_bin, staintype=staintype, tType="Image")
+                        self.output_data["image"]["register_img"][staintype] = self.image_array_to_base64(regist_img)
+                    except Exception:
+                        pass
                 ## tissue_img
                 if "TissueMask" in h5[staintype]:
-                    tissue_img = readrpi(h5, bin_size=self._rpi_bin, staintype=staintype, tType="TissueMask")
-            self.output_data["tissue_img"] = self.image_array_to_base64(tissue_img)
+                    try:
+                        tissue_img = readrpi(h5, bin_size=self._rpi_bin, staintype=staintype, tType="TissueMask")
+                    except Exception:
+                        pass
+            if tissue_img is not None:
+                self.output_data["tissue_img"] = self.image_array_to_base64(tissue_img)
             h5.close()
 
     def _set_image_param(self, h5):
@@ -346,7 +355,15 @@ class Metrics(object):
                 _set_df_tojson(df, matrix_type="Protein")
 
     def set_image_infor(self):
-        if self.filesource.ipr_file == "":
+        if self.filesource.ipr_file == "" or (not os.path.exists(self.filesource.ipr_file)):
+            self.output_data["image_ipr"]["ManualState"] = {}
+            self.output_data["image_ipr"]["StereoResepSwitch"] = {}
+            for layer in self.filesource.image_dict.keys():
+                self.output_data["image_ipr"][layer] = {
+                    "image_info": {},
+                    "QC_info": {},
+                    "register_info": {}
+                }
             return
         else:
             _ipr, channel_images = ipr.read(self.filesource.ipr_file)
@@ -415,6 +432,8 @@ class Metrics(object):
             return _dict
 
         for layer in self.filesource.image_dict.keys():
+            if layer not in self.output_data["image_ipr"]:
+                self.output_data["image_ipr"][layer] = {}
             if not os.path.exists(self.filesource.image_dict[layer].cell_mask):
                 continue
             area_ratio, area_ratio_cor, int_ratio, cell_with_outline, fig \
@@ -481,6 +500,8 @@ class Metrics(object):
                                                                                                 self._output_path)
 
     def set_trackpoint_chipbox(self):
+        if self.filesource.ipr_file == "" or (not os.path.exists(self.filesource.ipr_file)):
+            return
         for layer in self.filesource.image_dict.keys():
             if layer not in ['HE', 'DAPI', 'ssDNA']:
                 continue

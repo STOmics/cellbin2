@@ -740,30 +740,30 @@ class Scheduler(object):
 
         if flag1 in [0, 2]:
             self._dump_rpi(self.p_naming.rpi)
-        if research_mode:
-            if self.p_naming.tar_gz.exists() and self.p_naming.ipr.exists():
-                update_ipr_in_tar(
-                    tar_path=self.p_naming.tar_gz,
-                    ipr_path=self.p_naming.ipr,
-                )
 
-            if self.matrix_file is not None:
-                matrix_naming = naming.DumpMatrixFileNaming(
-                    sn=chip_no,
-                    m_type=self.matrix_file.tech.name,
-                    save_dir=output_path
-                )
-                matrix_template = matrix_naming.matrix_template
-            else:
-                matrix_template = Path("")
-
-            generate_stereo_file(
-                registered_image=self.p_naming.rpi,
-                compressed_image=self.p_naming.tar_gz,
-                matrix_template=matrix_template,
-                save_path=self.p_naming.stereo,
-                sn=chip_no
+        if self.p_naming.tar_gz.exists() and self.p_naming.ipr.exists():
+            update_ipr_in_tar(
+                tar_path=self.p_naming.tar_gz,
+                ipr_path=self.p_naming.ipr,
             )
+
+        if self.matrix_file is not None:
+            matrix_naming = naming.DumpMatrixFileNaming(
+                sn=chip_no,
+                m_type=self.matrix_file.tech.name,
+                save_dir=output_path
+            )
+            matrix_template = matrix_naming.matrix_template
+        else:
+            matrix_template = Path("")
+
+        generate_stereo_file(
+            registered_image=self.p_naming.rpi,
+            compressed_image=self.p_naming.tar_gz,
+            matrix_template=matrix_template,
+            save_path=self.p_naming.stereo,
+            sn=chip_no
+        )
         if not self.debug:
             f_to_keep = FILES_TO_KEEP_RESEARCH if research_mode else FILES_TO_KEEP
             self.del_files(f_to_keep)
