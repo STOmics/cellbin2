@@ -58,19 +58,6 @@ FILES_TO_KEEP_RESEARCH = FILES_TO_KEEP + (
     naming.DumpPipelineFileNaming.tar_gz,
     )
 
-FILES_TO_KEEP_FINAL = (
-
-    naming.DumpPipelineFileNaming.rpi,        # RPI file
-    naming.DumpPipelineFileNaming.stereo,     # Stereo file
-    naming.DumpPipelineFileNaming.report,
-
-    naming.DumpPipelineFileNaming.final_nuclear_mask,
-    naming.DumpPipelineFileNaming.final_cell_mask,
-
-    naming.DumpMatrixFileNaming.cell_bin_matrix,
-    naming.DumpMatrixFileNaming.cell_correct_bin_matrix,
-    naming.DumpMatrixFileNaming.tissue_bin_matrix
-)
 
 class ErrorCode(Enum):
     # value should be in 0-255

@@ -170,11 +170,6 @@ class DumpPipelineFileNaming(object):
         self.save_dir = save_dir
 
     @my_property_dec
-    def report(self, ):
-        """CellBin 2.0 report"""
-        return 'CellBin_{}_report.html'.format(__version__)  # report file 
-
-    @my_property_dec
     def metrics(self, ):
         """CellBin 2.0 Metrics"""
         return 'metrics.json'  # statistical indicator file
