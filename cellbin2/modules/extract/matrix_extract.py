@@ -96,22 +96,7 @@ def extract4matrix(
     cm = cMatrix()
     cm.read(file_path=Path(image_file.file_path))
     binx = cm.binx
-
-    if Path(tissue_mask_path).exists():
-        save_tissue_bin_data(
-            image_file.file_path,
-            str(m_naming.tissue_bin_matrix),
-            tissue_mask_path,
-            bin_siz=binx
-        )
-        c_inp = m_naming.tissue_bin_matrix
-        if image_file.tech == TechType.Transcriptomics:
-            generate_stereo_file(
-                save_path=p_naming.stereo,
-                gef=m_naming.tissue_bin_matrix
-            )
-    else:
-        clog.info(f"{tissue_mask_path} not exists, skip tissue gef generation")
+    
     if c_inp is None:
         c_inp = image_file.file_path
     if Path(cell_mask_path).exists():
@@ -134,6 +119,22 @@ def extract4matrix(
             )
     else:
         clog.info(f"{cell_mask_path} not exists, skip cellbin gef generation")
+    if Path(tissue_mask_path).exists():
+        save_tissue_bin_data(
+            image_file.file_path,
+            str(m_naming.tissue_bin_matrix),
+            tissue_mask_path,
+            bin_siz=binx
+        )
+        c_inp = m_naming.tissue_bin_matrix
+        if image_file.tech == TechType.Transcriptomics:
+            generate_stereo_file(
+                save_path=p_naming.stereo,
+                gef=m_naming.tissue_bin_matrix
+            )
+    else:
+        clog.info(f"{tissue_mask_path} not exists, skip tissue gef generation")
+
 
 
 def main():

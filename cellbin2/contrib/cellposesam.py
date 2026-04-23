@@ -78,12 +78,6 @@ def cellposesam_pred_3c(
     output_path = None
 ) -> np.ndarray:
 
-    try:
-        import cellpose
-    except ImportError:
-        pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
-    if not cellpose.version.startswith('4.'):
-        pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
     import cellpose
     import logging
 

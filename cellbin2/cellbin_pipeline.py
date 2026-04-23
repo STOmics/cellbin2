@@ -225,14 +225,10 @@ class CellBinPipeline(object):
                     cur_m_name = naming.DumpMatrixFileNaming(sn=self._chip_no, m_type=cur_m_type,
                                                              save_dir=self._output_path)
                     bin1_matrix_path = str(matrix.file_path)
-                    if bin1_matrix_path.endswith('.gem') or bin1_matrix_path.endswith('.gem.gz'):
-                        if bin1_matrix_path.endswith('.gem.gz'):
-                            raw_gef_path = bin1_matrix_path[:-7] + '.raw.gef'
-                        else:
-                            raw_gef_path = bin1_matrix_path[:-4] + '.raw.gef'
+                    if bin1_matrix_path.endswith('.gem'):
+                        raw_gef_path = os.path.join(self._output_path, os.path.basename(bin1_matrix_path)[:-4] + '.raw.gef')
                         if os.path.exists(raw_gef_path):
                             bin1_matrix_path = raw_gef_path
-
                     cur_m_src_files = metrics.MatrixArray(
                         tissue_bin_matrix=str(cur_m_name.tissue_bin_matrix),
                         cell_bin_matrix=str(cur_m_name.cell_bin_matrix),

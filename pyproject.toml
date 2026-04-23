@@ -41,7 +41,11 @@ dependencies = [
     "click==8.1.8",
     "click-plugins==1.1.1.2",
     "cligj==0.7.2",
-    "snuggs==1.4.7"
+    "snuggs==1.4.7",
+    'fastcluster==1.2.6',
+    'stereopy==1.6.0', # research report
+    'gefpy==1.2.6',  # generate cellbin matrix
+    'mapbox_earcut'
 ]
 requires-python = ">=3.8"
 
@@ -64,8 +68,6 @@ rs = [
     'mapbox_earcut'
 ]
 rp = [
-    'fastcluster==1.2.6',
-    'stereopy==1.6.0', # research report
     'beautifulsoup4',
     'csscompressor',
     'jsmin'
