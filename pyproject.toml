@@ -45,7 +45,7 @@ dependencies = [
     'fastcluster==1.2.6',
     'beautifulsoup4',
     'csscompressor',
-    'jsmin'
+    'jsmin',
     'stereopy==1.6.0', 
     'gefpy==1.2.6',  
     'mapbox_earcut'
