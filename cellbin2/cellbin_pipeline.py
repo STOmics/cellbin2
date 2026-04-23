@@ -17,6 +17,7 @@ from cellbin2.utils import dict2json
 from cellbin2.utils.common import KIT_VERSIONS, KIT_VERSIONS_R, sPlaceHolder, bPlaceHolder, ErrorCode
 from cellbin2.utils.pro_monitor import process_decorator
 from cellbin2.utils.weights_manager import DEFAULT_WEIGHTS_DIR
+from cellbin2.utils.common import TechType, FILES_TO_KEEP_FINAL
 
 CONFIG_PATH = os.path.join(CURR_PATH, 'config')
 # DEFAULT_WEIGHTS_DIR = os.path.join(CURR_PATH, "weights")
@@ -264,6 +265,62 @@ class CellBinPipeline(object):
             src_file_path = self._naming.metrics
             report_m.creat_report(matric_json=src_file_path, save_path=self._output_path)
 
+    def filter_files(self, ):
+
+        f_to_keep = FILES_TO_KEEP_FINAL
+        self.del_files(f_to_keep)
+
+        all_ = []
+        k_ = []
+        remove_ = []
+
+        for idx, f in self._files.items():
+            g_name = f.get_group_name(sn=self.param_chip.chip_name)
+            if f.is_matrix:
+                f_name = naming.DumpMatrixFileNaming(
+                    sn=self.param_chip.chip_name,
+                    m_type=f.tech.name,
+                    save_dir=self._output_path,
+                )
+            else:
+                f_name = naming.DumpImageFileNaming(
+                    sn=self.param_chip.chip_name,
+                    stain_type=g_name,
+                    save_dir=self._output_path
+                )
+            for p in dir(f_name):
+                att = getattr(f_name, p)
+                pt = f_name.__class__.__dict__.get(p)
+                if isinstance(pt, property) and att.exists():
+                    all_.append(att)
+                    if pt not in f_to_keep:
+                        remove_.append(att)
+                    else:
+                        k_.append(att)
+        for p_p in dir(self.p_naming):
+            p_att = getattr(self.p_naming, p_p)
+            p_pt = self.p_naming.__class__.__dict__.get(p_p)
+            if isinstance(p_pt, property) and p_att.exists():
+                all_.append(p_att)
+                if p_pt not in f_to_keep:
+                    remove_.append(p_att)
+                else:
+                    k_.append(p_att)
+
+        for f in os.listdir(self._output_path):
+            path = os.path.join(self._output_path, f)
+            from pathlib import Path
+            if Path(path) in remove_:
+                os.remove(path)
+
+        multimodal_mid_dir = os.path.join(self._output_path, "multimodal_mid_file")
+        if os.path.exists(multimodal_mid_dir):
+            for file_name in os.listdir(multimodal_mid_dir):
+                file_path = os.path.join(multimodal_mid_dir, file_name)
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+            os.rmdir(multimodal_mid_dir)
+
     def usr_inp_to_param(self):
         """
         Convert user input to processing parameters.
@@ -426,6 +483,8 @@ class CellBinPipeline(object):
         self.m_extract()  # matrix extraction 
         self.metrics()  # metrics calculation 
         self.export_report()  # report generation 
+
+        self.filter_files()
 
 
 @process_decorator('GiB')

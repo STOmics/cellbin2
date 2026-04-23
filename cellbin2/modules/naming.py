@@ -218,6 +218,11 @@ class DumpPipelineFileNaming(object):
     def stereo(self):
         """A JSON-formatted manifest file that records the visualization files in the result"""
         return f"{self._chip_no}.stereo"
+    
+    @my_property_dec
+    def report(self):
+        """A JSON-formatted manifest file that records the visualization files in the result"""
+        return f"CellBin_v2.0_report.html"
 
 
 def main():

@@ -505,7 +505,6 @@ class Scheduler(object):
                     )
                 mask2geojson(cur_f_name.cell_mask)
                 
-
     def run_merge_masks(self):
         """
         Process and merge masks for each molecular classification result.
@@ -650,9 +649,6 @@ class Scheduler(object):
                     final_nuclear = cbimread(final_nuclear_path, only_np=True)
                     filtered_core_mask = keep_large_nucleus_fragments(final_nuclear, filtered_core_mask)
                     cbimwrite(final_nuclear_path, filtered_core_mask)
-
-
-
 
     def run(self, chip_no: str, input_image: str,
             stain_type: str, param_file: str,
