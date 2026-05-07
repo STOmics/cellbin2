@@ -24,10 +24,7 @@ CONFIG_PATH = os.path.join(CURR_PATH, 'config')
 # DEFAULT_WEIGHTS_DIR = os.path.join(CURR_PATH, "weights")
 
 CONFIG_FILE = os.path.join(CONFIG_PATH, 'cellbin.yaml')
-
-
-from cellbin2.utils.stereo_chip_name import load_chip_mask
-CHIP_MASK_FILE = os.path.join(CONFIG_PATH, 'chip_mask.json.enc')
+CHIP_MASK_FILE = os.path.join(CONFIG_PATH, 'chip_mask.json')
 
 
 
@@ -231,6 +228,10 @@ class CellBinPipeline(object):
                         raw_gef_path = os.path.join(self._output_path, os.path.basename(bin1_matrix_path)[:-4] + '.raw.gef')
                         if os.path.exists(raw_gef_path):
                             bin1_matrix_path = raw_gef_path
+                    elif bin1_matrix_path.endswith('.gem.gz'):
+                        raw_gef_path = os.path.join(self._output_path, os.path.basename(bin1_matrix_path)[:-7] + '.raw.gef')
+                        if os.path.exists(raw_gef_path):
+                            bin1_matrix_path = raw_gef_path
                     cur_m_src_files = metrics.MatrixArray(
                         tissue_bin_matrix=str(cur_m_name.tissue_bin_matrix),
                         cell_bin_matrix=str(cur_m_name.cell_bin_matrix),
@@ -290,7 +291,10 @@ class CellBinPipeline(object):
 
         for f in output_dir.iterdir():
             if f.is_file() and not should_keep(f.name):
-                f.unlink()
+                try:
+                    f.unlink()
+                except PermissionError:
+                    pass
 
         mid_dir = output_dir / "multimodal_mid_file"
         if mid_dir.exists() and mid_dir.is_dir():
