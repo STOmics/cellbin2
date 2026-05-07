@@ -118,6 +118,8 @@ def cellposesam_pred_3c(
     # patch segmentation
     model = models.CellposeModel(gpu = use_gpu, pretrained_model=model_dir, use_bfloat16=False)
     masks = []
+    gpu_available = core.use_gpu()
+    print(f"GPU support for CellposeSam is {'enabled' if gpu_available else 'disabled'}")
     for i, patch in enumerate(tqdm.tqdm(patches, desc='Segment cells with [Cellpose]')):
         mask = model.eval(patch, diameter=None)[0]
         mask = cellpose_instance2semantics(mask)
