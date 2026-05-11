@@ -26,104 +26,79 @@ class cbMatrix(object):
 
     @property
     def raw_data(self):
-        if self._stereo_exp == None:
+        if self._stereo_exp is None:
             self._stereo_exp = self.read(self.file_path)
-            self._stereo_exp.cells["MID_counts"] = np.sum(self.raw_data.exp_matrix, axis=1)
+            self._stereo_exp.obs["MID_counts"] = np.asarray(self._stereo_exp.X.sum(axis=1)).flatten()
         return self._stereo_exp
 
     @property
     def cluster_data(self):
-
-
-        if self._cluster_exp == None:
-            import copy
-            self._cluster_exp = copy.deepcopy(self.raw_data)
+        if self._cluster_exp is None:
+            from pathlib import Path
             if self.matrix_type == TechType.Transcriptomics:
-
-                self._cluster_exp = self._cluster_exp.tl.filter_cells(
-                    min_counts=1,
-                    min_genes=1,
-                    max_genes=2500,
-                    pct_counts_mt=5,
-                )
-            self._cluster_exp.tl.raw_checkpoint()
-            self._cluster_exp.tl.normalize_total()
-            self._cluster_exp.tl.log1p()
-            if self.matrix_type == TechType.Transcriptomics:
-                self._cluster_exp.tl.highly_variable_genes(
-                    min_mean=0.0125,
-                    max_mean=3,
-                    min_disp=0.5,
-                    n_top_genes=5000,
-                    res_key='highly_variable_genes'
-                )
-                self._cluster_exp.plt.highly_variable_genes(res_key='highly_variable_genes')
-                self._cluster_exp.tl.scale()
-                self._cluster_exp.tl.pca(
-                    use_highly_genes=True,
-                    n_pcs=30,
-                    res_key='pca'
+                from saw_cellcluster.cell_cluster import cell_cluster
+                self._cluster_exp = cell_cluster(
+                    gef_file=self.file_path,
+                    bin_type='cell_bins',
+                    bin_size=1,
+                    use_gpu=True,
+                    resolution=1,
+                    marker=False,
+                    out_file=Path('cluster.h5ad'),
                 )
             elif self.matrix_type == TechType.Protein:
-                # self._cluster_exp.tl.scale()
-                self._cluster_exp.tl.pca(
-                    n_pcs=30,
-                    res_key='pca'
+                from saw_proteincellcluster.cell_cluster_protein import cell_cluster_protein
+                self._cluster_exp = cell_cluster_protein(
+                    gef_file=self.file_path,
+                    bin_type='cell_bins',
+                    bin_size=1,
+                    use_gpu=True,
+                    resolution=0.1,
                 )
-            self._cluster_exp.tl.neighbors(
-
-                pca_res_key='pca',
-                n_pcs=30,
-                res_key='neighbors'
-            )
-            # compute spatial neighbors
-            self._cluster_exp.tl.spatial_neighbors(
-                neighbors_res_key='neighbors',
-                res_key='spatial_neighbors'
-            )
-            self._cluster_exp.tl.umap(pca_res_key='pca', neighbors_res_key='neighbors', res_key='umap')
-            self._cluster_exp.tl.leiden(neighbors_res_key='neighbors', res_key='leiden')
-            # self._cluster_exp.tl.find_marker_genes(
-            #     cluster_res_key='leiden',
-            #     method='t_test',
-            #     use_highly_genes=False,
-            #     use_raw=True
-            # )
+            else:
+                raise Exception(f"Unsupported matrix_type: {self.matrix_type}")
         return self._cluster_exp
 
     @property
     def sn(self):
-        if self._sn == None:
-            self._sn = self.raw_data.sn
+        if self._sn is None:
+            self._sn = self.raw_data.uns.get(
+                "sn", os.path.basename(self.file_path).split(".")[0])
         return self._sn
 
     @property
     def cell_diameter(self):
-        if "cell_diameter" not in self.raw_data.cells.obs.columns:
-            if "area" not in self.raw_data.cells.obs.columns:
+        if "cell_diameter" not in self.raw_data.obs.columns:
+            if "area" not in self.raw_data.obs.columns:
                 raise Exception("No area result in .gef")
-            else:
-                self.raw_data.cells["cell_diameter"] = (2 * np.sqrt(self.raw_data.cells["area"].to_numpy() / np.pi)
-                                                        * self.raw_data.resolution / 1000)
-        return self.raw_data.cells["cell_diameter"]
+            resolution = float(self.raw_data.uns.get("resolution", 500))
+            self.raw_data.obs["cell_diameter"] = (
+                2 * np.sqrt(self.raw_data.obs["area"].to_numpy() / np.pi)
+                * resolution / 1000
+            )
+        return self.raw_data.obs["cell_diameter"]
 
     @property
     def cell_area(self):
-        if "area" not in self.raw_data.cells.obs.columns:
+        if "area" not in self.raw_data.obs.columns:
             raise Exception("No area result in .gef")
-        return self.raw_data.cells["area"]
+        return self.raw_data.obs["area"]
 
     @property
     def cell_n_gene(self):
-        if "n_gene" not in self.raw_data.cells.obs.columns:
-            self.raw_data.cells["n_gene"] = self.raw_data.exp_matrix.getnnz(axis=1)
-        return self.raw_data.cells["n_gene"]
+        if "n_gene" not in self.raw_data.obs.columns:
+            X = self.raw_data.X
+            if hasattr(X, "getnnz"):
+                self.raw_data.obs["n_gene"] = X.getnnz(axis=1)
+            else:
+                self.raw_data.obs["n_gene"] = np.asarray((X != 0).sum(axis=1)).flatten()
+        return self.raw_data.obs["n_gene"]
 
     @property
     def cell_MID_counts(self):
-        if "MID_counts" not in self.raw_data.cells.obs.columns:
-            self.raw_data.cells["MID_counts"] = np.sum(self.raw_data.exp_matrix, axis=1)
-        return self.raw_data.cells["MID_counts"]
+        if "MID_counts" not in self.raw_data.obs.columns:
+            self.raw_data.obs["MID_counts"] = np.asarray(self.raw_data.X.sum(axis=1)).flatten()
+        return self.raw_data.obs["MID_counts"]
 
     def reset(self):
         """
@@ -137,36 +112,35 @@ class cbMatrix(object):
         return self.raw_data.shape
 
     def read(self, gef_path):
-        if gef_path.endswith(".gem") or gef_path.endswith(".txt"):
-            from stereo.io import read_gem
-            print("This is CellBin .gem file;")
-            data = read_gem(gef_path, bin_type='cell_bins', sep="\t", is_sparse=True)
-            print(data)
-            return data
-        elif gef_path.endswith(".gef"):
-            from stereo.io import read_gef, read_gef_info
-            print("the gef file is: ", read_gef_info(self.file_path))
+        if gef_path.endswith(".gef"):
+            from utils.gef_reader import read_gef
             data = read_gef(gef_path, bin_type="cell_bins")
-            ## print(data)
+            data.uns.setdefault("sn", os.path.basename(gef_path).split(".")[0])
+            data.uns.setdefault("resolution", 500)
             return data
         elif gef_path.endswith(".h5ad"):
-            try:
-                from stereo.io import read_stereo_h5ad
-                data = read_stereo_h5ad(gef_path, bin_type="cell_bins")
-                print(data)
-                return data
-            except:
-                from stereo.io import read_ann_h5ad
-                data = read_ann_h5ad(gef_path, spatial_key="spatial", bin_type="cell_bins")
-                print("This is CellBin anndata file")
-                return data
+            import anndata as ad
+            data = ad.read_h5ad(gef_path)
+            data.uns.setdefault("sn", os.path.basename(gef_path).split(".")[0])
+            data.uns.setdefault("resolution", 500)
+            if "spatial" not in data.obsm and {"x", "y"}.issubset(data.obs.columns):
+                data.obsm["spatial"] = np.column_stack([
+                    data.obs["x"].to_numpy(), data.obs["y"].to_numpy()])
+            return data
+        elif gef_path.endswith(".gem") or gef_path.endswith(".txt"):
+            raise NotImplementedError(
+                ".gem/.txt cellbin matrices are no longer supported; "
+                "convert to .gef before calling cbMatrix.read."
+            )
+        else:
+            raise ValueError(f"Unsupported matrix file extension: {gef_path}")
 
     def get_cellcount(self):
-        return self.raw_data.n_cells
+        return self.raw_data.n_obs
 
     def get_cellarea(self):
-        return str(self.raw_data.cells["area"].mean().astype(np.int16)), str(
-            self.raw_data.cells["area"].median().astype(np.int16))
+        return str(self.raw_data.obs["area"].mean().astype(np.int16)), str(
+            self.raw_data.obs["area"].median().astype(np.int16))
 
     def get_genetype(self):
         return str(self.cell_n_gene.to_numpy().mean().astype(np.int16)), str(
@@ -177,7 +151,7 @@ class cbMatrix(object):
                 str(np.median(self.cell_MID_counts.to_numpy()).astype(np.int16)))
 
     def get_total_MID(self):
-        return self.raw_data._exp_matrix.sum()
+        return self.raw_data.X.sum()
 
     def get_faction_cell_gene(self, threshod=200):
         return np.sum(self.cell_n_gene.to_numpy() > threshod) / self.get_cellcount()
@@ -228,29 +202,31 @@ class cbMatrix(object):
         return {"celldiameter": celldiameter_data, "cellarea": cellarea_data, "genetype": ngene_data, "MID": MID_data}
 
     def get_cluster_data(self, reset=True):
+        adata = self.cluster_data
         _temp_df = pd.DataFrame()
-        _temp_df["x"], _temp_df["y"] = self.cluster_data.position[:, 0], self.cluster_data.position[:, 1]
-        _temp_df["umap_0"], _temp_df["umap_1"] = self.cluster_data.cells_matrix["umap"][0], \
-                                                 self.cluster_data.cells_matrix["umap"][1]
-        _temp_df["leiden"] = self.cluster_data.cells.obs["leiden"].tolist()
-        # if save_path is not None:
-        #     self.write_h5ad(save_path)
+        _temp_df["x"] = np.asarray(adata.obs["x"]).astype(np.uint32)
+        _temp_df["y"] = np.asarray(adata.obs["y"]).astype(np.uint32)
+        _temp_df["umap_0"] = adata.obsm["X_umap"][:, 0]
+        _temp_df["umap_1"] = adata.obsm["X_umap"][:, 1]
+        _temp_df["leiden"] = adata.obs["leiden"].astype(str).tolist()
         if reset is True:
             self.reset()
         return _temp_df
 
     @property
     def celldensity(self, radiu=200):  ## 200 pixel = 100 um
-        if "cell_density" not in self.raw_data.cells.obs.columns:
-            from scipy.spatial import cKDTree
-            tree = cKDTree(self.raw_data.position)
-            nearby_points_count = np.array([len(tree.query_ball_point(point, r=radiu)) - 1 for point in self.raw_data.position])
+        from scipy.spatial import cKDTree
+        position = self.raw_data.obsm["spatial"]
+        tree = cKDTree(position)
+        nearby_points_count = np.array(
+            [len(tree.query_ball_point(point, r=radiu)) - 1 for point in position])
         return nearby_points_count
 
 
     def plot_spatail_figure(self, colormin=None, colormax=None, key="celldensity", save_path='./'):
         _temp_df = pd.DataFrame()
-        _temp_df["x"], _temp_df['y'] = self.raw_data.position[:, 0], self.raw_data.position[:, 1]
+        position = self.raw_data.obsm["spatial"]
+        _temp_df["x"], _temp_df['y'] = position[:, 0], position[:, 1]
         if key == "celldensity":
             _temp_df["value"] = self.celldensity
             title = "Cells Density"
@@ -276,20 +252,14 @@ class cbMatrix(object):
         return color_min, color_max
 
     def write_h5ad(self, save_path: str):
-        from stereo.io import write_h5ad
-        outkey_record = {'cluster': ['leiden']}
-        write_h5ad(
-            self.cluster_data,
-            use_raw=False,
-            use_result=True,
-            key_record=outkey_record,
-            output=os.path.join(save_path, f"{self.sn}_cluster.h5ad"),
-        )
+        out_path = os.path.join(save_path, f"{self.sn}_cluster.h5ad")
+        self.cluster_data.write_h5ad(out_path, compression="gzip")
 
     def write_gef(self, save_path: str):
-        from stereo.io import write_mid_gef
-        write_mid_gef(self.raw_data, save_path)
-        pass
+        raise NotImplementedError(
+            "GEF writing is no longer supported via stereopy; "
+            "use gefpy.bgef_writer_cy.generate_bgef directly if needed."
+        )
 
 
 class BinMatrix(object):
@@ -303,15 +273,14 @@ class BinMatrix(object):
 
     @property
     def stereo_exp(self):
-        if self._stereo_exp == None:
+        if self._stereo_exp is None:
             self._stereo_exp = self.read(self._bin_read)
         return self._stereo_exp
 
     @property
     def _width_height(self):
-        from stereo.io import read_gef, read_gef_info
-        infor = read_gef_info(self._file_path)
-        return (infor["width"], infor["height"])
+        spatial = self.stereo_exp.obsm["spatial"]
+        return (int(spatial[:, 0].max()) + 1, int(spatial[:, 1].max()) + 1)
 
     def reset(self, bin_read):
         self._stereo_exp = None
@@ -319,24 +288,25 @@ class BinMatrix(object):
 
     def read(self, bin_size=100):
         if self._file_path.endswith(".gef"):
-            from stereo.io import read_gef, read_gef_info
-            data = read_gef(self._file_path, bin_size=bin_size)
-        return data
+            from utils.gef_reader import read_gef
+            data = read_gef(self._file_path, bin_type="bins", bin_size=bin_size)
+            return data
+        raise ValueError(f"Unsupported bin matrix file: {self._file_path}")
 
     def get_total_MID(self):
-        return self.stereo_exp._exp_matrix.sum()
+        return self.stereo_exp.X.sum()
 
     @property
     def MID_counts(self):
-        return np.array(np.sum(self.stereo_exp.exp_matrix, axis=1))
+        return np.asarray(self.stereo_exp.X.sum(axis=1)).flatten()
 
     def create_heatmap(self, plot_data):
         import io
         heatmap_array= np.zeros(
             (self._width_height[1] // self._bin_read + 1, self._width_height[0] // self._bin_read + 1), dtype=np.uint16)
         df = pd.DataFrame()
-        df["x"], df["y"] = self.stereo_exp.position[:, 0] // self._bin_read, self.stereo_exp.position[:,
-                                                                             1] // self._bin_read
+        position = self.stereo_exp.obsm["spatial"]
+        df["x"], df["y"] = position[:, 0] // self._bin_read, position[:, 1] // self._bin_read
         df["plot_data"] = plot_data
         heatmap_array[df['y'].astype('uint32'), df['x'].astype('uint32')] = df['plot_data'].to_numpy()
         from matplotlib import colors, cm, ticker

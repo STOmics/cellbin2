@@ -47,12 +47,16 @@ class FilterCells(object):
 
     def filter_doublecells(self):
 
-        celllist = self.cbm.raw_data.cells.obs.index.totolist()
-        celllist.remove("0.0")
-        self.cbm.raw_data.tl.filter_cells(cell_list=celllist, inplace=True)
-        self._cell_pd = self.cbm.raw_data.cells.obs.copy(deep=True)
-        self._cell_pd["x"] = self.cbm.raw_data.position[:, 0]
-        self._cell_pd["y"] = self.cbm.raw_data.position[:, 1]
+        adata = self.cbm.raw_data
+        celllist = adata.obs.index.tolist()
+        if "0.0" in celllist:
+            celllist.remove("0.0")
+        # filter cells in-place on the AnnData (replaces stereopy tl.filter_cells)
+        self.cbm._stereo_exp = adata[adata.obs.index.isin(celllist)].copy()
+        adata = self.cbm.raw_data
+        self._cell_pd = adata.obs.copy(deep=True)
+        self._cell_pd["x"] = adata.obsm["spatial"][:, 0]
+        self._cell_pd["y"] = adata.obsm["spatial"][:, 1]
         self._cell_pd["n_counts"] = self.cbm.cell_MID_counts
         if "area" not in self._cell_pd.columns:
             self._cell_pd["area"] = self.get_cellarea(self.cellmask)
@@ -119,10 +123,13 @@ class FilterCells(object):
                 :return:  filtered cellbin format (cbmatrix) 
                 """
         contain_cell = filter_df[filter_df[key] == 0]
-        cbm.raw_data.tl.filter_cells(cell_list=contain_cell, inplace=True)
-        from stereo.io import write_mid_gef
-        write_mid_gef(cbm.raw_data, save_path)
-        return cbm
+        keep_index = contain_cell.index.astype(str)
+        adata = cbm.raw_data
+        cbm._stereo_exp = adata[adata.obs.index.isin(keep_index)].copy()
+        raise NotImplementedError(
+            "GEF writing previously delegated to stereopy.io.write_mid_gef is "
+            "no longer available; integrate gefpy.bgef_writer_cy directly."
+        )
 
 
 def filter_pipline(geffile, cellmask, output_filter_file="", output_filter_gef=""):

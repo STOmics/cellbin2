@@ -376,16 +376,15 @@ def get_tissue_bin_data(file_path: str, tissue_mask: np.ndarray, bin_siz: int = 
 
 def get_bin_n_data(file_path: str, bin_siz: int = 1):
     """ fetch: BinN data with chip area """
-    from stereo.io import read_gef, read_gem
-
+    if file_path.endswith(".gef"):
+        from utils.gef_reader import read_gef
+        return read_gef(file_path, bin_type="bins", bin_size=bin_siz)
     if file_path.endswith(".gem") or file_path.endswith(".gem.gz"):
-        data = read_gem(file_path, bin_type="bins", bin_size=bin_siz)
-    elif file_path.endswith(".gef"):
-        data = read_gef(file_path, bin_type="bins", bin_size=bin_siz)
-    else:
-        data = None
-
-    return data
+        raise NotImplementedError(
+            ".gem reading was provided by stereopy and is no longer available; "
+            "convert to .gef first."
+        )
+    return None
 
 
 def main():
