@@ -251,8 +251,10 @@ class cbMatrix(object):
         plt.close()
         return color_min, color_max
 
-    def write_h5ad(self, save_path: str):
-        out_path = os.path.join(save_path, f"{self.sn}_cluster.h5ad")
+    def write_h5ad(self, save_path: str, tag: str = ""):
+        os.makedirs(save_path, exist_ok=True)
+        suffix = f"_{tag}" if tag else ""
+        out_path = os.path.join(save_path, f"{self.sn}{suffix}_cluster.h5ad")
         self.cluster_data.write_h5ad(out_path, compression="gzip")
 
     def write_gef(self, save_path: str):
@@ -263,13 +265,20 @@ class cbMatrix(object):
 
 
 class BinMatrix(object):
-    def __init__(self, file_path: str, bin_read=100):
+    def __init__(self, file_path: str, bin_read=100,
+                 matrix_type: TechType = TechType.Transcriptomics,
+                 cluster_bin_size: int = 50):
         self._file_path = file_path
         self._stereo_exp = None  ### raw stereo_exp
+        self._cluster_exp = None
         self._bin_read = bin_read
+        self.matrix_type = matrix_type
+        self._cluster_bin_size = cluster_bin_size
+        self._sn = None
 
     def reset(self):
         self._stereo_exp = None
+        self._cluster_exp = None
 
     @property
     def stereo_exp(self):
@@ -278,13 +287,49 @@ class BinMatrix(object):
         return self._stereo_exp
 
     @property
+    def sn(self):
+        if self._sn is None:
+            self._sn = os.path.basename(self._file_path).split(".")[0]
+        return self._sn
+
+    @property
+    def cluster_data(self):
+        if self._cluster_exp is None:
+            from pathlib import Path
+            if self.matrix_type == TechType.Transcriptomics:
+                from saw_cellcluster.cell_cluster import cell_cluster
+                self._cluster_exp = cell_cluster(
+                    gef_file=self._file_path,
+                    bin_type='',
+                    bin_size=self._cluster_bin_size,
+                    use_gpu=True,
+                    resolution=1,
+                    marker=False,
+                    out_file=Path('bin_cluster.h5ad'),
+                )
+            elif self.matrix_type == TechType.Protein:
+                from saw_proteincellcluster.cell_cluster_protein import cell_cluster_protein
+                self._cluster_exp = cell_cluster_protein(
+                    gef_file=self._file_path,
+                    bin_type='',
+                    bin_size=self._cluster_bin_size,
+                    use_gpu=True,
+                    resolution=0.1,
+                )
+            else:
+                raise Exception(f"Unsupported matrix_type: {self.matrix_type}")
+        return self._cluster_exp
+
+    def write_h5ad(self, save_path: str, tag: str = ""):
+        os.makedirs(save_path, exist_ok=True)
+        suffix = f"_{tag}" if tag else ""
+        out_path = os.path.join(save_path, f"{self.sn}{suffix}_cluster.h5ad")
+        self.cluster_data.write_h5ad(out_path, compression="gzip")
+
+    @property
     def _width_height(self):
         spatial = self.stereo_exp.obsm["spatial"]
         return (int(spatial[:, 0].max()) + 1, int(spatial[:, 1].max()) + 1)
-
-    def reset(self, bin_read):
-        self._stereo_exp = None
-        self._bin_read = bin_read
 
     def read(self, bin_size=100):
         if self._file_path.endswith(".gef"):
@@ -360,9 +405,9 @@ class MultiMatrix(object):
         if not cellbin_path == "":
             self.cellbin = cbMatrix(cellbin_path,matrix_type=self.matrix_type)
         if not tissuegef_path == "":
-            self.tissuebin = BinMatrix(tissuegef_path, bin_read=10)
+            self.tissuebin = BinMatrix(tissuegef_path, bin_read=10, matrix_type=self.matrix_type)
         if not raw_path == "":
-            self.rawbin = BinMatrix(raw_path, bin_read=10)
+            self.rawbin = BinMatrix(raw_path, bin_read=10, matrix_type=self.matrix_type)
         if not adjusted_path == "":
             self.adjustedbin = cbMatrix(adjusted_path,matrix_type=self.matrix_type)
 

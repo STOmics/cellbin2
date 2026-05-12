@@ -48,6 +48,7 @@ class FileSource(BaseModel):
 
 
 BIN_OUTPUT_VIEW = 10
+CLUSTER_BIN_SIZE = 50
 
 
 class Metrics(object):
@@ -96,6 +97,9 @@ class Metrics(object):
             ### image menu
             self.output_figure_path_image = os.path.join(self.output_figure_path, "image")
             os.makedirs(self.output_figure_path_image, exist_ok=True)
+            ### cluster h5ad output
+            self.output_cluster_h5ad_path = os.path.join(self._output_path, "cluster_h5ad")
+            os.makedirs(self.output_cluster_h5ad_path, exist_ok=True)
             # temperary menu
             self.output_tmp_dir = os.path.join(self.output_figure_path_image, "tmp")
             os.makedirs(self.output_tmp_dir, exist_ok=True)
@@ -341,18 +345,32 @@ class Metrics(object):
 
         if self._RNAmultiMatrix is not None:
             if self._RNAmultiMatrix.adjustedbin is not None:
+                self._RNAmultiMatrix.adjustedbin.write_h5ad(self.output_cluster_h5ad_path, tag="RNA_adjusted")
                 df = self._RNAmultiMatrix.adjustedbin.get_cluster_data(reset=True)
                 _set_df_tojson(df, matrix_type="RNA")
             elif self._RNAmultiMatrix.cellbin:
+                self._RNAmultiMatrix.cellbin.write_h5ad(self.output_cluster_h5ad_path, tag="RNA_cellbin")
                 df = self._RNAmultiMatrix.cellbin.get_cluster_data(reset=True)
                 _set_df_tojson(df, matrix_type="RNA")
+            if self._RNAmultiMatrix.tissuebin is not None:
+                self._RNAmultiMatrix.tissuebin._cluster_bin_size = CLUSTER_BIN_SIZE
+                self._RNAmultiMatrix.tissuebin.write_h5ad(
+                    self.output_cluster_h5ad_path, tag=f"RNA_tissuebin_bin{CLUSTER_BIN_SIZE}")
+                self._RNAmultiMatrix.tissuebin.reset()
         if self._ProteinmultiMatrix is not None:
             if self._ProteinmultiMatrix.adjustedbin is not None:
+                self._ProteinmultiMatrix.adjustedbin.write_h5ad(self.output_cluster_h5ad_path, tag="Protein_adjusted")
                 df = self._ProteinmultiMatrix.adjustedbin.get_cluster_data(reset=True)
                 _set_df_tojson(df, matrix_type="Protein")
             elif self._ProteinmultiMatrix.cellbin:
+                self._ProteinmultiMatrix.cellbin.write_h5ad(self.output_cluster_h5ad_path, tag="Protein_cellbin")
                 df = self._ProteinmultiMatrix.cellbin.get_cluster_data(reset=True)
                 _set_df_tojson(df, matrix_type="Protein")
+            if self._ProteinmultiMatrix.tissuebin is not None:
+                self._ProteinmultiMatrix.tissuebin._cluster_bin_size = CLUSTER_BIN_SIZE
+                self._ProteinmultiMatrix.tissuebin.write_h5ad(
+                    self.output_cluster_h5ad_path, tag=f"Protein_tissuebin_bin{CLUSTER_BIN_SIZE}")
+                self._ProteinmultiMatrix.tissuebin.reset()
 
     def set_image_infor(self):
         if self.filesource.ipr_file == "" or (not os.path.exists(self.filesource.ipr_file)):
