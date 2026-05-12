@@ -46,7 +46,6 @@ dependencies = [
     'beautifulsoup4',
     'csscompressor',
     'jsmin',
-    'stereopy==1.6.0', 
     'gefpy==1.2.6',  
     'mapbox_earcut'
 ]
@@ -67,12 +66,10 @@ where = ["."]
 [project.optional-dependencies]
 cp = ['cellpose==3.0.11', 'patchify==0.2.3']
 rs = [
-    'gefpy==1.2.6',  # generate cellbin matrix
     'mapbox_earcut'
 ]
 rp = [
     'fastcluster==1.2.6',
-    'stereopy==1.6.0', # research report
     'beautifulsoup4',
     'csscompressor',
     'jsmin'
