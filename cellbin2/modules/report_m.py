@@ -41,12 +41,8 @@ class Report(object):
         json_data = jstring.split('resultJson = ')[1].strip().strip(';')
         return json_data
 
-    def save_js(self):
-        save_file = os.path.join(self.save_path, "result.js")
-        js_code = f"const resultJson = {self._json};"
-        with open(save_file, "w") as file:
-            file.write(js_code)
-        return js_code
+    def get_js_code(self):
+        return f"const resultJson = {self._json};"
 
     def setparam(self):
         self.set_statistic_data()
@@ -422,12 +418,12 @@ class Report(object):
 def creat_report(matric_json, save_path):
     report = Report(matrics_json=matric_json)
     report.setparam()
-    report.save_js()
+    js_code = report.get_js_code()
     os.chdir(REPORT_MODULE)
     if os.path.isdir(os.path.join(save_path, "assets")) and not os.path.isdir(os.path.join(save_path, "assets/common")):
         import shutil
         shutil.copytree(r"assets/common", os.path.join(save_path, "assets", "common"))
-    operat_html("index.html", os.path.join(save_path, "CellBin_v2.0_report.html"))
+    operat_html("index.html", os.path.join(save_path, "CellBin_v2.0_report.html"), result_js_content=js_code)
     # operat_html("index.html","CellBin_v2.0_report.html")
 
 

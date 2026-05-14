@@ -64,33 +64,36 @@ def image_to_base64(image_path):
         encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
     return 'data:image/png;base64,' + encoded_string
   
-def operat_html(html_path,outfile):
+def operat_html(html_path, outfile, result_js_content=None):
     # read HTML file read HTML file
     with open(html_path, 'r', encoding = 'utf-8') as file:
         html_content = file.read()
     html_content = minify_html(html_content)
-    # parse HTML file 
+    # parse HTML file
     soup = BeautifulSoup(html_content, 'html.parser')
 
-    # get all script tags 
+    # get all script tags
     script_tags = soup.find_all('script')
     # get all link tags
     link_tags = soup.find_all('link')
-    # get all img tags 
+    # get all img tags
     img_tags = soup.find_all('img')
     # iterate through script tags
     for script_tag in script_tags:
-        # get the src attribute and content from script tags 
+        # get the src attribute and content from script tags
         src = script_tag.get('src')
         content = script_tag.string
 
-        # if src attribute exist, fetch and compress corresponding local JS file 
+        # if src attribute exist, fetch and compress corresponding local JS file
         if src:
-            with open(src, 'r', encoding = 'utf-8') as js_file:
-                content = js_file.read()
+            if 'result.js' in src and result_js_content is not None:
+                content = result_js_content
+            else:
+                with open(src, 'r', encoding = 'utf-8') as js_file:
+                    content = js_file.read()
             del script_tag["src"]
 
-            # compress the JS file content 
+            # compress the JS file content
             if 'module' in src:
                 content = minify_html(content)
             if 'result.js' in src:
