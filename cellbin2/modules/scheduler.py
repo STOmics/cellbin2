@@ -578,10 +578,10 @@ class Scheduler(object):
                 if has_boundary:
                     boundary_mask = merged_boundary_mask
                     if not has_interior:
-                        cbimwrite(os.path.join(mid_save_path, "interior_mask_copy.tif"), boundary_mask)
+                        cbimwrite(os.path.join(mid_save_path, "boundary_mask_copy.tif"),(boundary_mask > 0).astype(np.uint8) * 255)
                 else:
                     boundary_mask = merged_interior_mask
-                    cbimwrite(os.path.join(mid_save_path, "boundary_mask_copy.tif"), boundary_mask)
+                    cbimwrite(os.path.join(mid_save_path, "interior_mask_copy.tif"),(boundary_mask > 0).astype(np.uint8) * 255)
 
                 output_nuclei_mask, _ = overlap_v3(
                     merged_core_mask,
