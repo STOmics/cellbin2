@@ -643,14 +643,13 @@ class Scheduler(object):
 
             # -------------------- post process --------------------
             if final_cell_mask_path.exists():
-                export_cell_mask_to_geojson(final_cell_mask_path, mid_save_path)
-
                 if final_nuclear_path.exists():
                     filtered_core_mask = cell_filter(final_nuclear_path, final_cell_mask_path)
                     final_nuclear = cbimread(final_nuclear_path, only_np=True)
                     filtered_core_mask = keep_large_nucleus_fragments(final_nuclear, filtered_core_mask)
                     cbimwrite(final_nuclear_path, filtered_core_mask)
 
+                export_cell_mask_to_geojson(final_cell_mask_path, final_nuclear_path, mid_save_path)
 
 
 

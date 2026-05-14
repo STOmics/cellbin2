@@ -47,8 +47,9 @@ def break_diagonal_connections(binary_mask):
     out[1:, :-1][pattern2] = 0
 
     return out
-def export_cell_mask_to_geojson(final_cell_mask_path, save_path):
+def export_cell_mask_to_geojson(final_cell_mask_path, final_nuclear_path, save_path):
     final_cell_mask_path = Path(final_cell_mask_path)
+    final_nuclear_path = Path(final_nuclear_path)
     save_path = Path(save_path)
     geojson_path = final_cell_mask_path.with_suffix(".geojson")
 
@@ -59,19 +60,30 @@ def export_cell_mask_to_geojson(final_cell_mask_path, save_path):
         min_size=15,
         connectivity=1
     ).astype(np.uint8)
-
-    # keep original behavior
     cbimwrite(final_cell_mask_path, final_cell_mask)
 
-    # 2) 4-connectivity labeling
+    # 2) read and clean nuclear mask
+    nuclear_mask = None
+    if final_nuclear_path.exists():
+        nuclear_mask = cbimread(final_nuclear_path, only_np=True)
+        nuclear_mask = remove_small_objects(
+            nuclear_mask.astype(np.bool8),
+            min_size=15,
+            connectivity=1
+        ).astype(np.uint8)
+        cbimwrite(final_nuclear_path, nuclear_mask)
+
+    # 3) 4-connectivity structure
     structure_4 = np.array([
         [0, 1, 0],
         [1, 1, 1],
         [0, 1, 0]
     ], dtype=np.uint8)
-    labeled_mask, num_labels = ndimage.label(final_cell_mask > 0, structure=structure_4)
 
-    # 3) decide mode
+    # 4) label cell mask
+    labeled_cell_mask, num_labels = ndimage.label(final_cell_mask > 0, structure=structure_4)
+
+    # 5) decide mode for cell source
     if (not save_path.exists()) or (not any(save_path.iterdir())):
         mode = "all_nuclear"
     elif (save_path / "interior_mask_copy.tif").exists():
@@ -81,12 +93,12 @@ def export_cell_mask_to_geojson(final_cell_mask_path, save_path):
     else:
         mode = "default"
 
-    clog.info(f"GeoJSON source mode: {mode}, num_labels={num_labels}")
+    clog.info(f"GeoJSON source mode: {mode}, num_cell_labels={num_labels}")
 
-    # 4) read optional masks
+    # 6) read optional masks for source inference
     interior_mask = None
     boundary_mask = None
-    nuclei_mask = None
+    nuclei_mask_for_source = None
 
     if mode == "interior_copy":
         interior_mask_path = save_path / "interior_mask_copy.tif"
@@ -107,14 +119,14 @@ def export_cell_mask_to_geojson(final_cell_mask_path, save_path):
             interior_mask = (interior_mask > 0).astype(np.uint8)
 
         if nuclei_mask_path.exists():
-            nuclei_mask = cbimread(nuclei_mask_path, only_np=True)
-            nuclei_mask = (nuclei_mask > 0).astype(np.uint8)
+            nuclei_mask_for_source = cbimread(nuclei_mask_path, only_np=True)
+            nuclei_mask_for_source = (nuclei_mask_for_source > 0).astype(np.uint8)
 
-    # 5) compute source for each label by centroid
+    # 7) compute source for each cell label by centroid
     label_to_source = {}
-    h, w = labeled_mask.shape
+    h, w = labeled_cell_mask.shape
+    props = regionprops(labeled_cell_mask)
 
-    props = regionprops(labeled_mask)
     for obj in props:
         label_id = int(obj.label)
 
@@ -124,10 +136,10 @@ def export_cell_mask_to_geojson(final_cell_mask_path, save_path):
         cy = int(np.clip(cy, 0, h - 1))
         cx = int(np.clip(cx, 0, w - 1))
 
-        source = "nuclear"
+        source = "nuclear_expand"
 
         if mode == "all_nuclear":
-            source = "nuclear"
+            source = "nuclear_expand"
 
         elif mode == "interior_copy":
             if (
@@ -138,7 +150,7 @@ def export_cell_mask_to_geojson(final_cell_mask_path, save_path):
             ):
                 source = "interior"
             else:
-                source = "nuclear"
+                source = "nuclear_expand"
 
         elif mode == "boundary_copy":
             if (
@@ -149,7 +161,7 @@ def export_cell_mask_to_geojson(final_cell_mask_path, save_path):
             ):
                 source = "boundary"
             else:
-                source = "nuclear"
+                source = "nuclear_expand"
 
         else:
             if (
@@ -160,25 +172,26 @@ def export_cell_mask_to_geojson(final_cell_mask_path, save_path):
             ):
                 source = "interior"
             elif (
-                nuclei_mask is not None
-                and cy < nuclei_mask.shape[0]
-                and cx < nuclei_mask.shape[1]
-                and nuclei_mask[cy, cx] > 0
+                nuclei_mask_for_source is not None
+                and cy < nuclei_mask_for_source.shape[0]
+                and cx < nuclei_mask_for_source.shape[1]
+                and nuclei_mask_for_source[cy, cx] > 0
             ):
-                source = "nuclear"
+                source = "nuclear_expand"
             else:
                 source = "boundary"
 
         label_to_source[label_id] = source
 
-    # 6) use pixel coordinates directly
+    # 8) pixel coordinates
     transform = rasterio.transform.from_origin(0, 0, 1, 1)
 
-    # 7) polygonize whole labeled mask once
     features = []
+
+    # 9) export cell polygons
     for geom, value in shapes(
-        labeled_mask.astype(np.int32),
-        mask=(labeled_mask > 0),
+        labeled_cell_mask.astype(np.int32),
+        mask=(labeled_cell_mask > 0),
         transform=transform,
         connectivity=4
     ):
@@ -189,10 +202,35 @@ def export_cell_mask_to_geojson(final_cell_mask_path, save_path):
         features.append({
             "type": "Feature",
             "properties": {
-                "source": label_to_source.get(label_id, "nuclear")
+                "mask_type": "cell",
+                "source": label_to_source.get(label_id, "nuclear_expand")
             },
             "geometry": geom
         })
+
+    # 10) export nucleus polygons into the same geojson
+    if nuclear_mask is not None:
+        labeled_nuclear_mask, num_nuclear_labels = ndimage.label(nuclear_mask > 0, structure=structure_4)
+        clog.info(f"num_nuclear_labels={num_nuclear_labels}")
+
+        for geom, value in shapes(
+            labeled_nuclear_mask.astype(np.int32),
+            mask=(labeled_nuclear_mask > 0),
+            transform=transform,
+            connectivity=4
+        ):
+            label_id = int(value)
+            if label_id <= 0:
+                continue
+
+            features.append({
+                "type": "Feature",
+                "properties": {
+                    "mask_type": "nucleus",
+                    "source": "nuclear"
+                },
+                "geometry": geom
+            })
 
     geojson = {
         "type": "FeatureCollection",
@@ -203,8 +241,6 @@ def export_cell_mask_to_geojson(final_cell_mask_path, save_path):
         json.dump(geojson, f, ensure_ascii=False)
 
     clog.info(f"Saved GeoJSON to: {geojson_path}")
-
-MAX_INPUT_LABEL_VALUE: Final[int] = np.iinfo(np.uint32).max
 
 
 
@@ -551,7 +587,7 @@ def multimodal_merge(
     )
 
     final_mask = instance2semantics(final_mask).astype(np.uint8)
-    final_mask = break_diagonal_connections(final_mask)
+    #final_mask = break_diagonal_connections(final_mask)
 
     if save_path != "":
         cbimwrite(join(save_path, "secondary_mask_final.tif"),
@@ -607,7 +643,7 @@ def run_dual_modal(nuclei_mask_path: str, boundary_mask_path: str, save_path: st
         save_path="",
     )
     final_mask = instance2semantics(final_mask).astype(np.uint8)
-    final_mask = break_diagonal_connections(final_mask)
+    #final_mask = break_diagonal_connections(final_mask)
     cbimwrite(join(save_path, "final_cell_mask.tif"), final_mask * 255)
 
 
