@@ -2,6 +2,7 @@ import os.path
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import numpy as np
+from rasterio.rio.options import resolution_opt
 
 np.set_printoptions(precision=3)
 import pandas as pd
@@ -42,10 +43,11 @@ class cbMatrix(object):
                     bin_type='cell_bins',
                     bin_size=1,
                     use_gpu=True,
-                    resolution=1,
-                    marker=False,
-                    out_file=Path('cluster.h5ad'),
+                    resolution=1.0,
+                    marker=True,
+                    out_file=Path(os.path.join(os.path.dirname(self.file_path), f'{self._sn}.cellbin.h5ad')),
                 )
+                # os.path.join(save_path, f"{self.sn}{suffix}_cluster.h5ad")
             elif self.matrix_type == TechType.Protein:
                 from saw_proteincellcluster.cell_cluster_protein import cell_cluster_protein
                 self._cluster_exp = cell_cluster_protein(
@@ -252,9 +254,10 @@ class cbMatrix(object):
         return color_min, color_max
 
     def write_h5ad(self, save_path: str, tag: str = ""):
+        resolution = 1.0
         os.makedirs(save_path, exist_ok=True)
-        suffix = f"_{tag}" if tag else ""
-        out_path = os.path.join(save_path, f"{self.sn}{suffix}_cluster.h5ad")
+        # suffix = f"_{tag}" if tag else ""
+        out_path = os.path.join(save_path, f"{self.sn}.cellbin_{resolution}.h5ad")
         self.cluster_data.write_h5ad(out_path, compression="gzip")
 
     def write_gef(self, save_path: str):
@@ -303,9 +306,9 @@ class BinMatrix(object):
                     bin_type='',
                     bin_size=self._cluster_bin_size,
                     use_gpu=True,
-                    resolution=1,
-                    marker=False,
-                    out_file=Path('bin_cluster.h5ad'),
+                    resolution=1.0,
+                    marker=True,
+                    out_file=Path(os.path.join(os.path.dirname(self._file_path), f'{self._sn}.bin{self._cluster_bin_size}.h5ad')),
                 )
             elif self.matrix_type == TechType.Protein:
                 from saw_proteincellcluster.cell_cluster_protein import cell_cluster_protein
@@ -321,9 +324,10 @@ class BinMatrix(object):
         return self._cluster_exp
 
     def write_h5ad(self, save_path: str, tag: str = ""):
+        resolution = 1.0
         os.makedirs(save_path, exist_ok=True)
-        suffix = f"_{tag}" if tag else ""
-        out_path = os.path.join(save_path, f"{self.sn}{suffix}_cluster.h5ad")
+        # suffix = f"_{tag}" if tag else ""
+        out_path = os.path.join(save_path, f"{self.sn}.bin{self._cluster_bin_size}_{resolution}.h5ad")
         self.cluster_data.write_h5ad(out_path, compression="gzip")
 
     @property

@@ -273,6 +273,8 @@ class CellBinPipeline(object):
             "CellBin_v2.0_report.html",
             ".stereo",
             ".rpi",
+            "marker_features.csv",
+            ".h5ad",
 
             # mask
             f"{self._chip_no}_mask.tif",

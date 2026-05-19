@@ -98,7 +98,7 @@ class Metrics(object):
             self.output_figure_path_image = os.path.join(self.output_figure_path, "image")
             os.makedirs(self.output_figure_path_image, exist_ok=True)
             ### cluster h5ad output
-            self.output_cluster_h5ad_path = os.path.join(self._output_path, "cluster_h5ad")
+            self.output_cluster_h5ad_path = self._output_path
             os.makedirs(self.output_cluster_h5ad_path, exist_ok=True)
             # temperary menu
             self.output_tmp_dir = os.path.join(self.output_figure_path_image, "tmp")
