@@ -55,6 +55,12 @@ def instance2semantics(ins):
     ins[np.where(ins > 0)] = 1
     return np.array(ins, dtype=np.uint8)
 
+def cell_filter(final_nuclear_path, final_cell_mask_path):
+    final_nuclear = cbimread(final_nuclear_path, only_np=True)
+    final_cell_mask = cbimread(final_cell_mask_path, only_np=True)
+    filtered_mask = final_nuclear * final_cell_mask
+    filtered_mask = instance2semantics(filtered_mask)
+    return filtered_mask
 
 def secondary_mask_filter(final_nuclear_path, final_cell_mask_path):
     if isinstance(final_nuclear_path, (str, os.PathLike)):
