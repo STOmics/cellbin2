@@ -12,6 +12,8 @@ import logging
 models_logger = logging.getLogger(__name__)
 import cv2
 from typing import Tuple, List 
+import sys
+import subprocess
 
 
 from cellbin2.image.augmentation import f_ij_16_to_8_v2 as f_ij_16_to_8
@@ -78,12 +80,20 @@ def cellposesam_pred_3c(
     output_path = None
 ) -> np.ndarray:
 
+    TARGET_VERSION = "4.0.6"
+
     try:
         import cellpose
+        version = getattr(cellpose, "version", "")
     except ImportError:
-        pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
-    if not cellpose.version.startswith('4.'):
-        pip.main(['install', 'git+https://www.github.com/mouseland/cellpose.git'])
+        version = ""
+
+    if version != TARGET_VERSION:
+        subprocess.check_call([
+            sys.executable, "-m", "pip", "install",
+            "--force-reinstall",
+            f"cellpose=={TARGET_VERSION}"
+        ])
     import cellpose
     import logging
 
@@ -167,7 +177,7 @@ if __name__ == '__main__':
     parser.add_argument('-i', "--input", help="the input img path")
     parser.add_argument('-o', "--output", help="the output file")
     parser.add_argument("-m", "--model_path", help="model path")
-    parser.add_argument("-g", "--gpu", help="use gpu (1) or not (0)", default=0)
+    parser.add_argument("-g", "--gpu", type=int, help="use gpu (1) or not (0)", default=0)
 
     args = parser.parse_args()
     img_path = args.input

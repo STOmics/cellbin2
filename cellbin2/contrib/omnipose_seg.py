@@ -135,10 +135,10 @@ def omnipose_pred_3c(
         img = np.stack([img, img, img], axis=-1)
         chan = [0, 0]
     elif img.ndim == 3 and img.shape[2] == 3:
-        chan = [3, 1]  # RGB
+        chan = [1, 3]  # RGB
     elif img.ndim == 3 and img.shape[2] != 3: # rgb C H W
         img = np.transpose(img, (1, 2, 0))
-        chan = [3, 1]  # RGB
+        chan = [1, 3]  # RGB
     # patches
 
     patches, positions = split_image_into_patches(img, patch_size, overlap)
@@ -162,7 +162,7 @@ def omnipose_pred_3c(
             overlap_mask[y_start:y_end, :] = True
     
     # patch segmentation
-    model = models.CellposeModel(gpu=use_gpu, model_type="cyto2_omni")
+    model = models.CellposeModel(gpu=use_gpu, model_type="bact_phase_omni")
     masks = []
     for i, patch in enumerate(tqdm.tqdm(patches, desc='Segment cells with [Cellpose]')):
         mask = model.eval(patch,channels=chan)[0]
