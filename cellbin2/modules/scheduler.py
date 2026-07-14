@@ -503,7 +503,7 @@ class Scheduler(object):
                     transform_to_register(
                         cur_f_name=cur_f_name
                     )
-                mask2geojson(cur_f_name.cell_mask)
+                # mask2geojson(cur_f_name.cell_mask)
                 
 
     def run_merge_masks(self):
