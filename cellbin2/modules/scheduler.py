@@ -503,7 +503,7 @@ class Scheduler(object):
                     transform_to_register(
                         cur_f_name=cur_f_name
                     )
-                mask2geojson(cur_f_name.cell_mask)
+                # mask2geojson(cur_f_name.cell_mask)
                 
     def run_merge_masks(self):
         """
@@ -577,10 +577,10 @@ class Scheduler(object):
                 if has_boundary:
                     boundary_mask = merged_boundary_mask
                     if not has_interior:
-                        cbimwrite(os.path.join(mid_save_path, "interior_mask_copy.tif"), boundary_mask)
+                        cbimwrite(os.path.join(mid_save_path, "boundary_mask_copy.tif"),(boundary_mask > 0).astype(np.uint8) * 255)
                 else:
                     boundary_mask = merged_interior_mask
-                    cbimwrite(os.path.join(mid_save_path, "boundary_mask_copy.tif"), boundary_mask)
+                    cbimwrite(os.path.join(mid_save_path, "interior_mask_copy.tif"),(boundary_mask > 0).astype(np.uint8) * 255)
 
                 output_nuclei_mask, _ = overlap_v3(
                     merged_core_mask,
@@ -642,13 +642,15 @@ class Scheduler(object):
 
             # -------------------- post process --------------------
             if final_cell_mask_path.exists():
-                export_cell_mask_to_geojson(final_cell_mask_path, mid_save_path)
-
                 if final_nuclear_path.exists():
                     filtered_core_mask = cell_filter(final_nuclear_path, final_cell_mask_path)
                     final_nuclear = cbimread(final_nuclear_path, only_np=True)
                     filtered_core_mask = keep_large_nucleus_fragments(final_nuclear, filtered_core_mask)
                     cbimwrite(final_nuclear_path, filtered_core_mask)
+
+                export_cell_mask_to_geojson(final_cell_mask_path, final_nuclear_path, mid_save_path)
+
+
 
     def run(self, chip_no: str, input_image: str,
             stain_type: str, param_file: str,

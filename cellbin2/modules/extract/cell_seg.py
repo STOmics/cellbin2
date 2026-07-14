@@ -75,5 +75,5 @@ def run_cell_seg(
     #     bmr = RLEncode()
     #     c_mask_encode = bmr.encode(cell_mask)
     #     channel_image.CellSeg.CellMask = c_mask_encode
-    mask2geojson(save_path)
+    # mask2geojson(save_path)
     return cell_mask
