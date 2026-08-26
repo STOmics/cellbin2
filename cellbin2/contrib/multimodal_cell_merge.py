@@ -225,226 +225,54 @@ def export_cell_mask_to_geojson(
     save_path,
 ):
     """
-    Export final cell mask and original nuclear mask into one GeoJSON.
+    Scheduler-compatible wrapper.
 
-    Cell polygons:
-        mask_type = cell
-        source = boundary / interior / nuclear_expand
+    GeoJSON generation is implemented only in
+    ``cell_nuclear_geojson.export_cell_nuclear_geojson``.
 
-    Nucleus polygons:
-        mask_type = nucleus
-        source = nuclear
+    ``save_path`` is the multimodal middle-file directory used to infer
+    whether each cell comes from interior, boundary, or nuclear expansion.
+    It must be passed through unchanged.
     """
+    from cellbin2.contrib.multimodal_subtools.cell_nuclear_geojson import export_cell_nuclear_geojson
+
     final_cell_mask_path = Path(final_cell_mask_path)
     final_nuclear_path = Path(final_nuclear_path)
-    save_path = Path(save_path)
+    source_save_path = (
+        Path(save_path)
+        if save_path not in (None, "")
+        else None
+    )
 
+    if not final_cell_mask_path.exists():
+        clog.warning(
+            f"Skip GeoJSON export: cell mask does not exist: "
+            f"{final_cell_mask_path}"
+        )
+        return None
+
+    if not final_nuclear_path.exists():
+        clog.warning(
+            f"Skip GeoJSON export: nuclear mask does not exist: "
+            f"{final_nuclear_path}"
+        )
+        return None
+
+    # Keep the cell-mask filename and only replace .tif/.tiff with .geojson.
     geojson_path = final_cell_mask_path.with_suffix(".geojson")
 
-    # 1. Read and clean final cell mask.
-    final_cell_mask = cbimread(final_cell_mask_path, only_np=True)
-    final_cell_mask = remove_small_objects(
-        final_cell_mask.astype(bool),
+    result = export_cell_nuclear_geojson(
+        cell_mask_path=final_cell_mask_path,
+        nuclear_mask_path=final_nuclear_path,
+        out_path=geojson_path,
+        save_path=source_save_path,
         min_size=15,
-        connectivity=1,
-    ).astype(np.uint8)
-    cbimwrite(final_cell_mask_path, final_cell_mask * 255)
-
-    # 2. Read and clean original nuclear mask.
-    nuclear_mask = None
-    if final_nuclear_path.exists():
-        nuclear_mask = cbimread(final_nuclear_path, only_np=True)
-        nuclear_mask = remove_small_objects(
-            nuclear_mask.astype(bool),
-            min_size=15,
-            connectivity=1,
-        ).astype(np.uint8)
-
-    # 3. Label with 4-connectivity.
-    structure_4 = np.array(
-        [
-            [0, 1, 0],
-            [1, 1, 1],
-            [0, 1, 0],
-        ],
-        dtype=np.uint8,
+        bs_x=256,
+        bs_y=256,
     )
 
-    labeled_cell_mask, num_cell_labels = ndimage.label(
-        final_cell_mask > 0,
-        structure=structure_4,
-    )
-
-    # 4. Decide GeoJSON source mode.
-    #
-    # 三 mask 默认模式:
-    #   interior_mask_final.tif + output_nuclei_mask.tif
-    #
-    # 双 mask + mem:
-    #   boundary_mask_copy.tif
-    #
-    # 双 mask + cyto:
-    #   interior_mask_copy.tif
-    if (save_path / "interior_mask_copy.tif").exists():
-        mode = "interior_copy"
-    elif (save_path / "boundary_mask_copy.tif").exists():
-        mode = "boundary_copy"
-    elif (save_path / "interior_mask_final.tif").exists() or (
-        save_path / "output_nuclei_mask.tif"
-    ).exists():
-        mode = "default"
-    else:
-        mode = "all_nuclear_expand"
-
-    clog.info(f"GeoJSON source mode: {mode}, num_cell_labels={num_cell_labels}")
-
-    interior_mask = None
-    boundary_mask = None
-    nuclei_mask_for_source = None
-
-    if mode == "interior_copy":
-        interior_mask = cbimread(save_path / "interior_mask_copy.tif", only_np=True)
-        interior_mask = instance2semantics(interior_mask)
-
-    elif mode == "boundary_copy":
-        boundary_mask = cbimread(save_path / "boundary_mask_copy.tif", only_np=True)
-        boundary_mask = instance2semantics(boundary_mask)
-
-    elif mode == "default":
-        interior_mask_path = save_path / "interior_mask_final.tif"
-        nuclei_mask_path = save_path / "output_nuclei_mask.tif"
-
-        if interior_mask_path.exists():
-            interior_mask = cbimread(interior_mask_path, only_np=True)
-            interior_mask = instance2semantics(interior_mask)
-
-        if nuclei_mask_path.exists():
-            nuclei_mask_for_source = cbimread(nuclei_mask_path, only_np=True)
-            nuclei_mask_for_source = instance2semantics(nuclei_mask_for_source)
-
-    # 5. Infer cell source by centroid.
-    label_to_source = {}
-    h, w = labeled_cell_mask.shape
-
-    for obj in regionprops(labeled_cell_mask):
-        label_id = int(obj.label)
-
-        cy, cx = obj.centroid
-        cy = int(round(cy))
-        cx = int(round(cx))
-        cy = int(np.clip(cy, 0, h - 1))
-        cx = int(np.clip(cx, 0, w - 1))
-
-        source = "nuclear_expand"
-
-        if mode == "all_nuclear_expand":
-            source = "nuclear_expand"
-
-        elif mode == "interior_copy":
-            if (
-                interior_mask is not None
-                and cy < interior_mask.shape[0]
-                and cx < interior_mask.shape[1]
-                and interior_mask[cy, cx] > 0
-            ):
-                source = "interior"
-            else:
-                source = "nuclear_expand"
-
-        elif mode == "boundary_copy":
-            if (
-                boundary_mask is not None
-                and cy < boundary_mask.shape[0]
-                and cx < boundary_mask.shape[1]
-                and boundary_mask[cy, cx] > 0
-            ):
-                source = "boundary"
-            else:
-                source = "nuclear_expand"
-
-        else:
-            if (
-                interior_mask is not None
-                and cy < interior_mask.shape[0]
-                and cx < interior_mask.shape[1]
-                and interior_mask[cy, cx] > 0
-            ):
-                source = "interior"
-            elif (
-                nuclei_mask_for_source is not None
-                and cy < nuclei_mask_for_source.shape[0]
-                and cx < nuclei_mask_for_source.shape[1]
-                and nuclei_mask_for_source[cy, cx] > 0
-            ):
-                source = "nuclear_expand"
-            else:
-                source = "boundary"
-
-        label_to_source[label_id] = source
-
-    transform = rasterio.transform.from_origin(0, 0, 1, 1)
-    features = []
-
-    # 6. Export final cell polygons.
-    for geom, value in shapes(
-        labeled_cell_mask.astype(np.int32),
-        mask=(labeled_cell_mask > 0),
-        transform=transform,
-        connectivity=4,
-    ):
-        label_id = int(value)
-        if label_id <= 0:
-            continue
-
-        features.append(
-            {
-                "type": "Feature",
-                "properties": {
-                    "mask_type": "cell",
-                    "source": label_to_source.get(label_id, "nuclear_expand"),
-                },
-                "geometry": geom,
-            }
-        )
-
-    # 7. Export original nucleus polygons.
-    if nuclear_mask is not None:
-        labeled_nuclear_mask, num_nuclear_labels = ndimage.label(
-            nuclear_mask > 0,
-            structure=structure_4,
-        )
-        clog.info(f"num_nuclear_labels={num_nuclear_labels}")
-
-        for geom, value in shapes(
-            labeled_nuclear_mask.astype(np.int32),
-            mask=(labeled_nuclear_mask > 0),
-            transform=transform,
-            connectivity=4,
-        ):
-            label_id = int(value)
-            if label_id <= 0:
-                continue
-
-            features.append(
-                {
-                    "type": "Feature",
-                    "properties": {
-                        "mask_type": "nucleus",
-                        "source": "nuclear",
-                    },
-                    "geometry": geom,
-                }
-            )
-
-    geojson = {
-        "type": "FeatureCollection",
-        "features": features,
-    }
-
-    with open(geojson_path, "w", encoding="utf-8") as f:
-        json.dump(geojson, f, ensure_ascii=False)
-
-    clog.info(f"Saved GeoJSON to: {geojson_path}")
+    clog.info(f"Saved cell/nucleus GeoJSON to: {result}")
+    return result
 
 
 def multimodal_merge(

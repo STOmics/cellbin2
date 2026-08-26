@@ -161,7 +161,7 @@ def f_postprocess_cellpose(mask, overlap_mask=None, area_ratio_thresh=5.0):
                 label_mask[label_mask == obj.label] = 0
 
     label_mask[label_mask > 0] = 1
-    label_mask = remove_small_objects(label_mask.astype(np.bool8), min_size=80, connectivity=2)
+    label_mask = remove_small_objects(label_mask.astype(np.bool8), min_size=40, connectivity=2)
     
     return np.uint8(label_mask)
 
