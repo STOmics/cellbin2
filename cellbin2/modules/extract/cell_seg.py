@@ -10,7 +10,6 @@ from cellbin2.utils import ipr
 from cellbin2.utils.rle import RLEncode
 from cellbin2.contrib import cellpose_segmentor
 from cellbin2.utils import clog
-from cellbin2.contrib.mask_manager import mask2geojson
 import os
 import numpy as np
 
@@ -75,5 +74,4 @@ def run_cell_seg(
     #     bmr = RLEncode()
     #     c_mask_encode = bmr.encode(cell_mask)
     #     channel_image.CellSeg.CellMask = c_mask_encode
-    # mask2geojson(save_path)
     return cell_mask

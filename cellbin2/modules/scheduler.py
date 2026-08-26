@@ -25,7 +25,7 @@ from cellbin2.modules.extract.register import run_register, transform_to_registe
 from cellbin2.modules.extract.transform import run_transform
 from cellbin2.modules.extract.tissue_seg import run_tissue_seg
 from cellbin2.modules.extract.cell_seg import run_cell_seg
-from cellbin2.contrib.mask_manager import BestTissueCellMask, MaskManagerInfo, mask2geojson
+from cellbin2.contrib.mask_manager import BestTissueCellMask, MaskManagerInfo
 from cellbin2.modules.extract.matrix_extract import extract4stitched
 from cellbin2.contrib.chip_transform import chip_transform
 from cellbin2.modules.cellmask_fixer import CellMaskFixer
