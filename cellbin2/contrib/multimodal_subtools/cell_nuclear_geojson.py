@@ -213,7 +213,7 @@ def geometry_coords_to_int(geometry):
                 )
             ):
                 return [
-                    int(round(float(value)))
+                    int(value)
                     for value in coords
                 ]
 
