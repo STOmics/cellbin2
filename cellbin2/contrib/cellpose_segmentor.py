@@ -328,7 +328,7 @@ def main(
     overlap_mask = build_overlap_mask(positions, img.shape[:2])
     
     # patch segmentation
-    model = models.CellposeModel(gpu = gpu, pretrained_model=model_dir)
+    model = models.CellposeModel(gpu=gpu, pretrained_model=model_dir, nchan=1)
     masks = []
     for i, patch in enumerate(tqdm.tqdm(patches, desc='Segment cells with [Cellpose]')):
 
