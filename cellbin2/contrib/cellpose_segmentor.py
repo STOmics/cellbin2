@@ -261,11 +261,43 @@ def build_overlap_mask(
     overlap_mask = coverage > 1
     return overlap_mask
 
+
+def resize_to_10x(image: np.ndarray, magnification: float, target_magnification: float = 10) -> np.ndarray:
+    """
+    将高于目标倍率的图像缩放到目标倍率。
+    
+    例如：
+        20X -> 10X：缩放比例 0.5
+        40X -> 10X：缩放比例 0.25
+        10X -> 10X：不缩放
+    """
+    if magnification <= target_magnification:
+        return image
+
+    scale = target_magnification / magnification
+
+    new_h = max(1, int(round(image.shape[0] * scale)))
+    new_w = max(1, int(round(image.shape[1] * scale)))
+
+    from skimage.transform import resize
+
+    resized = resize(
+        image,
+        (new_h, new_w),
+        preserve_range=True,
+        anti_aliasing=True
+    )
+
+    return resized.astype(image.dtype)
+
+
+
 def main(
     file_path: str, 
     gpu,
     model_dir: str,
     stain_type= None,
+    Magnification = 10,
     output_path=None,
     patch_size: int = 4096,
     overlap: int = 48
@@ -288,6 +320,7 @@ def main(
     logging.getLogger('cellpose.models').setLevel(logging.WARNING)
     img = io.imread(file_path)
 
+    img = resize_to_10x(image=img, magnification=Magnification, target_magnification=10)
     # patches
     patches, positions = split_image_into_patches(img, patch_size, overlap)
 
@@ -298,10 +331,21 @@ def main(
     model = models.CellposeModel(gpu = gpu, pretrained_model=model_dir)
     masks = []
     for i, patch in enumerate(tqdm.tqdm(patches, desc='Segment cells with [Cellpose]')):
+
+        if patch.ndim == 2:
+            patch = patch[..., None]   # H,W -> H,W,1
+
+        if i == 0:
+            print(f"[DEBUG] patch shape: {patch.shape}")
+
         if "cyto3" in model_dir:
-            mask = model.eval(patch, diameter=None, channels=[0, 0],cellprob_threshold=-2.0, flow_threshold=0)[0]
+            mask = model.eval( patch, diameter=None, channels=None, channel_axis=-1, rescale=1.0,
+                cellprob_threshold=-2.0, flow_threshold=0)[0]
         else:
-            mask = model.eval(patch, diameter=None, channels=[0, 0],cellprob_threshold=-2.0, flow_threshold=0)[0]
+            mask = model.eval(
+                patch, diameter=None, channels=None, channel_axis=-1, rescale=1.0,
+                cellprob_threshold=-2.0, flow_threshold=0)[0]
+        
         mask = cellpose_instance2semantics(mask)
         masks.append(mask)
     
@@ -339,13 +383,14 @@ cyto2
 """
 
 
-def segment4cell(input_path: str, cfg: CellSegParam, use_gpu: bool, stain_type: str) -> npt.NDArray[np.uint8]:
+def segment4cell(input_path: str, cfg: CellSegParam, use_gpu: bool, stain_type: str, Magnification : int) -> npt.NDArray[np.uint8]:
     model_dir = getattr(cfg, f"{stain_type}_weights_path")
     mask = main(
         file_path=input_path,
         gpu=use_gpu,
         model_dir=model_dir,
-        stain_type= stain_type
+        stain_type= stain_type,
+        Magnification = Magnification
     )
     return mask
 

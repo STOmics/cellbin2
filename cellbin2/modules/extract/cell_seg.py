@@ -36,6 +36,7 @@ def run_cell_seg(
     """
     # check input data stain type and its referred model
     stain_type = str(image_file.tech.name)
+    Magnification = int(image_file.magnification)
     cellseg_model_path = getattr(config.cell_segmentation, f"{stain_type}_weights_path")
     cellseg_model = os.path.basename(cellseg_model_path)
     clog.info(f'{stain_type} image segmented by model: {cellseg_model}')
@@ -47,12 +48,13 @@ def run_cell_seg(
             use_gpu=True,
             model_dir = cellseg_model_path
         )
-    elif cellseg_model == 'cyto2torch_0' or cellseg_model == 'cyto3' or cellseg_model == 'cellpose3':
+    elif cellseg_model == 'cyto2torch_0' or cellseg_model == 'cyto3' or cellseg_model == 'cellpose3'or cellseg_model == 'cellpose20x' or cellseg_model == 'cellposeif':
         cell_mask = cellpose_segmentor.segment4cell(
             input_path=str(image_path),
             cfg=config.cell_segmentation,
             use_gpu=True,
-            stain_type = stain_type
+            stain_type = stain_type,
+            Magnification = Magnification
         )
     else:
         cell_mask, fast_mask = cell_segmentor.segment4cell(
