@@ -319,6 +319,7 @@ def main(
     import logging
     logging.getLogger('cellpose.models').setLevel(logging.WARNING)
     img = io.imread(file_path)
+    original_shape = img.shape[:2]
 
     img = resize_to_10x(image=img, magnification=Magnification, target_magnification=10)
     # patches
@@ -328,7 +329,10 @@ def main(
     overlap_mask = build_overlap_mask(positions, img.shape[:2])
     
     # patch segmentation
-    model = models.CellposeModel(gpu=gpu, pretrained_model=model_dir, nchan=1)
+    if "cyto3" in model_dir or "cellpose3" in model_dir:
+        model = models.CellposeModel(gpu=gpu, pretrained_model=model_dir)
+    else:
+        model = models.CellposeModel(gpu=gpu, pretrained_model=model_dir, nchan=1)
     masks = []
     for i, patch in enumerate(tqdm.tqdm(patches, desc='Segment cells with [Cellpose]')):
 
@@ -338,14 +342,13 @@ def main(
         if i == 0:
             print(f"[DEBUG] patch shape: {patch.shape}")
 
-        if "cyto3" in model_dir:
-            mask = model.eval( patch, diameter=None, channels=None, channel_axis=-1, rescale=1.0,
-                cellprob_threshold=-2.0, flow_threshold=0)[0]
+        if "cyto3" in model_dir or "cellpose3" in model_dir:
+            mask = model.eval(
+                patch, diameter=None, channels=[0,0], cellprob_threshold=-2.0, flow_threshold=0.8)[0]
         else:
             mask = model.eval(
-                patch, diameter=None, channels=None, channel_axis=-1, rescale=1.0,
-                cellprob_threshold=-2.0, flow_threshold=0)[0]
-        
+                patch, diameter=None, channels=None, channel_axis=-1, rescale=1.0, cellprob_threshold=-2.0, flow_threshold=0.8)[0]
+                
         mask = cellpose_instance2semantics(mask)
         masks.append(mask)
     
@@ -359,6 +362,8 @@ def main(
     )
     #full_mask = apply_watershed(full_mask)
     full_mask = f_postprocess_cellpose(full_mask, overlap_mask)
+    if Magnification == 20:
+        full_mask = cv2.resize(full_mask.astype(np.uint8), (original_shape[1], original_shape[0]), interpolation=cv2.INTER_NEAREST)
 
     if output_path:
         os.makedirs(output_path, exist_ok=True)
