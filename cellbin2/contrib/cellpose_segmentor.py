@@ -409,6 +409,7 @@ if __name__ == '__main__':
     parser.add_argument("-m", "--model_dir", help="model dir")
     parser.add_argument("-n", "--model_name", help="model name", default="cyto2torch_0")
     parser.add_argument("-g", "--gpu", help="the gpu index", default="-1")
+    parser.add_argument("--magnification", type=int, default=10, help="image magnification, default=10")
 
     args = parser.parse_args()
     input_path = args.input
@@ -416,13 +417,16 @@ if __name__ == '__main__':
     model_name = args.model_name
     gpu = args.gpu
     model_dir = args.model_dir
+    magnification = args.magnification
+
     model_path = os.path.join(model_dir, model_name)
 
-    main(
+    main( 
         file_path=input_path,
         gpu=gpu,
         model_dir=model_path,
-        output_path=output_path
+        output_path=output_path,
+        Magnification=magnification
     )
     sys.exit()
 

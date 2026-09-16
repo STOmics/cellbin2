@@ -48,7 +48,7 @@ def run_cell_seg(
             use_gpu=True,
             model_dir = cellseg_model_path
         )
-    elif cellseg_model == 'cyto2torch_0' or cellseg_model == 'cyto3' or cellseg_model == 'cellpose3'or cellseg_model == 'cellpose20x' or cellseg_model == 'cellposeif':
+    elif cellseg_model == 'cyto2torch_0' or cellseg_model == 'cyto3' or cellseg_model == 'cellpose3'or cellseg_model == 'cellseg_cellpose3_SD_20260916' or cellseg_model == 'cellseg_cellpose3_IF_20260916':
         cell_mask = cellpose_segmentor.segment4cell(
             input_path=str(image_path),
             cfg=config.cell_segmentation,
