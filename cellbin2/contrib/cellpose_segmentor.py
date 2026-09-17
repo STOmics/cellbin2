@@ -329,7 +329,7 @@ def main(
     overlap_mask = build_overlap_mask(positions, img.shape[:2])
     
     # patch segmentation
-    if "cyto3" in model_dir or "cellpose3" in model_dir:
+    if os.path.basename(model_dir) in ("cyto3", "cellpose3"):
         model = models.CellposeModel(gpu=gpu, pretrained_model=model_dir)
     else:
         model = models.CellposeModel(gpu=gpu, pretrained_model=model_dir, nchan=1)
@@ -342,7 +342,7 @@ def main(
         if i == 0:
             print(f"[DEBUG] patch shape: {patch.shape}")
 
-        if "cyto3" in model_dir or "cellpose3" in model_dir:
+        if os.path.basename(model_dir) in ("cyto3", "cellpose3"):
             mask = model.eval(
                 patch, diameter=None, channels=[0,0], cellprob_threshold=-2.0, flow_threshold=0.8)[0]
         else:
