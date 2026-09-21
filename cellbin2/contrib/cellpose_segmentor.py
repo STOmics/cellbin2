@@ -320,7 +320,7 @@ def main(
     logging.getLogger('cellpose.models').setLevel(logging.WARNING)
     img = io.imread(file_path)
     original_shape = img.shape[:2]
-    if os.path.basename(model_dir) in ( "cellpose20x"): 
+    if os.path.basename(model_dir) in ( "cellseg_cellpose3_SD_20260916"): 
         img = resize_to_10x(image=img, magnification=Magnification, target_magnification=10)
     # patches
     patches, positions = split_image_into_patches(img, patch_size, overlap)
@@ -362,7 +362,7 @@ def main(
     )
     #full_mask = apply_watershed(full_mask)
     full_mask = f_postprocess_cellpose(full_mask, overlap_mask)
-    if Magnification == 20 and os.path.basename(model_dir) in ( "cellpose20x"):
+    if Magnification == 20 and os.path.basename(model_dir) in ( "cellseg_cellpose3_SD_20260916"):
         full_mask = cv2.resize(full_mask.astype(np.uint8), (original_shape[1], original_shape[0]), interpolation=cv2.INTER_NEAREST)
 
     if output_path:
