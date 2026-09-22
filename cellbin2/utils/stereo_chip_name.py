@@ -1,5 +1,5 @@
 import json
-from .stereo_chip_name_c import decrypt_mask  
+from .chip_mask_crypto import decrypt_mask
 
 def load_chip_mask(path: str):
 
