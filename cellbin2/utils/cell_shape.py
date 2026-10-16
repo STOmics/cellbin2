@@ -176,8 +176,10 @@ def divChunk(cell_count, bounding_size_x, bounding_size_y):
 @print_running_time
 def getCellInfoList(file, output_folder):
     with h5py.File(file, mode='r') as gef_file:
-
-        resolution = int(gef_file.attrs[['resolution'][0]])
+        try:
+            resolution = int(gef_file.attrs[['resolution'][0]])
+        except KeyError:
+            resolution = 500
         cell_data = gef_file.get('cellBin/cell')
         lower_bound = [float(cell_data.attrs['minX'][0]), float(cell_data.attrs['minY'][0])]
         upper_bound = [float(cell_data.attrs['maxX'][0]), float(cell_data.attrs['maxY'][0])]
@@ -502,7 +504,7 @@ class CellBorder:
             self.border_data.append(self.border_data[self.border_vertex_len - 1])
 
     def get_border_points_bytes(self):
-        points_bytes = struct.pack('<32h', *list(chain(*self.border_data)))
+        points_bytes = struct.pack('<32e', *list(chain(*self.border_data)))
         return points_bytes
 
     # @print_running_time

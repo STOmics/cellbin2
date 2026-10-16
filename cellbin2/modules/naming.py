@@ -22,17 +22,17 @@ class DumpMatrixFileNaming:
     @my_property_dec
     def cell_bin_matrix(self, ):
         """CellBin gef"""
-        return f'{self.sn}_{self.m_type}.cellbin.gef'
+        return f'{self.sn}.cellbin.gef'
 
     @my_property_dec
     def cell_correct_bin_matrix(self, ):
         """CellBin correct gef"""
-        return f'{self.sn}_{self.m_type}.adjusted.cellbin.gef'
+        return f'{self.sn}.adjusted.cellbin.gef'
 
     @my_property_dec
     def tissue_bin_matrix(self, ):
         """Tissuebin gef"""
-        return f'{self.sn}_{self.m_type}.tissue.gef'
+        return f'{self.sn}.tissue.gef'
 
     @my_property_dec
     def matrix_template(self, ):

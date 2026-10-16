@@ -314,6 +314,7 @@ class Metrics(object):
         :return:  0
         """
         if self._RNAmultiMatrix is not None:
+            cmin = cmax = None
             if self._RNAmultiMatrix.cellbin is not None:
                 self._RNAmultiMatrix.cellbin.plot_spatail_figure(key="celldensity",
                                                                  save_path=self.output_figure_path_rna_cellbin)
@@ -324,6 +325,7 @@ class Metrics(object):
                                                                      colormax=cmax,
                                                                      save_path=self.output_figure_path_rna_adjusted)
         if self._ProteinmultiMatrix is not None:
+            cmin = cmax = None
             if self._ProteinmultiMatrix.cellbin is not None:
                 self._ProteinmultiMatrix.cellbin.plot_spatail_figure(key="celldensity",
                                                                      save_path=self.output_figure_path_protein_cellbin)
@@ -333,6 +335,7 @@ class Metrics(object):
                 self._ProteinmultiMatrix.adjustedbin.plot_spatail_figure(key="Adjusted_Gene_type", colormin=cmin,
                                                                          colormax=cmax,
                                                                          save_path=self.output_figure_path_protein_adjusted)
+
 
     def set_cluster_data(self):
         def _set_df_tojson(df, matrix_type="RNA"):

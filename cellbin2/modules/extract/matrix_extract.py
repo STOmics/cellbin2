@@ -96,29 +96,19 @@ def extract4matrix(
     cm = cMatrix()
     cm.read(file_path=Path(image_file.file_path))
     binx = cm.binx
+    import os
+    geojson_path = os.path.join(os.path.dirname(cell_correct_mask_path), os.path.basename(cell_correct_mask_path).replace(".tif", ".geojson"))
     
     if c_inp is None:
         c_inp = image_file.file_path
-    if Path(cell_mask_path).exists():
+    if Path(geojson_path).exists():
         save_cell_bin_data(
             c_inp,
             str(m_naming.cell_bin_matrix),
-            cell_mask_path)
+            geojson_path)
     else:
-        clog.info(f"{cell_mask_path} not exists, skip nuclear gef generation")
-    if Path(cell_correct_mask_path).exists():
-        save_cell_bin_data(
-            c_inp,
-            str(m_naming.cell_correct_bin_matrix),
-            cell_correct_mask_path
-        )
-        if image_file.tech == TechType.Transcriptomics:
-            generate_stereo_file(
-                save_path=p_naming.stereo,
-                cellbin_gef=m_naming.cell_correct_bin_matrix
-            )
-    else:
-        clog.info(f"{cell_mask_path} not exists, skip cellbin gef generation")
+        clog.info(f"{geojson_path} not exists, skip cgef generation")
+
     if Path(tissue_mask_path).exists():
         save_tissue_bin_data(
             image_file.file_path,

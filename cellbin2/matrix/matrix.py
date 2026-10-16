@@ -1,5 +1,6 @@
 from typing import Optional
 import os.path
+import glob
 
 import pandas as pd
 import h5py
@@ -192,31 +193,43 @@ class cMatrix(object):
         """
         chunk_size = 512 * 1024
         with h5py.File(file, "r") as fh:
-            dataset = fh["/geneExp/bin1/expression"]
+            try:
+                dataset = fh["/geneExp/0.235/expression"]
+            except KeyError:
+                dataset = fh["/geneExp/bin1/expression"]
 
             if not dataset[...].size:
                 clog.error("The sequencing data is empty, please confirm the {} file.".format(file))
                 raise Exception("The sequencing data is empty, please confirm the {} file.".format(file))
-
-            try:
-                binx = int(dataset.attrs["resolution"][0]/dataset.attrs["dnbPitch"][0]) 
-            except KeyError:
-                if dataset.attrs["resolution"][0] == 0:
-                    binx = 1
-                else:
-                    binx = int(dataset.attrs["resolution"][0]/500)
+            
+            if "resolution" not in dataset.attrs:
+                binx = 1
+            else:
+                try:
+                    binx = int(dataset.attrs["resolution"][0]/dataset.attrs["dnbPitch"][0]) 
+                except KeyError:
+                    if dataset.attrs["resolution"][0] == 0:
+                        binx = 1
+                    else:
+                        binx = int(dataset.attrs["resolution"][0]/500)
 
             if binx != 1: 
                 self.dtype = np.uint16
-            min_x, max_x = dataset.attrs["minX"][0], dataset.attrs["maxX"][0]
-            min_y, max_y = dataset.attrs["minY"][0], dataset.attrs["maxY"][0]
+            min_x, max_x = dataset.attrs["minX"], dataset.attrs["maxX"]
+            min_y, max_y = dataset.attrs["minY"], dataset.attrs["maxY"]
             width = max_x - min_x + 1
             height = max_y - min_y + 1
             img = np.zeros((height, width), self.dtype)
             img.fill(0)
             for step in range(dataset.size // chunk_size + 1):
                 data = dataset[step * chunk_size: (step + 1) * chunk_size]
-                parse_gef_line(data, img, self.dtype)
+                int_type = np.dtype([('x', 'i4'), ('y', 'i4'), ('z', 'i4'), ('count', 'u4')])
+                data_int = np.empty(len(data), dtype=int_type)
+                data_int['x'] = data['x'].astype(np.int32)
+                data_int['y'] = data['y'].astype(np.int32)
+                data_int['z'] = data['z'].astype(np.int32)
+                data_int['count'] = data['count']
+                parse_gef_line(data_int, img, self.dtype)
 
         return (
             binx,
@@ -228,22 +241,27 @@ class cMatrix(object):
     @staticmethod
     def gef_gef_shape(file):
         with h5py.File(file, "r") as fh:
-            dataset = fh[f"/geneExp/bin1/expression"]
+            try:
+                dataset = fh[f"/geneExp/0.235/expression"]
+            except KeyError:
+                dataset = fh[f"/geneExp/bin1/expression"]
 
             if not dataset[...].size:
                 clog.error("The sequencing data is empty, please confirm the {} file.".format(file))
                 raise Exception("The sequencing data is empty, please confirm the {} file.".format(file))
-    
-            try:
-                binx = int(dataset.attrs["resolution"][0]/dataset.attrs["dnbPitch"][0]) 
-            except KeyError:
-                if dataset.attrs["resolution"][0] == 0:
+            if "resolution" not in dataset.attrs:
                     binx = 1
-                else:
-                    binx = int(dataset.attrs["resolution"][0]/500)
+            else:
+                try:
+                    binx = int(dataset.attrs["resolution"][0]/dataset.attrs["dnbPitch"][0]) 
+                except KeyError:
+                    if dataset.attrs["resolution"][0] == 0:
+                        binx = 1
+                    else:
+                        binx = int(dataset.attrs["resolution"][0]/500)
                 
-            min_x, max_x = dataset.attrs["minX"][0], dataset.attrs["maxX"][0]
-            min_y, max_y = dataset.attrs["minY"][0], dataset.attrs["maxY"][0]
+            min_x, max_x = dataset.attrs["minX"], dataset.attrs["maxX"]
+            min_y, max_y = dataset.attrs["minY"], dataset.attrs["maxY"]
             width = max_x - min_x + 1
             height = max_y - min_y + 1
             return binx, width, height
@@ -274,30 +292,27 @@ class cMatrix(object):
         """ gray scale heatmap: for registration """
         return self._gene_mat
 
-
 def adjust_mask_shape(gef_path, mask_path):
     binx, m_width, m_height = cMatrix.gef_gef_shape(gef_path)
-    if binx==1:
-        mask = cbimread(mask_path)
-        if mask.width == m_width and mask.height == m_height:
-            return mask_path
-        mask_adjust = mask.trans_image(offset=[0, 0], dst_size=(m_height, m_width))
-        path_no_ext, ext = os.path.splitext(mask_path)
-        new_path = path_no_ext + "_adjust" + ".tif"
-        cbimwrite(new_path, mask_adjust)
+    mask = cbimread(mask_path)
+    if mask.width == m_width and mask.height == m_height:
+        return mask_path
+
+    path_no_ext, _ = os.path.splitext(mask_path)
+    new_path = path_no_ext + "_adjust" + ".tif"
+
+    if binx == 1:
+        from .resizetiff import resize_grayscale_image
+        resize_grayscale_image(mask_path, 0.235, new_path)
     else:
-        mask = cbimread(mask_path)
-        mask_binx = mask.trans_image(scale=1/binx)
-        path_no_ext, ext = os.path.splitext(mask_path)
-        
+        mask_binx = mask.trans_image(scale=1 / binx)
         if mask_binx.width == m_width and mask_binx.height == m_height:
             new_path = path_no_ext + f"_bin{binx}" + ".tif"
             cbimwrite(new_path, mask_binx)
             return new_path
-        mask_adjust = mask.trans_image(offset=[0, 0], dst_size=(m_height, m_width))
-        new_path = path_no_ext + "_adjust" + ".tif"
+        mask_adjust = mask_binx.trans_image(offset=[0, 0], dst_size=(m_height, m_width))
         cbimwrite(new_path, mask_adjust)
-        
+
     return new_path
 
 
@@ -317,23 +332,30 @@ def save_cell_bin_data(src_path: str, dst_path: str, cell_mask: str):
     src_path = str(src_path)
     dst_path = str(dst_path)
     cell_mask = str(cell_mask)
+ 
     from gefpy import cgef_writer_cy
-    if src_path.endswith(".gem"):
-        gef_path = os.path.join(os.path.dirname(dst_path), os.path.basename(src_path).replace(".gem", ".raw.gef"))
+    
+    if src_path.endswith(".raw.gef"):
+        pass
+    elif src_path.endswith(".gem") or src_path.endswith(".gem.gz"):
+        suffix = ".gem" if src_path.endswith(".gem") else ".gem.gz"
+        base_name = os.path.basename(src_path)
+        gef_path = os.path.join(os.path.dirname(dst_path), base_name.replace(suffix, ".raw.gef"))
+        
         if os.path.exists(gef_path):
             src_path = gef_path
         else:
             gem_to_gef(src_path, gef_path)
             src_path = gef_path
-    elif src_path.endswith(".gem.gz"):
-        gef_path = os.path.join(os.path.dirname(dst_path), os.path.basename(src_path).replace(".gem.gz", ".raw.gef"))
-        if os.path.exists(gef_path):
-            src_path = gef_path
-        else:
-            gem_to_gef(src_path, gef_path)
-            src_path = gef_path
+    else:
+        raise ValueError(
+            f"Unsupported input format: {src_path}. "
+            f"Expected .gem, .gem.gz, or .raw.gef"
+        )
+
     cgef_writer_cy.generate_cgef(dst_path, src_path, cell_mask, [256, 256])
-    f_main(dst_path)
+    # f_main(dst_path)
+
     return 0
 
 
@@ -343,7 +365,6 @@ def generate_vis_gef(src_path: str, dst_path):
     generate_bgef(
         input_file=src_path,
         bgef_file=dst_path,
-        stromics='geneExp',
         n_thread=8,
         bin_sizes=bin_sizes,
     )
@@ -354,15 +375,33 @@ def save_tissue_bin_data(src_path: str, dst_path: str, tissue_mask: str, bin_siz
     src_path = str(src_path)
     dst_path = str(dst_path)
     tissue_mask = str(tissue_mask)
-    from gefpy.bgef_creater_cy import BgefCreater
-    if src_path.endswith(".gef"):
-        tissue_mask = adjust_mask_shape(gef_path=src_path, mask_path=tissue_mask)
-    bc = BgefCreater()
-    path_no_ext, ext = os.path.splitext(dst_path)
-    tmp_path = f"{path_no_ext}_tmp{ext}"
-    bc.create_bgef(src_path, bin_siz, tissue_mask, tmp_path)
-    generate_vis_gef(tmp_path, dst_path)
-    os.remove(tmp_path)
+ 
+    dst_dir = os.path.dirname(dst_path)
+    from . import Tissuecut
+    if isinstance(bin_siz, int):
+        bin_siz = [bin_siz]
+    bin_size = ','.join(map(str, bin_siz))
+    tissue_mask = adjust_mask_shape(gef_path=src_path, mask_path=tissue_mask)
+    Tissuecut.tslib(False, 8, src_path, dst_dir, tissue_mask, "", bin_size, "")
+    search_pattern = os.path.join(dst_dir, "*.tissue.gef")
+    file_paths = glob.glob(search_pattern)
+    if file_paths:
+        gef_path = file_paths[0]
+    else:
+        print(f"tissue gef is not exist")
+
+    generate_vis_gef(gef_path, dst_path)
+    os.remove(gef_path)
+
+    #from gefpy.bgef_creater_cy import BgefCreater
+    #if src_path.endswith(".gef"):
+    #    tissue_mask = adjust_mask_shape(gef_path=src_path, mask_path=tissue_mask)
+    #bc = BgefCreater()
+    #path_no_ext, ext = os.path.splitext(dst_path)
+    #tmp_path = f"{path_no_ext}_tmp{ext}"
+    #bc.create_bgef(src_path, bin_siz, tissue_mask, tmp_path)
+    #generate_vis_gef(tmp_path, dst_path)
+    #os.remove(tmp_path)
     return
 
 

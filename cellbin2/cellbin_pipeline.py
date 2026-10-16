@@ -174,6 +174,14 @@ class CellBinPipeline(object):
                 if v.get_group_name(sn) == g_name:
                     return v.file_path
 
+        def _gef_or_empty(path):
+            # Admissibility check: upstream may not emit every gef (e.g. no
+            # *.adjusted.cellbin.gef). Return "" so MultiMatrix leaves that
+            # matrix as None and downstream steps skip it instead of crashing
+            # on a non-existent file.
+            path = str(path)
+            return path if os.path.exists(path) else ""
+
         if self.pp.run.report:
             from cellbin2.modules.metrics import ImageSource
             from cellbin2.modules import metrics
@@ -233,9 +241,9 @@ class CellBinPipeline(object):
                         if os.path.exists(raw_gef_path):
                             bin1_matrix_path = raw_gef_path
                     cur_m_src_files = metrics.MatrixArray(
-                        tissue_bin_matrix=str(cur_m_name.tissue_bin_matrix),
-                        cell_bin_matrix=str(cur_m_name.cell_bin_matrix),
-                        cell_bin_adjusted_matrix=str(cur_m_name.cell_correct_bin_matrix),
+                        tissue_bin_matrix=_gef_or_empty(cur_m_name.tissue_bin_matrix),
+                        cell_bin_matrix=_gef_or_empty(cur_m_name.cell_bin_matrix),
+                        cell_bin_adjusted_matrix=_gef_or_empty(cur_m_name.cell_correct_bin_matrix),
                         bin1_matrix=bin1_matrix_path,
                         matrix_type=matrix.tech
                     )
@@ -465,7 +473,7 @@ class CellBinPipeline(object):
         self.metrics()  # metrics calculation 
         self.export_report()  # report generation 
 
-        self.filter_files()
+        # self.filter_files()
 
 
 @process_decorator('GiB')

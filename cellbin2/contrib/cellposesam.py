@@ -80,7 +80,7 @@ def cellposesam_pred_3c(
     output_path = None
 ) -> np.ndarray:
 
-    TARGET_VERSION = "4.0.6"
+    TARGET_VERSION = "4.0.6"  # 原位用的4.1.1
 
     try:
         import cellpose
@@ -88,12 +88,12 @@ def cellposesam_pred_3c(
     except ImportError:
         version = ""
 
-    if version != TARGET_VERSION:
-        subprocess.check_call([
-            sys.executable, "-m", "pip", "install",
-            "--force-reinstall",
-            f"cellpose=={TARGET_VERSION}"
-        ])
+    # if version != TARGET_VERSION:
+    #     subprocess.check_call([
+    #         sys.executable, "-m", "pip", "install",
+    #         "--force-reinstall",
+    #         f"cellpose=={TARGET_VERSION}"
+    #     ])
     import cellpose
     import logging
 

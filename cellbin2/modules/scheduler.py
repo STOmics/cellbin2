@@ -717,14 +717,14 @@ class Scheduler(object):
 
         self.run_merge_masks()  # Merge multiple masks if needed
 
-        if flag1 in [0, 2]:
-            self._dump_rpi(self.p_naming.rpi)
+        # if flag1 in [0, 2]:
+        #     self._dump_rpi(self.p_naming.rpi)
 
-        if self.p_naming.tar_gz.exists() and self.p_naming.ipr.exists():
-            update_ipr_in_tar(
-                tar_path=self.p_naming.tar_gz,
-                ipr_path=self.p_naming.ipr,
-            )
+        # if self.p_naming.tar_gz.exists() and self.p_naming.ipr.exists():
+        #     update_ipr_in_tar(
+        #         tar_path=self.p_naming.tar_gz,
+        #         ipr_path=self.p_naming.ipr,
+        #     )
 
         if self.matrix_file is not None:
             matrix_naming = naming.DumpMatrixFileNaming(

@@ -115,7 +115,8 @@ class cbMatrix(object):
 
     def read(self, gef_path):
         if gef_path.endswith(".gef"):
-            from utils.gef_reader import read_gef
+            # from utils.gef_reader import read_gef
+            from gefpy.stereo_data_reader import read_gef
             data = read_gef(gef_path, bin_type="cell_bins")
             data.uns.setdefault("sn", os.path.basename(gef_path).split(".")[0])
             data.uns.setdefault("resolution", 500)
@@ -337,7 +338,8 @@ class BinMatrix(object):
 
     def read(self, bin_size=100):
         if self._file_path.endswith(".gef"):
-            from utils.gef_reader import read_gef
+            # from utils.gef_reader import read_gef
+            from gefpy.stereo_data_reader import read_gef
             data = read_gef(self._file_path, bin_type="bins", bin_size=bin_size)
             return data
         raise ValueError(f"Unsupported bin matrix file: {self._file_path}")
