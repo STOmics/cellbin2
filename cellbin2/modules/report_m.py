@@ -239,12 +239,15 @@ class Report(object):
         image_ipr = self.matrics_data.get("image_ipr", {})
         images_number = max(len(image_ipr.keys()) - 2, 0)
         self._json["image"]["summary"]["data"].append(_set_data_dict("The number of Images", images_number))
-        self._json["image"]["summary"]["data"].append(_set_data_dict("ImageSizeX (mm)",
-                                                                     int(self.matrics_data["image"]["param"][
-                                                                             "sizex"]) * RESOLUTION))
-        self._json["image"]["summary"]["data"].append(_set_data_dict("ImageSizeY (mm)",
-                                                                     int(self.matrics_data["image"]["param"][
-                                                                             "sizey"]) * RESOLUTION))
+        # sizex/sizey stay as {} placeholders when there is no rpi file (e.g. in-situ flow
+        # with rpi/ipr disabled); skip the size rows then instead of crashing on int({}).
+        param = self.matrics_data.get("image", {}).get("param", {})
+        for axis, label in (("sizex", "ImageSizeX (mm)"), ("sizey", "ImageSizeY (mm)")):
+            try:
+                size_mm = int(param.get(axis, {})) * RESOLUTION
+            except (TypeError, ValueError):
+                continue
+            self._json["image"]["summary"]["data"].append(_set_data_dict(label, size_mm))
         layers = [k for k in image_ipr.keys() if k not in ("ManualState", "StereoResepSwitch")]
         self._json["image"]["image_num"] = len(layers)
         if len(layers) == 0:

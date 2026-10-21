@@ -237,8 +237,8 @@ def segment4tissue(input_data: TissueSegInputInfo) -> TissueSegOutputInfo:
     if chip_size is None:
         clog.warning(f'input chip size is None, compute chip size with image size')
         chip_size = compute_chip_size(img)  # return chip height and chip width
-    if chip_size[0] > 1 or chip_size[1] > 1:
-        is_big_chip = True
+    # if chip_size[0] > 1 or chip_size[1] > 1:
+    #     is_big_chip = True
     clog.info(f'the chip size of the image:{os.path.basename(input_path)}, height:{chip_size[0]}, width:{chip_size[1]}, is_big_chip:{is_big_chip}')
     if len(img.shape) == 3 and s_type != TechType.HE:
         clog.warning(
