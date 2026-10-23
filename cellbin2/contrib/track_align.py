@@ -1,12 +1,12 @@
 import math
 import cv2 as cv
 import numpy as np
-
+from scipy.special import softmax
+from scipy.stats import rankdata
 from scipy.spatial.distance import cdist
-from numba import njit, prange
+from numba import njit, prange, get_num_threads
 
 from cellbin2.utils import clog
-from cellbin2.image.augmentation import f_padding
 
 
 def rotate(ptx, pty, angle, original_shape, new_shape):
@@ -36,15 +36,154 @@ def multiply_sum(a, b):
             res += a[i][j] * b[i][j]
     return res
 
+@njit(fastmath=True, cache=True)
+def _mi_from_hist(hist):
+    """
+    Calculate mutual information from a joint histogram;
+    """
+    bins = hist.shape[0]
+    total = 0.0
+    px = np.zeros(bins, dtype=np.float64)
+    py = np.zeros(bins, dtype=np.float64)
 
-def sub_sum(a, b):
+    for i in range(bins):
+        px_sum = 0.0
+        for j in range(bins):
+            v = hist[i, j]
+            total += v
+            px_sum += v
+            py[j] += v
+        px[i] = px_sum
+
+    if total == 0.0:
+        return 0.0
+
+    inv_total = 1.0 / total
+    mi = 0.0
+    for i in range(bins):
+        px_i = px[i] * inv_total
+        if px_i == 0.0:
+            continue
+        for j in range(bins):
+            py_j = py[j] * inv_total
+            if py_j == 0.0:
+                continue
+            p = hist[i, j] * inv_total
+            if p > 0.0:
+                mi += p * math.log(p / (px_i * py_j))
+    return mi
+
+
+@njit(parallel=True, fastmath=True)
+def _find_min_max(img, n_threads):
     """
-    2024/01/03 @lzp
+    Parallel min/max: find the minimum and maximum in a single pass;
     """
-    b = cv.dilate(b, np.ones((9, 9)))
-    sub = a.astype(np.float32) - b.astype(np.float32)
-    sub = np.abs(sub)
-    return np.sum(sub)
+    h, w = img.shape
+    local_min = np.full(n_threads, np.inf, dtype=np.float64)
+    local_max = np.full(n_threads, -np.inf, dtype=np.float64)
+
+    for t in prange(n_threads):
+        mn = np.inf
+        mx = -np.inf
+        for i in range(t, h, n_threads):
+            for j in range(w):
+                v = img[i, j]
+                if v < mn: mn = v
+                if v > mx: mx = v
+        local_min[t] = mn
+        local_max[t] = mx
+
+    return local_min.min(), local_max.max()
+
+
+@njit(parallel=True, fastmath=True, cache=True)
+def _bin_and_hist_2d(img1, img2, bins, n_threads,
+                     min1, max1, min2, max2):
+    """
+    Fused binning + joint histogram construction: completed in a single parallel pass;
+    """
+    h, w = img1.shape
+    scale1 = (bins - 1) / (max1 - min1)
+    scale2 = (bins - 1) / (max2 - min2)
+    local = np.zeros((n_threads, bins, bins), dtype=np.int64)
+
+    for t in prange(n_threads):
+        for i in range(t, h, n_threads):
+            for j in range(w):
+                b1 = int((img1[i, j] - min1) * scale1)
+                if b1 < 0: b1 = 0
+                elif b1 >= bins: b1 = bins - 1
+                b2 = int((img2[i, j] - min2) * scale2)
+                if b2 < 0: b2 = 0
+                elif b2 >= bins: b2 = bins - 1
+                local[t, b1, b2] += 1
+
+    hist = np.zeros((bins, bins), dtype=np.int64)
+    for t in range(n_threads):
+        for i in range(bins):
+            for j in range(bins):
+                hist[i, j] += local[t, i, j]
+    return hist
+
+
+def mutual_information(image1, image2, bins=64):
+    """
+    Compute the mutual information between two images (larger values indicate better alignment);
+    """
+    if image1.shape != image2.shape:
+        raise ValueError("images must have the same dimensions")
+
+    if image1.size < 100:
+        return 0.0
+
+    n_threads = max(1, get_num_threads())
+
+    min1, max1 = _find_min_max(image1, n_threads)
+    min2, max2 = _find_min_max(image2, n_threads)
+
+    if max1 == min1: max1 = min1 + 1e-10
+    if max2 == min2: max2 = min2 + 1e-10
+    hist = _bin_and_hist_2d(image1, image2, bins, n_threads,
+                            min1, max1, min2, max2)
+    return _mi_from_hist(hist)
+
+
+def compute_weighted_rank_score(scores, alpha=0.5, temperature=1.0):
+    scores = np.array(scores)
+    n = len(scores)
+    
+    # 1. Ranking score
+    ranks = rankdata(-scores)
+    rank_score = (n - ranks + 1) / n
+    
+    # 2. softmax (Margin ratio) 
+    diff = scores.max() - scores.min()
+    if diff < 1e-10:
+        softmax_diff = np.zeros(n)
+    else:
+        diff_ratio = (scores - scores.min()) / diff
+        softmax_diff = softmax(diff_ratio / temperature)
+        softmax_diff = (softmax_diff - softmax_diff.min()) / (softmax_diff.max() - softmax_diff.min() + 1e-10)
+    
+    # 3. rank_score × (1 + α × softmax(diff_ratio))
+    score = rank_score * (1 + alpha * softmax_diff)
+    return score
+
+def softmax_rank_fusion(scores_sim, scores_mi, alpha=0.5, temperature=1.0):
+
+    scores_sim = np.array(scores_sim)
+    scores_mi = np.array(scores_mi)
+    
+    score_sim = compute_weighted_rank_score(scores_sim, alpha, temperature)
+    score_mi = compute_weighted_rank_score(scores_mi, alpha, temperature)
+    
+    w_sim, w_mi = 0.5,0.5
+    
+    final_scores = w_sim * score_sim + w_mi * score_mi
+    best_idx = np.argmax(final_scores)
+    
+    return final_scores, best_idx, {'s_sim': score_sim, 's_mi': score_mi}
 
 
 class AlignByTrack:
@@ -60,20 +199,6 @@ class AlignByTrack:
         Transformed image and vision image only contain:
             - n times 90 degree rotation (e.g. 90, 180, 270, etc.)
             - x, y direction offsets
-
-        Args:
-            self.x_template (list): chip template on x direction
-            self.y_template (list): chip template on y direction
-            self.fov_size (float): length of a period on chip template
-            self.dist_thresh (float): maximum distance threshold
-            self.transformed_shape (tuple): shape of tranformed image
-            self.transformed_mass (nd array): mass center of transformed image
-            self.vision_shape (tuple): shape of vision image
-            self.vision_mass (nd array): mass center of vision image
-            self.vision_img (nd array): vision image
-            self.transformed_image (nd array): transformed image
-            self.transformed_cfov_pts (nd array): selected cross points on transform image
-            self.vision_cfov_pts (nd array): selected cross points on vision image
         """
         self.search_angle_set = (0, 90, 180, 270)
         self.search_range_x = [-2, -1, 0, 1, 2]
@@ -92,8 +217,10 @@ class AlignByTrack:
         self.transformed_cfov_pts = None
         self.vision_cfov_pts = None
 
-        # registration method compatible with HE type data
-        self.new_method: bool = False
+        # mi calculate-bin-level
+        self.mi_bins = 64
+        # downsampling step（SN chip size：0.5→2, 1→5, >1→8）
+        self.down_step = 5
 
     def set_chip_template(self, chip_template):
         self.x_template = chip_template[0]
@@ -103,22 +230,11 @@ class AlignByTrack:
 
     @staticmethod
     def get_mass(image):
-        """
-
-        Args:
-            image:
-
-        Returns:
-
-        """
-
         if image.ndim == 3:
             image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-
         M = cv.moments(image)
         cx_cv = round(M['m10'] / M['m00'])
         cy_cv = round(M['m01'] / M['m00'])
-
         return cx_cv, cy_cv
 
     @staticmethod
@@ -141,7 +257,8 @@ class AlignByTrack:
         )
 
         if flip:
-            new_px = new_shape[1] - 1 - new_px  # flip, note that the shape of image is used here, so -1 is required for index calculation
+            # flip, note that the shape of image is used here, so -1 is required for index calculation
+            new_px = new_shape[1] - 1 - new_px
             chip_xlen, chip_ylen = [len(chip_template[0]), len(chip_template[1])]
             ids[:, 0] = chip_xlen - 1 - ids[:, 0]
         pts_ids = np.hstack((new_px, new_py, ids))
@@ -157,9 +274,6 @@ class AlignByTrack:
             axis:
                 - 0: x
                 - 1: y
-
-        Returns:
-
         """
         if axis == 0:
             points[:, 0] = shape[1] - 1 - points[:, 0]
@@ -167,73 +281,42 @@ class AlignByTrack:
         else:
             points[:, 1] = shape[0] - 1 - points[:, 1]
             points[:, 3] = len(chip_template[1]) - 1 - points[:, 3]
-
         return points
 
     @staticmethod
-    def cal_score(transformed_image, vision_image, offset, method=False):
-        """
-        2023/09/20 @fxzhao use slicing instead of padding to speed up and reduce memory usage
-        """
-        if method:
-            left_x = int(round(abs(offset[0])))
-            if offset[0] > 0:
-                transformed_image = f_padding(transformed_image, 0, 0, left_x, 0)
-            else:
-                vision_image = f_padding(vision_image, 0, 0, left_x, 0)
-
-            up_y = int(round(abs(offset[1])))
-            if offset[1] > 0:
-                transformed_image = f_padding(transformed_image, up_y, 0, 0, 0)
-            else:
-                vision_image = f_padding(vision_image, up_y, 0, 0, 0)
-
-            shape_vision = np.shape(vision_image)
-            shape_transform = np.shape(transformed_image)
-
-            if shape_vision[0] > shape_transform[0]:
-                transformed_image = f_padding(transformed_image, 0, shape_vision[0] - shape_transform[0], 0, 0)
-            else:
-                vision_image = f_padding(vision_image, 0, shape_transform[0] - shape_vision[0], 0, 0)
-
-            if shape_vision[1] > shape_transform[1]:
-                transformed_image = f_padding(transformed_image, 0, 0, 0, shape_vision[1] - shape_transform[1])
-            else:
-                vision_image = f_padding(vision_image, 0, 0, 0, shape_transform[1] - shape_vision[1])
-            score = sub_sum(vision_image, transformed_image)
-            return score
+    def cal_score(transformed_image, vision_image, offset, mi_bins=64):
+        x, y = 0, 0
+        x0, y0 = 0, 0
+        if offset[0] < 0:
+            x = int(round(abs(offset[0])))
+            x0 = 0
         else:
-            x, y = 0, 0
-            x0, y0 = 0, 0
-            if offset[0] < 0:
-                x = int(round(abs(offset[0])))
-                x0 = 0
-            else:
-                x = 0
-                x0 = int(round(abs(offset[0])))
-            if offset[1] < 0:
-                y = int(round(abs(offset[1])))
-                y0 = 0
-            else:
-                y = 0
-                y0 = int(round(abs(offset[1])))
-            shape_vision = np.shape(vision_image)
-            shape_white = np.shape(transformed_image)
-            h, w = min(shape_vision[0]-y0, shape_white[0]-y), min(shape_vision[1]-x0, shape_white[1]-x)
-            score = multiply_sum(vision_image[y0:y0+h, x0:x0+w], transformed_image[y:y+h, x:x+w])
-            return score
+            x = 0
+            x0 = int(round(abs(offset[0])))
+        if offset[1] < 0:
+            y = int(round(abs(offset[1])))
+            y0 = 0
+        else:
+            y = 0
+            y0 = int(round(abs(offset[1])))
+        shape_vision = np.shape(vision_image)
+        shape_white = np.shape(transformed_image)
+        h = min(shape_vision[0] - y0, shape_white[0] - y)
+        w = min(shape_vision[1] - x0, shape_white[1] - x)
+
+        patch_vision = vision_image[y0:y0 + h, x0:x0 + w]
+        patch_white = transformed_image[y:y + h, x:x + w]
+
+        score_sim = multiply_sum(patch_vision, patch_white)
+        score_mi = mutual_information(patch_white, patch_vision, bins=mi_bins)
+
+        return score_sim, score_mi
 
     @staticmethod
     def get_pts_based_on_ids(pts_ids, keep_ids=(4, 4)):
         keep = (pts_ids[:, 2] == keep_ids[0]) & (pts_ids[:, 3] == keep_ids[1])
         selected_pts = pts_ids[keep][:, :2]
         return selected_pts
-
-    @staticmethod
-    def down_sample_normalize(img):
-        img = img[::5, ::5]
-        img = (img - np.min(img)) / (np.max(img) - np.min(img)) * 100
-        return img
 
     @staticmethod
     def get_new_shape(old_shape, angle):
@@ -248,7 +331,7 @@ class AlignByTrack:
 
     @staticmethod
     def get_rough_offset(offset_guess, rot_guess, old_shape, new_shape, transformed_pts, vision_pts, dist_thresh):
-        rot_x, rot_y, = rotate(
+        rot_x, rot_y = rotate(
             transformed_pts[:, 0:1],
             transformed_pts[:, 1:2],
             rot_guess,
@@ -277,37 +360,39 @@ class AlignByTrack:
         white_image = self.transformed_image
         white_image = np.rot90(white_image, angle // 90)
         vision_image = self.vision_img
-        score_max = np.Inf if self.new_method else 0
-        offset_last = []
 
-        # Iterate through the matching scores of 9 surrounding FOVs 
-        # Traverse the matching degree of 9 FOVs up, down, left, and right in sequence
+        offset_list = []
+        scores_sim_list = []
+        scores_mi_list = []
+
         for row in self.search_range_x:
             for col in self.search_range_y:
-                offset_temp = [offset_ori[0] + col * self.fov_size, offset_ori[1] + row * self.fov_size]
-                score_temp = self.cal_score(
-                    white_image, vision_image, np.array(offset_temp) / 5,
-                    method = self.new_method
+                offset_temp = [
+                    offset_ori[0] + col * self.fov_size,
+                    offset_ori[1] + row * self.fov_size
+                ]
+                score_sim, score_mi = self.cal_score(
+                    white_image, vision_image,
+                    np.array(offset_temp) / self.down_step,
+                    mi_bins=self.mi_bins,
                 )
+                offset_list.append(offset_temp)
+                scores_sim_list.append(score_sim)
+                scores_mi_list.append(score_mi)
+            
+                clog.info(f"Angle: {angle}, offset: {offset_temp}, sim: {score_sim:.6f}, mi: {score_mi:.6f}")
 
-                if self.new_method:
-                    if score_temp < score_max:
-                        score_max = score_temp
-                        offset_last = offset_temp
-                else:
-                    if score_temp > score_max:
-                        score_max = score_temp
-                        offset_last = offset_temp
-
-        return np.array(offset_last), score_max
+        return offset_list,scores_sim_list,scores_mi_list
 
     def get_best_in_all_angles_offsets(self):
-        score_record = []
-        offset_record = []
+        all_offsets = []
+        all_sim = []
+        all_mi = []
+        all_angles = []
         for num, angle in enumerate(self.search_angle_set):
             old_shape = self.transformed_shape
             new_shape = self.get_new_shape(old_shape, angle)
-            rot_mass_x, rot_mass_y, = rotate(
+            rot_mass_x, rot_mass_y = rotate(
                 self.transformed_mass[0],
                 self.transformed_mass[1],
                 angle,
@@ -328,41 +413,94 @@ class AlignByTrack:
             )
 
             if rough_x_offset != 0 and rough_y_offset != 0:
-                offset, score = self.search_fov(np.array([rough_x_offset, rough_y_offset]), angle)
-            else:
-                if self.new_method:
-                    offset, score = [0, 0], np.Inf
-                else:
-                    offset, score = [0, 0], 0
+                offsets, sims, mis = self.search_fov(
+                    np.array([rough_x_offset, rough_y_offset]), angle
+                )
+                all_offsets.extend(offsets)
+                all_sim.extend(sims)
+                all_mi.extend(mis)
+                all_angles.extend([num] * len(offsets))
 
-            offset_record.append(offset)
-            clog.info(f"Angle: {angle}, Score: {score}")
-            score_record.append(score)
+        final_scores, best_idx, details = softmax_rank_fusion(
+            np.array(all_sim),
+            np.array(all_mi),
+            alpha=0.5,
+            temperature=0.5
+        )
 
-        md = min if self.new_method else max
-        rot_type = score_record.index(md(score_record))
-        offset = offset_record[rot_type]
+        best_offset = all_offsets[best_idx]
+        best_rot_type = all_angles[best_idx]
+        best_score = final_scores[best_idx]
 
-        return offset, rot_type, md(score_record)
+        # 调试输出每个配准参数对应计算的分数
+        # for angle in self.search_angle_set:
+        #     indices = [i for i, a in enumerate(all_angles) if a == angle]
+        #     if indices:
+        #         max_score = max(final_scores[i] for i in indices)
+        #         clog.info(f"Angle: {angle}, Best Final Score: {max_score:.6f}")
+
+        return best_offset, best_rot_type, best_score
 
     @staticmethod
-    def _enhance_vision_image(vision_img, down_size = 20, e = 3):
-        new_h = vision_img.shape[0] // down_size
-        new_w = vision_img.shape[1] // down_size
-        sum_image = np.zeros([new_h, new_w], dtype=np.float32)
+    def _chip_specif_to_step(chip_specif):
+        """Derive the downsampling stride from SN chip_specif [w, h]:
+        - min == 0.5 (small chip) → 3
+        - max > 1 (large chip)    → 8
+        - otherwise (1x1) -> 5
+        """
+        if not chip_specif:
+            return 5
+        if min(chip_specif) == 0.5:
+            return 3
+        if max(chip_specif) > 1:
+            return 8
+        return 5
 
-        for _h in range(new_h):
-            for _w in range(new_w):
-                value = np.sum(vision_img[_h * down_size: (_h + 1) * down_size,
-                               _w * down_size: (_w + 1) * down_size])
-                sum_image[_h, _w] = value
+    @staticmethod
+    def _enhance_vision_image(vision_img, down_size=20, clip_limit=3.0, tile_grid=(16, 16), step=5):
+        """MI vision pre-process:
+        20x20 block-sum → p1/p99 clipping → CLAHE → resize to H/step, W/step;
+        the step must match the DAPI downsampling stride to ensure both images are at the same scale;
+        """
+        h, w = vision_img.shape
+        new_h = h // down_size
+        new_w = w // down_size
+        cropped = vision_img[:new_h * down_size, :new_w * down_size].astype(np.float32)
+        sum_image = cropped.reshape(new_h, down_size, new_w, down_size).sum(axis=(1, 3))
+        nz = sum_image[sum_image > 0]
+        if nz.size > 0:
+            p1, p99 = np.percentile(nz, [1, 99])
+        else:
+            p1, p99 = 0.0, 1.0
+        if p99 <= p1:
+            p99 = p1 + 1e-6
+        stretched = np.clip(
+            (sum_image - p1) / (p99 - p1) * 255.0, 0, 255
+        ).astype(np.uint8)
+        clahe = cv.createCLAHE(clipLimit=clip_limit, tileGridSize=tile_grid)
+        boosted = clahe.apply(stretched)
+        return cv.resize(boosted, (w // step, h // step), interpolation=cv.INTER_LINEAR)
 
-        sum_image = sum_image * ((sum_image / np.mean(sum_image) / e) ** 2)
-        sum_image[sum_image > 255] = 255
-        sum_image = np.array(sum_image, dtype=np.uint8)
-        sum_image = cv.resize(sum_image, (vision_img.shape[1] // 5, vision_img.shape[0] // 5))
 
-        return sum_image
+    @staticmethod
+    def _down_sample_normalize(img, clip_limit=3.0, tile_grid=(16, 16), step=5):
+        """MI image pre-process:
+        downsample by step → p1/p99 clipping → CLAHE, output uint8 0-255;
+        """
+        img = img[::step, ::step]
+        if img.dtype != np.uint8:
+            img_u8 = cv.normalize(img, None, 0, 255, cv.NORM_MINMAX).astype(np.uint8)
+        else:
+            img_u8 = img
+        p1, p99 = np.percentile(img_u8, [1, 99])
+        if p99 <= p1:
+            p99 = p1 + 1
+        stretched = np.clip(
+            (img_u8.astype(np.float32) - p1) / (p99 - p1) * 255.0, 0, 255
+        ).astype(np.uint8)
+        clahe = cv.createCLAHE(clipLimit=clip_limit, tileGridSize=tile_grid)
+        return clahe.apply(stretched)
+
 
     def run(self,
             transformed_image,
@@ -371,29 +509,15 @@ class AlignByTrack:
             stitch_tc,
             flip,
             rot90_flag,
-            new_method: bool = False
+            chip_specif=None
             ):
-        """
-
-        Args:
-            transformed_image:
-            vision_img:
-            vision_cp:
-            stitch_tc:
-            flip:
-            rot90_flag:
-            new_method:
-
-        Returns:
-
-        """
         if not rot90_flag:
             self.search_angle_set = tuple([0])
 
         if transformed_image.ndim == 3:
             transformed_image = cv.cvtColor(transformed_image, cv.COLOR_BGR2GRAY)
 
-        self.new_method = new_method
+        self.down_step = self._chip_specif_to_step(chip_specif)
         self.transformed_shape = transformed_image.shape
         self.vision_shape = vision_img.shape
 
@@ -409,12 +533,8 @@ class AlignByTrack:
         self.transformed_mass = self.get_mass(self.transformed_image)
         self.vision_mass = self.get_mass(vision_img)
 
-        self.transformed_image = self.down_sample_normalize(self.transformed_image)
-
-        if self.new_method:
-            self.vision_img = self._enhance_vision_image(vision_img)
-        else:
-            self.vision_img = self.down_sample_normalize(vision_img)
+        self.transformed_image = self._down_sample_normalize(self.transformed_image, step=self.down_step)
+        self.vision_img = self._enhance_vision_image(vision_img, step=self.down_step)
 
         self.transformed_cfov_pts = self.get_pts_based_on_ids(stitch_tc)
         self.vision_cfov_pts = self.get_pts_based_on_ids(vision_cp)

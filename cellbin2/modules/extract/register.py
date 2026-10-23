@@ -225,7 +225,8 @@ def run_register(
                 from_stitched=False,
                 qc_info=(param1.QCInfo.TrackCrossQCPassFlag, chip_re),
                 flip_flag=config.registration.flip,
-                rot90_flag=config.registration.rot90
+                rot90_flag=config.registration.rot90,
+                chip_specif=param_chip.chip_specif
             )
 
             clog.info(f"Track cross registration: {info}")

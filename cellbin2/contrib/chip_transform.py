@@ -95,7 +95,8 @@ def chip_transform(
 
 if __name__ == "__main__":
     img = chip_transform(
-        fixed_image = r"D:\02.data\temp\temp\src_image\LXX_2_HE_d2.tif",
-        moving_image = r"D:\02.data\temp\temp\src_image\lxx_宫颈癌2\test_v3.tif",
-        output_path = r"D:\02.data\temp\temp\src_image\lxx_宫颈癌2\regis_v3.tif",
+        fixed_image = r"F:\FBS\HE-伊红-DAPI\胃癌7-DAPI1.tif",
+        moving_image = r"F:\FBS\HE-伊红-DAPI\胃癌7.tif",
+        output_path = r"F:\FBS\HE-伊红-DAPI\胃癌7_regist_DAPI1.tif",
+        scale = [1, 1]
     )
