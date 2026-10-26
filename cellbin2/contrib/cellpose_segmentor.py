@@ -21,8 +21,9 @@ def split_image_into_patches(
     overlap: int = 48
 ) -> Tuple[List[np.ndarray], List[Tuple[int, int, int, int]]]:
 
-    
     h, w = image.shape[:2]
+    if h <= patch_size and w <= patch_size:
+        return [image.copy()], [(0, 0, h, w)]
     stride = patch_size - overlap  
     patches = []
     positions = []
@@ -153,7 +154,6 @@ def merge_masks_with_overlap_only_max(
     full_mask[overlap_global] = (full_score[overlap_global] > threshold).astype(np.uint8)
 
     return full_mask
-
 
 
 def cellpose_instance2semantics(

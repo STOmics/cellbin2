@@ -33,6 +33,8 @@ def split_image_into_patches(
 
     
     h, w = image.shape[:2]
+    if h <= patch_size and w <= patch_size:
+        return [image.copy()], [(0, 0, h, w)]
     stride = patch_size - overlap  
     patches = []
     positions = []
