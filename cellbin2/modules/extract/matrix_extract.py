@@ -14,6 +14,8 @@ from cellbin2.utils.common import TechType
 from cellbin2.image.augmentation import f_resize
 from cellbin2.utils.stereo_chip import StereoChip
 from cellbin2.image.augmentation import f_ij_16_to_8
+from cellbin2.contrib.cell_filter import FilterCells, filter_pipline
+from cellbin2.utils.cell_shape import f_main as cell_shape_f_main
 
 
 def extract4stitched(
@@ -43,9 +45,6 @@ def extract4stitched(
         sc = StereoChip()
         sc.parse_info(chip_no=m_naming.sn)
         track_points = sc.template_points
-        # track_points = np.loadtxt('/media/Data1/user/hedongdong/wqs/00.code/03.CellBin2/bin_X/data/SS200000135TL_D1_Transcriptomics_matrix_template.txt')
-        # print(track_points.shape)
-        # np.savetxt('/media/Data1/user/hedongdong/wqs/00.code/03.CellBin2/bin_X/data/track_points.txt', track_points)
         from cellbin2.contrib.alignment.basic import TemplateInfo
         cm._template = TemplateInfo(template_recall=1.,
                                     template_valid_area=1.,
@@ -55,7 +54,7 @@ def extract4stitched(
                                     scale_x=1., scale_y=1.,
                                     template_points=track_points)
 
-        # 对_gene_mat插值放大
+        # _gene_mat
         cbimwrite(str(m_naming.heatmap).replace('.tif', f'_bin{binx}.tif'), cm.heatmap)
         gene_mat = cm._gene_mat
         gene_mat = f_ij_16_to_8(gene_mat)
@@ -72,11 +71,75 @@ def extract4stitched(
     cbimwrite(m_naming.heatmap, cm.heatmap)
     return cm, binx
 
+def delete_doublet_from_expanded_mask(filter_txt, mask_path, out_path):
+    import cv2
+    import pandas as pd
+    import numpy as np
+    import tifffile
+    from cellbin2.image import cbimwrite
+
+    df = pd.read_csv(filter_txt, sep="\t")
+    df = df[df["delete_flag"] == 1].copy()
+
+    img = tifffile.imread(str(mask_path))
+
+    if len(df) == 0:
+        clog.info("No doublet cells found, copy expanded mask directly.")
+        cbimwrite(str(out_path), img)
+        return str(out_path)
+
+    # x/y columns are always written by FilterCells.result_to_txt.
+    if {"x", "y"}.issubset(set(df.columns)):
+        coords = []
+        for row in df.itertuples(index=False):
+            coords.append((int(getattr(row, "x")), int(getattr(row, "y"))))
+    else:
+        raise ValueError(
+            "filter.txt has no x/y columns. "
+            "Cannot delete doublet cells from expanded mask."
+        )
+
+    mask01 = (img > 0).astype(np.uint8)
+
+    h, w = mask01.shape
+
+    removed_components = 0
+    skipped_background = 0
+    skipped_outside = 0
+
+    for x, y in coords:
+        if not (0 <= x < w and 0 <= y < h):
+            skipped_outside += 1
+            continue
+
+        if mask01[y, x] == 0:
+            skipped_background += 1
+            continue
+
+        num, _, _, _ = cv2.floodFill(
+            mask01,
+            None,
+            seedPoint=(x, y),
+            newVal=0,
+            loDiff=0,
+            upDiff=0,
+            flags=4,
+        )
+
+        if num > 0:
+            removed_components += 1
+
+    out = img.copy()
+    out[mask01 == 0] = 0
+
+    cbimwrite(str(out_path), out)
+    return str(out_path)
 
 def extract4matrix(
         p_naming: naming.DumpPipelineFileNaming,
         image_file: ProcFile,
         m_naming: naming.DumpMatrixFileNaming,
+        doublet_filter: bool = False,
 ):
     """
     Extracts matrix data for stitched images based on cell and tissue masks.
@@ -87,15 +150,17 @@ def extract4matrix(
         m_naming (naming.DumpMatrixFileNaming): Naming convention for matrix files.
     """
     # Check if tissue mask is considered for cell matrix extraction, needs confirmation
+    import os
     from cellbin2.matrix.matrix import save_cell_bin_data, save_tissue_bin_data, cMatrix
-    cell_mask_path = p_naming.final_nuclear_mask
+    cell_mask_path = str(p_naming.final_nuclear_mask)
     tissue_mask_path = p_naming.final_tissue_mask
-    cell_correct_mask_path = p_naming.final_cell_mask
+    cell_correct_mask_path =str(p_naming.final_cell_mask)
     c_inp = None
+    path = os.path.dirname(cell_mask_path)
 
-    cm = cMatrix()
-    cm.read(file_path=Path(image_file.file_path))
-    binx = cm.binx
+    clog.info(f"Matrix input, use save_cell_bin_data: {image_file.file_path}")
+
+    binx = 1
 
     if Path(tissue_mask_path).exists():
         save_tissue_bin_data(
@@ -122,18 +187,80 @@ def extract4matrix(
     else:
         clog.info(f"{cell_mask_path} not exists, skip nuclear gef generation")
     if Path(cell_correct_mask_path).exists():
-        save_cell_bin_data(
-            c_inp,
-            str(m_naming.cell_correct_bin_matrix),
-            cell_correct_mask_path
-        )
-        if image_file.tech == TechType.Transcriptomics:
-            generate_stereo_file(
-                save_path=p_naming.stereo,
-                cellbin_gef=m_naming.cell_correct_bin_matrix
+        cgeffile = str(m_naming.cell_correct_bin_matrix)
+
+        result = save_cell_bin_data(
+                image_file.file_path,
+                cgeffile,
+                cell_correct_mask_path,
             )
+        cell_shape_f_main(cgeffile)
+
+        final_cellbin_gef_for_stereo = cgeffile
     else:
-        clog.info(f"{cell_mask_path} not exists, skip cellbin gef generation")
+        clog.info(f"{cell_correct_mask_path} not exists, skip unfiltered expanded cellbin gef generation")
+        final_cellbin_gef_for_stereo = None
+
+    if doublet_filter:
+        raw_cell_gef = str(m_naming.cell_bin_matrix)
+        filter_txt = os.path.join(path, f"{m_naming.sn}.filter.txt")
+        filter_gef = os.path.join(path, f"{m_naming.sn}.filter.gef")
+
+        filtered_cell_correct_mask_path = os.path.join(
+            path,
+            f"{m_naming.sn}_final_cell_mask_after_doublet_delete.tif"
+        )
+
+        filtered_cell_correct_gef = Path(path) / f"{m_naming.sn}.filtered.cellbin.gef"
+
+        if (
+            Path(raw_cell_gef).exists()
+            and Path(cell_mask_path).exists()
+            and Path(cell_correct_mask_path).exists()
+        ):
+            filter_pipline(
+                raw_cell_gef,
+                cell_mask_path,
+                output_filter_file=filter_txt,
+                output_filter_gef=filter_gef,
+            )
+
+            filtered_cell_correct_mask_path = delete_doublet_from_expanded_mask(
+                filter_txt=filter_txt,
+                mask_path=cell_correct_mask_path,
+                out_path=filtered_cell_correct_mask_path,
+            )
+
+            if Path(filtered_cell_correct_mask_path).exists():
+                result = save_cell_bin_data(
+                        image_file.file_path,
+                        str(filtered_cell_correct_gef),
+                        filtered_cell_correct_mask_path,
+                    )
+                cell_shape_f_main(str(filtered_cell_correct_gef))
+
+                final_cellbin_gef_for_stereo = filtered_cell_correct_gef
+
+                clog.info("[doublet filter output]")
+                clog.info(f"  unfiltered expanded cellbin gef = {cgeffile}")
+                clog.info(f"  filtered expanded mask          = {filtered_cell_correct_mask_path}")
+                clog.info(f"  filtered expanded cellbin gef   = {filtered_cell_correct_gef}")
+            else:
+                clog.warning(
+                    f"filtered expanded mask not exists: {filtered_cell_correct_mask_path}. "
+                    "Skip filtered cellbin gef generation."
+                )
+        else:
+            clog.warning(
+                "doublet_filter=True, but raw cgef/raw mask/expanded mask missing. "
+                "Skip doublet filter."
+            )
+
+    if image_file.tech == TechType.Transcriptomics and final_cellbin_gef_for_stereo is not None:
+        generate_stereo_file(
+            save_path=p_naming.stereo,
+            cellbin_gef=Path(final_cellbin_gef_for_stereo)
+        )
 
 
 def main():

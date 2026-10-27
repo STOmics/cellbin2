@@ -64,8 +64,8 @@
       "tissue_segmentation": true,
       "cell_segmentation": true,
       "channel_align": -1,
-      "magnification": 10,
-      "chip_matching": -1,
+      "magnification": 20,
+      "chip_matching": 0,
       "tissue_filter": -1
     },
     "ssDNA": {
@@ -89,6 +89,7 @@
   "molecular_classify": {
     "Transcriptomics": {
       "exp_matrix": 1,
+      "doublet_filter": false,
       "cell_mask": {
         "nuclei":[0],
         "interior": [],
@@ -102,8 +103,8 @@
   "run": {
     "qc": true,
     "alignment": true,
-    "matrix_extract": true,
-    "report": false,
+    "matrix_extract": false,
+    "report": true,
     "annotation": false
   }
 }

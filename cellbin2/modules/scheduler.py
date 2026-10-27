@@ -344,8 +344,16 @@ class Scheduler(object):
                         else:
                             qc_flag = getattr(qc_, 'QCPassFlag')
                         if qc_flag != 1:  # Cannot register under current conditions
-                            clog.warning('Image QC not pass, cannot deal this pipeline')
-                            sys.exit(ErrorCode.qcFail.value)
+                            if f.chip_detect:
+                                # scell path self-detects the chip box and does not
+                                # depend on QC pass flags; force continue.
+                                clog.warning(
+                                    'Image QC not pass; chip_detect=true -> '
+                                    'force continue with scell self-detect registration.'
+                                )
+                            else:
+                                clog.warning('Image QC not pass, cannot deal this pipeline')
+                                sys.exit(ErrorCode.qcFail.value)
                     # Perform transform operations: Transform > Segmentation > Mask merge & expand
                     cur_c_image = self._channel_images[g_name]
                     # Transform input and output

@@ -151,9 +151,11 @@ class CellBinPipeline(object):
                 if m.exp_matrix == -1:
                     continue
                 matrix = files[m.exp_matrix]
+                doublet_filter = m.doublet_filter
                 extract4matrix(
                     p_naming=p_naming,
                     image_file=matrix,
+                    doublet_filter=doublet_filter,
                     m_naming=naming.DumpMatrixFileNaming(
                         sn=self._chip_no,
                         m_type=matrix.tech.name,

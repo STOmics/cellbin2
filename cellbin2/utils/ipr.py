@@ -11,7 +11,7 @@ from cellbin2.utils.common import bPlaceHolder, fPlaceHolder, iPlaceHolder, sPla
 from cellbin2.utils import HDF5
 from cellbin2.contrib import param
 from cellbin2.contrib import alignment
-from cellbin2.contrib.alignment.basic import ChipBoxInfo
+from cellbin2.contrib.alignment.basic import ChipBoxInfo, AlignMode
 from cellbin2.contrib.template.inference import TemplateInfo
 from cellbin2.contrib.alignment import RegistrationOutput
 from cellbin2.contrib.clarity import ClarityOutput
@@ -198,6 +198,103 @@ class RegisterInfo(BaseIpr):
         self.MatrixShape = info.dst_shape
 
 
+class RegisterChipInfo(RegisterInfo):
+    """Extended RegisterInfo persisting chip_box_scell fine-alignment params.
+
+    Additive over RegisterInfo: all original fields/methods are preserved
+    (update() calls super().update()), and the chip_box_scell fields default
+    to placeholders so the original (chip_detect=false) flow is unaffected.
+    Only populated when chip_detect=true writes an info carrying fine_alignment.
+    """
+
+    def __init__(self):
+        super(RegisterChipInfo, self).__init__()
+
+        # chip_box_scell pre transform from align_stitched()
+        self.PreScale: float = fPlaceHolder
+        self.PreRotation: float = fPlaceHolder
+        self.PreApplied: int = iPlaceHolder
+
+        # chip_box_scell coarse registration
+        self.CoarseScale: float = fPlaceHolder
+        self.CoarseOffsetX: float = fPlaceHolder
+        self.CoarseOffsetY: float = fPlaceHolder
+
+        # chip_box_scell fine registration
+        self.FineOffsetX: float = fPlaceHolder
+        self.FineOffsetY: float = fPlaceHolder
+        self.FineScale: float = fPlaceHolder
+        self.FineAngle: float = fPlaceHolder
+        self.FineCenterX: float = fPlaceHolder
+        self.FineCenterY: float = fPlaceHolder
+
+        # ROI bbox: (x0, y0, x1, y1)
+        self.RoiX0: int = iPlaceHolder
+        self.RoiY0: int = iPlaceHolder
+        self.RoiX1: int = iPlaceHolder
+        self.RoiY1: int = iPlaceHolder
+
+        # moving chip box corners used for chip-box registration
+        self.LeftTop: np.ndarray = np.array([fPlaceHolder, fPlaceHolder], dtype=float)
+        self.LeftBottom: np.ndarray = np.array([fPlaceHolder, fPlaceHolder], dtype=float)
+        self.RightTop: np.ndarray = np.array([fPlaceHolder, fPlaceHolder], dtype=float)
+        self.RightBottom: np.ndarray = np.array([fPlaceHolder, fPlaceHolder], dtype=float)
+
+    def update(self, info, chip_box=None):
+        # Keep original RegisterInfo fields:
+        # OffsetX / OffsetY / Flip / Method / RegisterScore / CounterRot90 / MatrixShape
+        super(RegisterChipInfo, self).update(info)
+
+        fa = getattr(info, "fine_alignment", None)
+
+        if fa is not None:
+            # pre transform from align_stitched()
+            pre = fa.get("pre_transform", None)
+            if pre is not None:
+                self.PreScale = float(pre.get("scale", fPlaceHolder))
+                self.PreRotation = float(pre.get("rotation", fPlaceHolder))
+                self.PreApplied = int(bool(pre.get("applied", False)))
+
+            # coarse transform
+            self.CoarseScale = float(fa.get("coarse_scale", fPlaceHolder))
+
+            coarse_translation = fa.get(
+                "coarse_translation",
+                (fPlaceHolder, fPlaceHolder)
+            )
+            self.CoarseOffsetX = float(coarse_translation[0])
+            self.CoarseOffsetY = float(coarse_translation[1])
+
+            # fine transform
+            fine_offset = fa.get(
+                "offset",
+                (fPlaceHolder, fPlaceHolder)
+            )
+            self.FineOffsetX = float(fine_offset[0])
+            self.FineOffsetY = float(fine_offset[1])
+
+            self.FineScale = float(fa.get("scale", fPlaceHolder))
+            self.FineAngle = float(fa.get("angle", fPlaceHolder))
+
+            fine_center = fa.get("fine_center", None)
+            if fine_center is not None:
+                self.FineCenterX = float(fine_center[0])
+                self.FineCenterY = float(fine_center[1])
+
+            roi_bbox = fa.get("roi_bbox", None)
+            if roi_bbox is not None:
+                self.RoiX0 = int(roi_bbox[0])
+                self.RoiY0 = int(roi_bbox[1])
+                self.RoiX1 = int(roi_bbox[2])
+                self.RoiY1 = int(roi_bbox[3])
+
+        if chip_box is not None:
+            self.LeftTop = np.asarray(chip_box.LeftTop, dtype=float)
+            self.LeftBottom = np.asarray(chip_box.LeftBottom, dtype=float)
+            self.RightTop = np.asarray(chip_box.RightTop, dtype=float)
+            self.RightBottom = np.asarray(chip_box.RightBottom, dtype=float)
+
+
 class Register(RegisterInfo):
     def __init__(self):
         super(Register, self).__init__()
@@ -211,7 +308,7 @@ class Register(RegisterInfo):
         self.RegisterTrackTemplate: np.ndarray = np.array([])
         self.GeneChipBBox = ChipBBox()
         self.Register00 = Register00()
-        self.RegisterChip = RegisterInfo()
+        self.RegisterChip = RegisterChipInfo()
 
 
 class TissueSeg(object):

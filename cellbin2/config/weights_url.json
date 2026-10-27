@@ -16,6 +16,10 @@
         "bgipan": "https://bgipan.genomics.cn/v3.php/download/ln-file?FileId=14610110&ShareKey=k0ZpY34HPSvpAn1aFjWL&VersionId=8966682&UserId=38259&Password=ej3C&Policy=eyJBSyI6IjJmMWJiMWI0NWEzMWVlNDA1NTI2OWQxYjRlYTllNWU0IiwiQWF0IjoxLCJBaWQiOiJKc1FDc2pGM3lyN0tBQ3lUIiwiQ2lkIjoiYTFkMTM0MjAtNTI5ZS00YzFhLWEzMGMtMGI0YzA0NzM5ZTBlIiwiRXAiOjkwMCwiRGF0ZSI6IlR1ZSwgMDMgRmViIDIwMjYgMDE6MjI6MDcgR01UIn0%3D&Signature=4d6093db2f2481928fd9821d535e787990193a8a",
         "github": "https://github.com/STOmics/cellbin2/releases/download/weights-v1.0.0/cellseg_unetpp_RNA_20260129.onnx"
       },
+      "cellseg_unetpp_RNA_20260710.onnx": {
+        "bgipan": "/",
+        "github": "/"
+      },
       "cellseg_bcdu_H_240823_tf.hdf5": {
         "bgipan": "https://bgipan.genomics.cn/v3.php/download/ln-file?FileId=5925261&ShareKey=GpXQhOJY5pXY42mNUrN1&VersionId=3969712&UserId=3503&Policy=eyJBSyI6ImRjODJhMDFhNzZmMWI3ZTcwNWIxMTdhZDRmMmFiZTNlIiwiQWF0IjoxLCJBaWQiOiJKc1FDc2pGM3lyN0tBQ3lUIiwiQ2lkIjoiZjc0YzY3OWQtNjZlZS00NzU5LTg4OWYtZDIzNzNhOWM4NjkyIiwiRXAiOjkwMCwiRGF0ZSI6IlR1ZSwgMDggT2N0IDIwMjQgMDY6MTg6NDkgR01UIn0%3D&Signature=0f9ff6aacbecf87739bf5d78313eb75b0f406690",
         "github": "https://github.com/STOmics/cellbin2/releases/download/weights-v1.0.0/cellseg_bcdu_H_240823_tf.hdf5"
@@ -34,11 +38,11 @@
       },
       "cpsam": {
           "bgipan": "https://bgipan.genomics.cn/v3.php/download/ln-file?FileId=13737945&ShareKey=D4BFhYPwZZOcc16MpZ4G&VersionId=7121704&UserId=38259&Password=Y5Sk&Policy=eyJBSyI6IjBlNjE5YzFjYzZlMGRhZTZlZmMzMjMxMDVjN2I4YWM1IiwiQWF0IjoxLCJBaWQiOiJKc1FDc2pGM3lyN0tBQ3lUIiwiQ2lkIjoiYTFkMTM0MjAtNTI5ZS00YzFhLWEzMGMtMGI0YzA0NzM5ZTBlIiwiRXAiOjkwMCwiRGF0ZSI6IlR1ZSwgMDkgRGVjIDIwMjUgMDc6MzY6MzYgR01UIn0%3D&Signature=9980c83d371885a65c272eea42e31e11b036a210",
-          "github": "https://github.com/STOmics/cellbin2/releases/download/weights-v1.0.0/cpsam"
+          "github": "/"
       },
       "cellpose3": {
-          "bgipan": "https://bgipan.genomics.cn/v3.php/download/ln-file?FileId=13737320&ShareKey=PeFFZxUS3ktek5uQ2won&VersionId=1428201&UserId=38259&Password=QD2Y&Policy=eyJBSyI6IjBlNjE5YzFjYzZlMGRhZTZlZmMzMjMxMDVjN2I4YWM1IiwiQWF0IjoxLCJBaWQiOiJKc1FDc2pGM3lyN0tBQ3lUIiwiQ2lkIjoiYTFkMTM0MjAtNTI5ZS00YzFhLWEzMGMtMGI0YzA0NzM5ZTBlIiwiRXAiOjkwMCwiRGF0ZSI6IlR1ZSwgMDkgRGVjIDIwMjUgMDc6Mzk6MjggR01UIn0%3D&Signature=2d2979e269b1b2c89b6b1b3b62891678bb5fbdbc",
-          "github": "https://github.com/STOmics/cellbin2/releases/download/weights-v1.0.0/nucleitorch_0"
+        "bgipan": "https://bgipan.genomics.cn/v3.php/download/ln-file?FileId=13737320&ShareKey=PeFFZxUS3ktek5uQ2won&VersionId=1428201&UserId=38259&Password=QD2Y&Policy=eyJBSyI6IjBlNjE5YzFjYzZlMGRhZTZlZmMzMjMxMDVjN2I4YWM1IiwiQWF0IjoxLCJBaWQiOiJKc1FDc2pGM3lyN0tBQ3lUIiwiQ2lkIjoiYTFkMTM0MjAtNTI5ZS00YzFhLWEzMGMtMGI0YzA0NzM5ZTBlIiwiRXAiOjkwMCwiRGF0ZSI6IlR1ZSwgMDkgRGVjIDIwMjUgMDc6Mzk6MjggR01UIn0%3D&Signature=2d2979e269b1b2c89b6b1b3b62891678bb5fbdbc",
+        "github": "https://github.com/STOmics/cellbin2/releases/download/weights-v1.0.0/nucleitorch_0"
       },
       "cyto3": {
           "bgipan": "https://bgipan.genomics.cn/v3.php/download/ln-file?FileId=13737321&ShareKey=tX7Kd2axt2Aoo1F0YihF&VersionId=8450446&UserId=38407&Policy=eyJBSyI6IjA3YzA0NGZhZTY4ZmEyY2U1YjYwZTg1MGQ3ODMyZDJhIiwiQWF0IjoxLCJBaWQiOiJKc1FDc2pGM3lyN0tBQ3lUIiwiQ2lkIjoiM2JiMmRlYmEtZGJlNy00Y2IyLWI3ODYtOTMwOGQwNTJmOThlIiwiRXAiOjkwMCwiRGF0ZSI6IlRodSwgMjYgTWFyIDIwMjYgMDk6MDI6NDcgR01UIn0%3D&Signature=a52dacdac496ac0db2d6e3d042c210ddd6205813",

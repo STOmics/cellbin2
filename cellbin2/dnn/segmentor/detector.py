@@ -104,6 +104,7 @@ class Segmentation:
         # 3. postprocess
         if self.stain_type == TechType.Transcriptomics:
             pred = self.postprocess(pred_raw, self.stain_type)
+            pred = remove_small_objects(pred.astype(np.bool8), min_size=15, connectivity=2).astype(np.uint8)
         else:
             # post processing
             sp_run2 = SplitWSI(pred_raw, self.watershed_win_size, self._overlap, 1, False, True, False, np.uint8)

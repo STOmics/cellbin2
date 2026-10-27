@@ -17,7 +17,7 @@ from cellbin2.contrib.alignment.basic import transform_points, ChipBoxInfo
 from cellbin2.contrib.base_module import BaseModule
 from cellbin2.utils.plot_funcs import get_view_image
 
-SUPPORTED_STAIN_TYPE = (TechType.ssDNA, TechType.DAPI, TechType.HE)
+SUPPORTED_STAIN_TYPE = (TechType.ssDNA, TechType.DAPI, TechType.HE, TechType.IF)
 weight_name_ext = '_weights_path'
 TechToWeightName = {i.value: i.name.lower() + weight_name_ext for i in SUPPORTED_STAIN_TYPE}
 
@@ -254,39 +254,126 @@ class ChipDetector(object):
         self.left_top, self.left_bottom, self.right_bottom, self.right_top = \
             [list(i) for i in self.finetune_corner_points]
 
-    def stage_rough(self):
-        """Perform rough detection of the chip's corner points.
-
-        If the original image is a long rectangle (width/length < 0.9),
-        it should be transformed into a square by non-proportional scaling first,
-
-        This method initializes an OBB8Detector with the provided ONNX model and source image,
-        then runs the detector to obtain the rough corner points.
-
-        Returns:
-            None. The rough corner points are stored in the `rough_corner_points` attribute.
+    @staticmethod
+    def _order_box_points(points: np.ndarray):
         """
+        reorder to: left_top, left_bottom, right_bottom, right_top
+        """
+        pts = np.asarray(points, dtype=np.float32)
 
-        if len(self.source_image.shape) == 3:
-            h, w, _ = self.source_image.shape
-        else:
-            h, w = self.source_image.shape
+        # First split the points into left and right groups based on x
+        x_sorted = pts[np.argsort(pts[:, 0])]
+        left = x_sorted[:2]
+        right = x_sorted[2:]
 
-        max_l = max(h, w)
-        min_l = min(h, w)
-        if min_l / max_l < 0.9:
-            new_size = max_l
-            square_image = cv2.resize(self.source_image, (new_size, new_size), interpolation=cv2.INTER_LINEAR)
-            obb8_detector = OBB8Detector(self.onnx_model_global, gpu=self.cfg.GPU, num_threads=self.cfg.num_threads)
-            square_corner_points = obb8_detector.run(square_image)
-            scale_w = w / new_size
-            scale_h = h / new_size
-            square_corner_points[:, 0] *= scale_w  # adjust x-coordinates
-            square_corner_points[:, 1] *= scale_h  # adjust y-coordinates
-            self.rough_corner_points = square_corner_points
+        # Sort the left group by y to get LT, LB
+        left = left[np.argsort(left[:, 1])]
+        lt, lb = left
+
+        # Sort the right group by y to get RT, RB
+        right = right[np.argsort(right[:, 1])]
+        rt, rb = right
+
+        return np.array([lt, lb, rb, rt], dtype=np.float32)
+
+    def _rough_detect_traditional(self, image: np.ndarray) -> np.ndarray:
+        """
+        Traditional rough chip detection:
+        1. Convert to grayscale / use a single channel
+        2. Blur + CLAHE
+        3. Otsu thresholding
+        4. Closing / opening operations
+        5. Find the largest approximately rectangular region
+        6. Use minAreaRect to get the four corner points
+        """
+        if image.ndim == 3:
+            if 0 <= self.cfg.detect_channel < image.shape[2]:
+                gray = image[:, :, self.cfg.detect_channel]
+            else:
+                gray = image[:, :, 0]
         else:
-            obb8_detector = OBB8Detector(self.onnx_model_global, gpu=self.cfg.GPU, num_threads=self.cfg.num_threads)
-            self.rough_corner_points = obb8_detector.run(self.source_image)
+            gray = image.copy()
+
+        gray = gray.astype(np.uint8)
+
+        # Light smoothing to reduce scattered noise
+        blur = cv2.GaussianBlur(gray, (5, 5), 0)
+
+        # Enhance local contrast
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(16, 16))
+        enh = clahe.apply(blur)
+
+        # The chip is brighter than the background: use Otsu thresholding
+        _, th = cv2.threshold(enh, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+        h, w = gray.shape[:2]
+
+        # Choose relatively stable kernel sizes based on image size
+        k_close = max(9, int(round(min(h, w) * 0.01)))
+        if k_close % 2 == 0:
+            k_close += 1
+
+        k_open = max(5, int(round(min(h, w) * 0.005)))
+        if k_open % 2 == 0:
+            k_open += 1
+
+        kernel_close = cv2.getStructuringElement(cv2.MORPH_RECT, (k_close, k_close))
+        kernel_open = cv2.getStructuringElement(cv2.MORPH_RECT, (k_open, k_open))
+
+        # Closing: connect the chip region as much as possible
+        mask = cv2.morphologyEx(th, cv2.MORPH_CLOSE, kernel_close, iterations=2)
+        # Opening: remove small noise
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel_open, iterations=1)
+
+        # Fill holes
+        flood = mask.copy()
+        flood_mask = np.zeros((h + 2, w + 2), np.uint8)
+        cv2.floodFill(flood, flood_mask, (0, 0), 255)
+        holes = cv2.bitwise_not(flood)
+        mask = cv2.bitwise_or(mask, holes)
+
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if not contours:
+            raise ValueError("Traditional stage_rough failed: no contour found.")
+
+        img_area = float(h * w)
+        best_score = -1.0
+        best_box = None
+
+        for cnt in contours:
+            area = cv2.contourArea(cnt)
+            if area < img_area * 0.02:
+                continue
+
+            rect = cv2.minAreaRect(cnt)
+            (cx, cy), (rw, rh), angle = rect
+            if rw <= 1 or rh <= 1:
+                continue
+
+            box = cv2.boxPoints(rect).astype(np.float32)
+
+            rect_area = float(rw * rh)
+            fill_ratio = area / max(rect_area, 1.0)
+
+            # Larger and more rectangular regions are preferred
+            score = area * max(fill_ratio, 0.1)
+
+            if score > best_score:
+                best_score = score
+                best_box = box
+
+        if best_box is None:
+            raise ValueError("Traditional stage_rough failed: no valid chip contour found.")
+
+        return self._order_box_points(best_box)
+
+    def stage_rough(self):
+        """
+        Traditional rough detection without model inference.
+        Suitable when chip is obviously brighter than background.
+        """
+        self.rough_corner_points = self._rough_detect_traditional(self.source_image)
+        clog.info(f"Traditional stage_rough done. rough_corner_points = {self.rough_corner_points}")
 
     def stage_finetune(self):
         """
@@ -543,22 +630,22 @@ def detect_chip(file_path: Union[str, np.ndarray],
 def main():
     cfg = ChipParam(
         **{"stage1_weights_path":
-               r"D:\hedongdong1\Workspace\01.chip_box_detect\algorithm_develop\old_model\chip_detect_obb8n_640_SD_202409_pytorch.onnx",
+               r"/",
            "stage2_weights_path":
-               r"D:\hedongdong1\Workspace\01.chip_box_detect\algorithm_develop\old_model\chip_detect_yolo8x_1024_SDH_stage2_202410_pytorch.onnx"})
+               r"/"})
 
-    file_path = r"D:\hedongdong1\Workspace\01.chip_box_detect\show_interface\test_data\C04144G513_ssDNA_stitch.tif"
+    file_path = r"/"
     info, debug_dic = detect_chip(file_path, cfg=cfg, stain_type=TechType.ssDNA, actual_size=(19992, 19992),
                                   is_debug=True)
     print(info.IsAvailable)
 
 
 if __name__ == '__main__':
-    # points = np.loadtxt(r"D:\02.data\temp\temp_cellbin2_test\trans_data_1\B03025E4\B03025E4_DAPI_stitch.txt")
+    # points = np.loadtxt(r"")
     #
     # cd = ChipDetector(cfg = None, stain_type = "DAPI")
     # cd.set_corner_points(points)
-    # cd.detect(r"D:\02.data\temp\temp_cellbin2_test\trans_data_1\A00792D3\label.tif", (19992, 19992))
+    # cd.detect(r"", (19992, 19992))
 
     main()
 

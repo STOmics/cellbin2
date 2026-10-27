@@ -106,6 +106,7 @@
   "molecular_classify": {
     "Transcriptomics": {
       "exp_matrix": 1,
+      "doublet_filter": false,
       "cell_mask": {
         "nuclei":[0],
         "interior": [],
@@ -116,7 +117,8 @@
       "extra_method": ""
     },
     "Protein": {
-      "exp_matrix": 5,
+      "exp_matrix": 1,
+      "doublet_filter": false,
       "cell_mask": {
         "nuclei":[0],
         "interior": [],
@@ -131,7 +133,7 @@
     "qc": true,
     "alignment": true,
     "matrix_extract": true,
-    "report": false,
+    "report": true,
     "annotation": false
   }
 }

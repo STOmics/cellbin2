@@ -49,6 +49,7 @@ def run_cell_seg(
             model_dir = cellseg_model_path
         )
     elif cellseg_model == 'cyto2torch_0' or cellseg_model == 'cyto3' or cellseg_model == 'cellpose3':
+        clog.info("Using cellpose_segmentor for cell segmentation")
         cell_mask = cellpose_segmentor.segment4cell(
             input_path=str(image_path),
             cfg=config.cell_segmentation,
@@ -75,5 +76,4 @@ def run_cell_seg(
     #     bmr = RLEncode()
     #     c_mask_encode = bmr.encode(cell_mask)
     #     channel_image.CellSeg.CellMask = c_mask_encode
-    # mask2geojson(save_path)
     return cell_mask

@@ -3,7 +3,9 @@ from pydantic import BaseModel, Field
 from typing import Tuple, Union, List, Any, Optional, Dict
 
 from cellbin2.contrib.alignment.basic import AlignMode, ChipFeature, ChipBoxInfo
-from cellbin2.contrib.alignment.chip_box import chip_align
+def chip_align(*args, **kwargs):
+    from cellbin2.contrib.alignment.chip_box_scell import chip_align as _chip_align
+    return _chip_align(*args, **kwargs)
 from cellbin2.contrib.alignment.template_centroid import centroid
 from cellbin2.contrib.alignment.template_00pt import template_00pt_align, template_00pt_check
 from cellbin2.utils import clog
@@ -31,6 +33,9 @@ class RegistrationOutput(BaseModel):
     register_mat: Any = Field(None, description='')
     method: AlignMode = Field(AlignMode.TemplateCentroid, description='')
     dst_shape: Tuple[int, int] = Field((0, 0), description='')
+
+    # chip_box_scell fine alignment info
+    fine_alignment: Optional[Dict[str, Any]] = Field(None, description='')
 
 
 class Registration00Offset(BaseModel):
@@ -76,6 +81,7 @@ def registration(moving_image: ChipFeature,
                  qc_info: tuple = (0, 0),
                  flip_flag: bool = True,
                  rot90_flag: bool = True,
+                 chip_detect: bool = False,
                  ) -> (RegistrationOutput, RegistrationOutput):
     """
     :param moving_image: The image to be registered is usually a stained image (such as ssDNA, HE)
@@ -102,7 +108,13 @@ def registration(moving_image: ChipFeature,
         res_template = None
 
     if qc_info[1]:
-        res_chip_box = chip_align(
+        # Route by chip_detect: scell chip_box_scell (fine_alignment) when true,
+        # original chip_box (offset-based) when false. Both share the same signature.
+        if chip_detect:
+            from cellbin2.contrib.alignment.chip_box_scell import chip_align as _chip_align
+        else:
+            from cellbin2.contrib.alignment.chip_box import chip_align as _chip_align
+        res_chip_box = _chip_align(
             moving_image=moving_image,
             fixed_image=fixed_image,
             from_stitched=from_stitched,
@@ -158,13 +170,13 @@ if __name__ == '__main__':
     # move image
     moving_image = ChipFeature()
     moving_image.tech_type = TechType.DAPI
-    moving_mat = cbimread(r'E:\03.users\liuhuanlin\01.data\cellbin2\stitch\A03599D1_DAPI.tif')
+    moving_mat = cbimread(r'/')
     moving_image.set_mat(moving_mat)
     img_tpl = TemplateInfo(template_recall=1.0, template_valid_area=1.0,
                            trackcross_qc_pass_flag=1, trackline_channel=0,
                            rotation=-0.53893, scale_x=1.0000665084, scale_y=1.00253792,
                            template_points=np.loadtxt(
-                               r"E:/03.users/liuhuanlin/01.data/cellbin2/stitch/DAPI_matrix_template.txt"))
+                               r"/"))
     moving_image.set_template(np.array(img_tpl))
     img_box = ChipBoxInfo(left_top=[162.28519045689168, 499.231306034147],
                           left_bottom=[377.99806165682605, 20502.069199051202],
@@ -179,17 +191,17 @@ if __name__ == '__main__':
     # fix object information
     fixed_image = ChipFeature()
     fixed_image.tech_type = TechType.Transcriptomics
-    fixed_image.set_mat(r'E:\03.users\liuhuanlin\01.data\cellbin2\stitch\A03599D1_gene.tif')
+    fixed_image.set_mat(r'/')
     matrix_tpl = TemplateInfo(template_recall=1.0, template_valid_area=1.0,
                               trackcross_qc_pass_flag=1, trackline_channel=0,
                               rotation=0., scale_x=1., scale_y=1.,
                               template_points=np.loadtxt(
-                                  r"E:/03.users/liuhuanlin/01.data/cellbin2/stitch/A03599D1_gene.txt"))
+                                  r"/"))
     fixed_image.set_template(np.array(matrix_tpl))
     matrix_box = ChipBoxInfo(left_top=[124., 1604.], left_bottom=[124., 21596.],
                              right_bottom=[20116., 21596.], right_top=[20116., 1604.])
 
-    # multi-method test 
+    # multi-method test
     methods = [AlignMode.TemplateCentroid, AlignMode.Template00Pt, AlignMode.ChipBox, AlignMode.Voting]
     for m in methods[:1]:
         info = registration(moving_image=moving_image, fixed_image=fixed_image,

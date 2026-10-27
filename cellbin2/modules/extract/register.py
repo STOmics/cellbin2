@@ -7,6 +7,7 @@ from cellbin2.modules.metadata import ProcFile
 from cellbin2.modules import naming
 from cellbin2.contrib.alignment import registration, RegistrationOutput, template_00pt_check
 from cellbin2.utils.ipr import IFChannel, ImageChannel
+from cellbin2.utils.common import fPlaceHolder
 from cellbin2.utils import clog
 from cellbin2.contrib.alignment.basic import ChipFeature, AlignMode
 from cellbin2.modules.extract.matrix_extract import extract4stitched
@@ -49,6 +50,71 @@ def transform_to_register(
         cur_f_name.transformed_template: cur_f_name.register_template,
         cur_f_name.transformed_track_template: cur_f_name.register_track_template
     }
+    # ---- chip_box_scell path (chip_detect=true flow) ----
+    # When the registration produced a fine_alignment (chip_box_scell), apply the
+    # scell transform; otherwise fall through to the original offset-based flow.
+    if info is not None and getattr(info, "fine_alignment", None) is not None:
+        from cellbin2.contrib.alignment.chip_box_scell import apply_chip_box_transform_to_array
+        import cv2 as cv
+
+        mask_dst_set = {
+            cur_f_name.cell_mask,
+            cur_f_name.cell_mask_raw,
+            cur_f_name.tissue_mask,
+            cur_f_name.tissue_mask_raw,
+        }
+
+        for src, dst in dct.items():
+            src_path = src
+            dst_path = dst
+
+            if not os.path.exists(src_path):
+                continue
+
+            if os.path.splitext(src_path)[1] == ".txt":
+                # scell chip-box transform does not depend on template txt.
+                clog.warning(f"Skip txt transform in chip_box_scell mode: {src_path}")
+                continue
+
+            src_img = cbimread(src_path, only_np=True)
+            interp = cv.INTER_NEAREST if dst_path in mask_dst_set else cv.INTER_LINEAR
+
+            dst_image = apply_chip_box_transform_to_array(
+                image=src_img,
+                registration_info={
+                    "flip": info.flip,
+                    "counter_rot90": info.counter_rot90,
+                    "dst_shape": info.dst_shape,
+                    "fine_alignment": info.fine_alignment,
+                },
+                interpolation=interp
+            )
+
+            cbimwrite(dst_path, dst_image)
+
+            if os.path.basename(dst_path).count('_regist.') > 0:
+                if binx != 1:
+                    _dst_image = cbimread(dst_path).trans_image(scale=1 / binx)
+                    cbimwrite(
+                        str(dst_path).replace("regist.tif", f"regist_bin{binx}.tif"),
+                        _dst_image
+                    )
+
+        if os.path.exists(cur_f_name.tissue_mask):
+            tissue_mask = cbimread(cur_f_name.tissue_mask, only_np=True)
+            cur_c_image.TissueSeg.TissueSegShape = list(tissue_mask.shape)
+            bmr = RLEncode()
+            t_mask_encode = bmr.encode(tissue_mask)
+            cur_c_image.TissueSeg.TissueMask = t_mask_encode
+        if os.path.exists(cur_f_name.cell_mask):
+            cell_mask = cbimread(cur_f_name.cell_mask, only_np=True)
+            cur_c_image.CellSeg.CellSegShape = list(cell_mask.shape)
+            bmr = RLEncode()
+            c_mask_encode = bmr.encode(cell_mask)
+            cur_c_image.CellSeg.CellMask = c_mask_encode
+        return
+
+    # ---- original path (chip_detect=false / no fine_alignment) ----
     if info is None and cur_c_image is None:
         for src, dst in dct.items():
             if not os.path.exists(src):
@@ -132,117 +198,212 @@ def run_register(
     if image_file.registration.reuse != -1:
         binx = 1  # only work for IF image; do not return binx scale image
         f_name = files[image_file.registration.reuse].get_group_name(sn=sn)
-        info = channel_images[f_name].get_registration()
+        reuse_image = channel_images[f_name]
+        info = reuse_image.get_registration()
         clog.info('Get registration param from ipr')
+
+        # chip_box_scell reuse: rebuild fine_alignment from the reused image's
+        # RegisterChip (scell ipr) so the IF image gets the same chip-box
+        # transform. Only when the reused image actually persisted scell params.
+        if image_file.chip_detect:
+            r_chip = reuse_image.Register.RegisterChip
+            if getattr(r_chip, "CoarseScale", fPlaceHolder) != fPlaceHolder:
+                fa = {
+                    "pre_transform": {
+                        "scale": r_chip.PreScale,
+                        "rotation": r_chip.PreRotation,
+                        "applied": bool(r_chip.PreApplied),
+                    },
+                    "coarse_scale": r_chip.CoarseScale,
+                    "coarse_translation": (r_chip.CoarseOffsetX, r_chip.CoarseOffsetY),
+                    "offset": (r_chip.FineOffsetX, r_chip.FineOffsetY),
+                    "scale": r_chip.FineScale,
+                    "angle": r_chip.FineAngle,
+                    "roi_bbox": (r_chip.RoiX0, r_chip.RoiY0, r_chip.RoiX1, r_chip.RoiY1),
+                }
+                if getattr(r_chip, "FineCenterX", fPlaceHolder) != fPlaceHolder:
+                    fa["fine_center"] = (r_chip.FineCenterX, r_chip.FineCenterY)
+                info.method = AlignMode.ChipBox
+                info.fine_alignment = fa
+                clog.info(f"Rebuilt chip_box_scell fine_alignment from reused ipr: {fa}")
+            else:
+                clog.warning(
+                    "chip_detect=true but reused image has no scell ipr "
+                    "(CoarseScale unset); falling back to offset-based registration."
+                )
     else:
 
-        """ Constructing parameters for the moving image """
-        moving_image = ChipFeature(
-            tech_type=image_file.tech,
-        )
-        moving_image.tech_type = image_file.tech
-        moving_image.set_mat(cur_f_name.transformed_image)
-        # It is recommended not to read from ipr here
-        if param1.QCInfo.TrackCrossQCPassFlag:
-            moving_image.set_template(param1.Stitch.TransformTemplate)  # param1.transform_template_info
-        if param1.QCInfo.ChipDetectQCPassFlag:
-            moving_image.set_chip_box(param1.Stitch.TransformChipBBox.get())
+        if image_file.chip_detect:
+            # ============================================================
+            # scell dedicated path (chip_detect=true):
+            # Self-detects the moving chip box and runs chip_box_scell
+            # registration directly. Does NOT read TrackCrossQCPassFlag /
+            # ChipDetectQCPassFlag, so it proceeds even when QC failed.
+            # Persisted into RegisterChip (scell ipr) for IF reuse.
+            # ============================================================
+            moving_image = ChipFeature(tech_type=image_file.tech)
+            moving_image.tech_type = image_file.tech
+            moving_image.set_mat(cur_f_name.transformed_image)
 
-        """ Constructing parameters for the fixed image """
-        fixed = files[image_file.registration.fixed_image]
-        if fixed.is_matrix:
-            # Scenario 1: The fixed image is a matrix
+            fixed = files[image_file.registration.fixed_image]
+            if not fixed.is_matrix:
+                raise Exception(
+                    "chip_box_scell registration currently only supports matrix as fixed image."
+                )
             cm, binx = extract4stitched(
                 image_file=fixed,
                 param_chip=param_chip,
                 m_naming=naming.DumpMatrixFileNaming(
-                    sn=sn,
-                    m_type=fixed.tech.name,
-                    save_dir=output_path
+                    sn=sn, m_type=fixed.tech.name, save_dir=output_path
                 ),
-                config=config
+                config=config,
             )
-
             fixed_image = ChipFeature(
                 tech_type=fixed.tech,
                 template=cm.template,
                 chip_box=cm.chip_box,
-                binx=binx
+                binx=binx,
             )
             fixed_image.set_mat(cm.heatmap)
             param1.Register.MatrixTemplate = cm.template.template_points
-
             if binx == 1:
                 param1.Register.GeneChipBBox.update(fixed_image.chip_box)
-        else:
-            raise Exception("Not supported yet")
 
-        """ Starting the registration process """
-        if param1.Register.Method == AlignMode.Template00Pt.name:  # Pre-registration has been done previously
-            # Get registration parameters from ipr
-            pre_info = param1.Register.Register00.get().to_dict()
-
-            # if bin_size != 1:
-                # from cellbin2.contrib.alignment.template_centroid import centroid
-                # _info = centroid(
-                #     moving_image=moving_image,
-                #     fixed_image=fixed_image,
-                #     ref=param_chip.fov_template,
-                #     from_stitched=False,
-                #     flip_flag=config.registration.flip,
-                #     rot90_flag=config.registration.rot90
-                # )
-            # else:
-            _info = template_00pt_check(
-                moving_image=moving_image,
-                fixed_image=fixed_image,
-                offset_info=pre_info,
-                fixed_offset=(cm.x_start, cm.y_start),
-                flip_flag=config.registration.flip,
-                rot90_flag=config.registration.rot90
+            # self-detect moving chip box (independent of QC's ChipDetectQCPassFlag)
+            from cellbin2.contrib.chip_detector import detect_chip as _detect_chip
+            moving_chip_box, _ = _detect_chip(
+                file_path=cur_f_name.transformed_image,
+                cfg=config.chip_detector,
+                stain_type=image_file.tech,
+                actual_size=param_chip.norm_chip_size,
+                is_debug=debug,
             )
-            info = RegistrationOutput(**_info)
+            moving_image.set_chip_box(moving_chip_box)
+            clog.info("chip_detect=true: self-detected moving chip box (independent of QC).")
 
-        else:
-            # TODO
-            """
-            Currently, both the centroid method and the chip box registration are performed because 
-            the QC now considers the QC successful if either the template derivation or the chip box detection passes.
-            
-            Therefore, the following selection first performs the centroid method registration, 
-            followed by the chip box registration.
-            
-            This change is being made to prepare for the mutual correction of 
-            the two registration algorithms in the future.
-            """
-
-            chip_re = 1 if config.registration.flag_chip_registration and param1.QCInfo.ChipDetectQCPassFlag else 0
-
-            info, temp_info = registration(
+            # scell registration directly (no registration()/chip_re/qc_info)
+            from cellbin2.contrib.alignment.chip_box_scell import chip_align as _scell_align
+            _scell_info = _scell_align(
                 moving_image=moving_image,
                 fixed_image=fixed_image,
-                ref=param_chip.fov_template,
                 from_stitched=False,
-                qc_info=(param1.QCInfo.TrackCrossQCPassFlag, chip_re),
                 flip_flag=config.registration.flip,
-                rot90_flag=config.registration.rot90
+                rot90_flag=config.registration.rot90,
             )
+            info = RegistrationOutput(**_scell_info)
+            clog.info(f"chip_box_scell registration: {info}")
+            clog.info(f"chip_box_scell fine_alignment: {getattr(info, 'fine_alignment', None)}")
 
-            clog.info(f"Track cross registration: {info}")
-            clog.info(f"Chip box registration: {temp_info}")
+            # persist scell ipr (fine_alignment) so a reusing IF image can rebuild it
+            param1.Register.RegisterChip.update(info)
 
-            if temp_info is not None and debug:
-                temp_info.register_mat.write(
+            if debug and getattr(info, "register_mat", None) is not None:
+                info.register_mat.write(
                     os.path.join(output_path, f"{sn}_chip_box_register.tif")
                 )
                 np.savetxt(
                     os.path.join(output_path, f"{sn}_chip_box_register.txt"),
-                    temp_info.offset
+                    info.offset
                 )
-                param1.Register.RegisterChip.update(temp_info)
 
-            # TODO Need to add ipr writing for chip box registration
-            info = info if info is not None else temp_info
+        else:
+            # ============================================================
+            # original path (chip_detect=false): QC-gated feature construction
+            # + centroid/chip_box registration via registration(). Unchanged.
+            # ============================================================
+            """ Constructing parameters for the moving image """
+            moving_image = ChipFeature(
+                tech_type=image_file.tech,
+            )
+            moving_image.tech_type = image_file.tech
+            moving_image.set_mat(cur_f_name.transformed_image)
+            # It is recommended not to read from ipr here
+            if param1.QCInfo.TrackCrossQCPassFlag:
+                moving_image.set_template(param1.Stitch.TransformTemplate)  # param1.transform_template_info
+            if param1.QCInfo.ChipDetectQCPassFlag:
+                moving_image.set_chip_box(param1.Stitch.TransformChipBBox.get())
+
+            """ Constructing parameters for the fixed image """
+            fixed = files[image_file.registration.fixed_image]
+            if fixed.is_matrix:
+                # Scenario 1: The fixed image is a matrix
+                cm, binx = extract4stitched(
+                    image_file=fixed,
+                    param_chip=param_chip,
+                    m_naming=naming.DumpMatrixFileNaming(
+                        sn=sn,
+                        m_type=fixed.tech.name,
+                        save_dir=output_path
+                    ),
+                    config=config
+                )
+
+                fixed_image = ChipFeature(
+                    tech_type=fixed.tech,
+                    template=cm.template,
+                    chip_box=cm.chip_box,
+                    binx=binx
+                )
+                fixed_image.set_mat(cm.heatmap)
+                param1.Register.MatrixTemplate = cm.template.template_points
+
+                if binx == 1:
+                    param1.Register.GeneChipBBox.update(fixed_image.chip_box)
+            else:
+                raise Exception("Not supported yet")
+
+            """ Starting the registration process """
+            if param1.Register.Method == AlignMode.Template00Pt.name:  # Pre-registration has been done previously
+                # Get registration parameters from ipr
+                pre_info = param1.Register.Register00.get().to_dict()
+
+                _info = template_00pt_check(
+                    moving_image=moving_image,
+                    fixed_image=fixed_image,
+                    offset_info=pre_info,
+                    fixed_offset=(cm.x_start, cm.y_start),
+                    flip_flag=config.registration.flip,
+                    rot90_flag=config.registration.rot90
+                )
+                info = RegistrationOutput(**_info)
+
+            else:
+                """
+                Currently, both the centroid method and the chip box registration are performed because
+                the QC now considers the QC successful if either the template derivation or the chip box detection passes.
+
+                Therefore, the following selection first performs the centroid method registration,
+                followed by the chip box registration.
+
+                This change is being made to prepare for the mutual correction of
+                the two registration algorithms in the future.
+                """
+
+                chip_re = 1 if config.registration.flag_chip_registration and param1.QCInfo.ChipDetectQCPassFlag else 0
+
+                info, temp_info = registration(
+                    moving_image=moving_image,
+                    fixed_image=fixed_image,
+                    ref=param_chip.fov_template,
+                    from_stitched=False,
+                    qc_info=(param1.QCInfo.TrackCrossQCPassFlag, chip_re),
+                    flip_flag=config.registration.flip,
+                    rot90_flag=config.registration.rot90
+                )
+
+                clog.info(f"Track cross registration: {info}")
+                clog.info(f"Chip box registration: {temp_info}")
+
+                if temp_info is not None and debug:
+                    temp_info.register_mat.write(
+                        os.path.join(output_path, f"{sn}_chip_box_register.tif")
+                    )
+                    np.savetxt(
+                        os.path.join(output_path, f"{sn}_chip_box_register.txt"),
+                        temp_info.offset
+                    )
+
+                info = info if info is not None else temp_info
 
     param1.update_registration(info)
     transform_to_register(

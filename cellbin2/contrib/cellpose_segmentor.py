@@ -298,7 +298,10 @@ def main(
     model = models.CellposeModel(gpu = gpu, pretrained_model=model_dir)
     masks = []
     for i, patch in enumerate(tqdm.tqdm(patches, desc='Segment cells with [Cellpose]')):
-        mask = model.eval(patch, diameter=None, channels=[0, 0])[0]
+        if "cyto3" in model_dir:
+            mask = model.eval(patch, diameter=None, channels=[0, 0],cellprob_threshold=-2.0)[0]
+        else:
+            mask = model.eval(patch, diameter=None, channels=[0, 0],cellprob_threshold=-2.0)[0]
         mask = cellpose_instance2semantics(mask)
         masks.append(mask)
     
