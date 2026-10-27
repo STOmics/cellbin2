@@ -380,7 +380,7 @@ class AlignByTrack:
                 scores_sim_list.append(score_sim)
                 scores_mi_list.append(score_mi)
             
-                clog.info(f"Angle: {angle}, offset: {offset_temp}, sim: {score_sim:.6f}, mi: {score_mi:.6f}")
+                # clog.info(f"Angle: {angle}, offset: {offset_temp}, sim: {score_sim:.6f}, mi: {score_mi:.6f}")
 
         return offset_list,scores_sim_list,scores_mi_list
 
