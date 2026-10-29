@@ -254,14 +254,14 @@ if __name__ == '__main__':
     # move image 
     moving_image = ChipFeature()
     moving_image.tech_type = TechType.DAPI
-    moving_mat = cbimread(r"D:\02.data\temp\temp_cellbin2_test\register\D04499F1F2\D04499F1F2_ssDNA_stitch.tif")
+    moving_mat = cbimread(r"/")
     moving_image.set_mat(moving_mat)
     #
     cfg = ChipParam(
         **{"stage1_weights_path":
-            r"D:\01.code\cellbin2\weights\chip_detect_obb8n_640_SD_202409_pytorch.onnx",
+            r"/",
             "stage2_weights_path":
-            r"D:\01.code\cellbin2\weights\chip_detect_yolo8x_1024_SDH_stage2_202410_pytorch.onnx"})
+            r"/"})
 
 
     # imp = r"D:\02.data\temp\temp_cellbin2_test\trans_data_1\D04911A1C2\D04911A1C2_DAPI_stitch.tif"
@@ -278,18 +278,18 @@ if __name__ == '__main__':
 
 
     #
-    file_path = r"E:\03.users\liuhuanlin\01.data\cellbin2\stitch\A03599D1_DAPI.tif"
+    file_path = r"/"
     m_info = detect_chip(moving_mat.image, cfg=cfg, stain_type=TechType.DAPI, actual_size=(19992, 19992 * 2))
     moving_image.set_chip_box(m_info)
 
     # fix object information 
     fixed_image = ChipFeature()
     fixed_image.tech_type = TechType.Transcriptomics
-    fixed_image.set_mat(r"D:\02.data\temp\temp_cellbin2_test\register\D04499F1F2\D04499F1F2_Transcriptomics.tif")
+    fixed_image.set_mat(r"/")
 
     f_info = detect_chip_box(fixed_image.mat.image, chip_size = (2, 1))
     fixed_image.set_chip_box(f_info)
 
     result = chip_align(moving_image, fixed_image)
     print(result)
-    cbimwrite(r'E:\03.users\liuhuanlin\01.data\cellbin2\stitch\A03599D1_DAPI_registbox.tif', result.register_mat)
+    cbimwrite(r'/', result.register_mat)

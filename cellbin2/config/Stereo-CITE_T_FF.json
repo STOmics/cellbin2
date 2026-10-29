@@ -117,7 +117,7 @@
       "extra_method": ""
     },
     "Protein": {
-      "exp_matrix": 1,
+      "exp_matrix": 5,
       "doublet_filter": false,
       "cell_mask": {
         "nuclei":[0],
@@ -132,8 +132,8 @@
   "run": {
     "qc": true,
     "alignment": true,
-    "matrix_extract": false,
-    "report": true,
+    "matrix_extract": true,
+    "report": false,
     "annotation": false
   }
 }
