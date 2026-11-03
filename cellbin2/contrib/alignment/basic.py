@@ -487,6 +487,12 @@ def transform_points(
     src_shape = list(map(lambda x: x - 1, src_shape))
 
     mat = align.get_coordinate_transformation_matrix(shape=src_shape, scale=scale, rotate=rotation)
+    # Empty point set: happens under chip_detect=true force-continue when QC
+    # failed and no stitch/QC template points were collected. Nothing to
+    # transform; return as-is so downstream stays empty instead of crashing
+    # on the matmul dimension check in get_points_by_matrix.
+    if points is None or getattr(points, "size", 0) == 0:
+        return points, mat
     if flip == 0:
         points[:, 0] = src_shape[1] - points[:, 0]
     elif flip == 1:

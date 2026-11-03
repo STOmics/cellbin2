@@ -21,8 +21,9 @@ def split_image_into_patches(
     overlap: int = 48
 ) -> Tuple[List[np.ndarray], List[Tuple[int, int, int, int]]]:
 
-    
     h, w = image.shape[:2]
+    if h <= patch_size and w <= patch_size:
+        return [image.copy()], [(0, 0, h, w)]
     stride = patch_size - overlap  
     patches = []
     positions = []
@@ -155,7 +156,6 @@ def merge_masks_with_overlap_only_max(
     return full_mask
 
 
-
 def cellpose_instance2semantics(
     ins: np.ndarray,
     boundary_expand: int = 0,
@@ -261,11 +261,42 @@ def build_overlap_mask(
     overlap_mask = coverage > 1
     return overlap_mask
 
+
+def resize_to_10x(image: np.ndarray, magnification: float, target_magnification: float = 10) -> np.ndarray:
+    """
+    将高于目标倍率的图像缩放到目标倍率。
+    
+    例如：
+        20X -> 10X：缩放比例 0.5
+        40X -> 10X：缩放比例 0.25
+        10X -> 10X：不缩放
+    """
+    if magnification <= target_magnification:
+        return image
+
+    scale = target_magnification / magnification
+
+    new_h = max(1, int(round(image.shape[0] * scale)))
+    new_w = max(1, int(round(image.shape[1] * scale)))
+
+    from skimage.transform import resize
+
+    resized = resize(
+        image,
+        (new_h, new_w),
+        preserve_range=True,
+        anti_aliasing=True
+    )
+
+    return resized.astype(image.dtype)
+
+
+
 def main(
     file_path: str, 
     gpu,
     model_dir: str,
-    stain_type= None,
+    Magnification = 10,
     output_path=None,
     patch_size: int = 4096,
     overlap: int = 48
@@ -287,7 +318,9 @@ def main(
     import logging
     logging.getLogger('cellpose.models').setLevel(logging.WARNING)
     img = io.imread(file_path)
-
+    original_shape = img.shape[:2]
+    if os.path.basename(model_dir) in ( "cellseg_cellpose3_SD_20260916"): 
+        img = resize_to_10x(image=img, magnification=Magnification, target_magnification=10)
     # patches
     patches, positions = split_image_into_patches(img, patch_size, overlap)
 
@@ -295,13 +328,23 @@ def main(
     overlap_mask = build_overlap_mask(positions, img.shape[:2])
     
     # patch segmentation
-    model = models.CellposeModel(gpu = gpu, pretrained_model=model_dir)
+    if os.path.basename(model_dir) in ("cyto3", "cellpose3"):
+        model = models.CellposeModel(gpu=gpu, pretrained_model=model_dir)
+    else:
+        model = models.CellposeModel(gpu=gpu, pretrained_model=model_dir, nchan=1)
     masks = []
     for i, patch in enumerate(tqdm.tqdm(patches, desc='Segment cells with [Cellpose]')):
-        if "cyto3" in model_dir:
-            mask = model.eval(patch, diameter=None, channels=[0, 0],cellprob_threshold=-2.0)[0]
+
+        if patch.ndim == 2:
+            patch = patch[..., None]   # H,W -> H,W,1
+
+        if os.path.basename(model_dir) in ("cyto3", "cellpose3"):
+            mask = model.eval(
+                patch, diameter=None, channels=[0,0], cellprob_threshold=-2.0, flow_threshold=0.8)[0]
         else:
-            mask = model.eval(patch, diameter=None, channels=[0, 0],cellprob_threshold=-2.0)[0]
+            mask = model.eval(
+                patch, diameter=None, channels=None, channel_axis=-1, rescale=1.0, cellprob_threshold=-2.0, flow_threshold=0.8)[0]
+                
         mask = cellpose_instance2semantics(mask)
         masks.append(mask)
     
@@ -315,8 +358,11 @@ def main(
     )
     #full_mask = apply_watershed(full_mask)
     full_mask = f_postprocess_cellpose(full_mask, overlap_mask)
+    if Magnification == 20 and os.path.basename(model_dir) in ( "cellseg_cellpose3_SD_20260916"):
+        full_mask = cv2.resize(full_mask.astype(np.uint8), (original_shape[1], original_shape[0]), interpolation=cv2.INTER_NEAREST)
 
     if output_path:
+        os.makedirs(output_path, exist_ok=True)
         name = os.path.splitext(os.path.basename(file_path))[0]
         c_mask_path = os.path.join(output_path, f"{name}_cellpose_mask.tif")
         cbimwrite(output_path=c_mask_path, files=full_mask, compression=True)
@@ -338,13 +384,13 @@ cyto2
 """
 
 
-def segment4cell(input_path: str, cfg: CellSegParam, use_gpu: bool, stain_type: str) -> npt.NDArray[np.uint8]:
+def segment4cell(input_path: str, cfg: CellSegParam, use_gpu: bool, stain_type: str, Magnification : int) -> npt.NDArray[np.uint8]:
     model_dir = getattr(cfg, f"{stain_type}_weights_path")
     mask = main(
         file_path=input_path,
         gpu=use_gpu,
         model_dir=model_dir,
-        stain_type= stain_type
+        Magnification = Magnification
     )
     return mask
 
@@ -358,6 +404,7 @@ if __name__ == '__main__':
     parser.add_argument("-m", "--model_dir", help="model dir")
     parser.add_argument("-n", "--model_name", help="model name", default="cyto2torch_0")
     parser.add_argument("-g", "--gpu", help="the gpu index", default="-1")
+    parser.add_argument("--magnification", type=int, default=10, help="image magnification, default=10")
 
     args = parser.parse_args()
     input_path = args.input
@@ -365,13 +412,16 @@ if __name__ == '__main__':
     model_name = args.model_name
     gpu = args.gpu
     model_dir = args.model_dir
+    magnification = args.magnification
+
     model_path = os.path.join(model_dir, model_name)
 
-    main(
+    main( 
         file_path=input_path,
         gpu=gpu,
         model_dir=model_path,
-        output_path=output_path
+        output_path=output_path,
+        Magnification=magnification
     )
     sys.exit()
 

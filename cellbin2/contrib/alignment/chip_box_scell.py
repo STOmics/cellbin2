@@ -670,21 +670,24 @@ class ChipAlignment(Alignment):
             )
 
             # A large angle here means the ROI is 180°-flipped relative to the
-            # fixed image (the wrong 180° branch). Clamp so this candidate stays
-            # mis-aligned and scores low, letting the correct branch win the
-            # disambiguation comparison below.
+            # fixed image (the wrong 180° branch). Bail out of this candidate
+            # instead of clamping and continuing -- a clamped warp can still
+            # produce a misleading offset/score that distorts the disambiguation
+            # comparison. Returning res (ok=False, final_score=-inf) drops it
+            # out of the winner race; if both candidates bail, the all-failed
+            # fallback below handles it.
             if abs(fine_angle) > 5:
                 clog.info(
                     f"[cand flip{flip_state}/rot{rot_index * 90}] "
-                    f"angle {fine_angle:.3f}° -> clamp 0"
+                    f"angle {fine_angle:.3f}° -> skip candidate"
                 )
-                fine_angle = 0.0
+                return res
             if abs(fine_scale - 1.0) > 0.05:
                 clog.info(
                     f"[cand flip{flip_state}/rot{rot_index * 90}] "
-                    f"scale {fine_scale:.6f} -> clamp 1.0"
+                    f"scale {fine_scale:.6f} -> skip candidate"
                 )
-                fine_scale = 1.0
+                return res
 
             moving_roi_rs = self._apply_angle_scale_only(
                 moving_roi, fine_angle, fine_scale,
@@ -1197,13 +1200,13 @@ def chip_box_register_from_paths(
 def main():
     # ---------------- moving image ----------------
     moving_image = ChipFeature()
-    moving_mat = cbimread(rf"D:\cellbin_data\芯片单细胞\manlin_data\染色图\20260416拍照\6WGA不封片\正常全图\正常全图.tif")
+    moving_mat = cbimread(rf"/")
     moving_image.set_mat(moving_mat)
 
     cfg = ChipParam(
         **{
-            "stage1_weights_path": r"D:\cellbin_data\models\chip_detect_11obbn_640_stage1_20250402_pytorch.onnx",
-            "stage2_weights_path": r"D:\cellbin_data\models\chip_detect_yolo11x_1024_stage2_20250411_2e3_equ_pytorch.onnx"
+            "stage1_weights_path": r"/",
+            "stage2_weights_path": r"/"
         }
     )
 
@@ -1219,7 +1222,7 @@ def main():
     # ---------------- fixed image ----------------
     fixed_image = ChipFeature()
     fixed_image.tech_type = TechType.Transcriptomics
-    fixed_image.set_mat(rf"D:\cellbin_data\芯片单细胞\manlin_data\染色图\20260416拍照\6WGA不封片\Y10116JA-2_Transcriptomics.tif")
+    fixed_image.set_mat(rf"/")
 
     f_info = detect_chip_box(fixed_image.mat.image, chip_size=(1, 1))
     fixed_image.set_chip_box(f_info)
@@ -1230,7 +1233,7 @@ def main():
     print(result["fine_alignment"])
 
     cbimwrite(
-        rf"D:\cellbin_data\芯片单细胞\manlin_data\染色图\20260416拍照\6WGA不封片\正常全图_new_align.tif",
+        rf"/",
         result["register_mat"]
     )
 

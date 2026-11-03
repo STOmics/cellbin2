@@ -41,6 +41,7 @@ from skimage.measure import regionprops
 from skimage.morphology import remove_small_objects
 from rasterio.features import shapes
 import rasterio.transform
+from rasterio.transform import Affine
 
 
 # -----------------------------------------------------------------------------
@@ -213,7 +214,7 @@ def geometry_coords_to_int(geometry):
                 )
             ):
                 return [
-                    int(round(float(value)))
+                    int(value)
                     for value in coords
                 ]
 
@@ -441,12 +442,7 @@ def export_cell_nuclear_geojson(
 
     # Keep the original transform behavior to avoid changing the structure.
     # Therefore y coordinates remain negative, but are written as integers.
-    transform = rasterio.transform.from_origin(
-        0,
-        0,
-        1,
-        1,
-    )
+    transform = Affine(1, 0, 0, 0, 1, 0)
 
     features = []
 
@@ -477,7 +473,6 @@ def export_cell_nuclear_geojson(
                     "mask_type": "cell",
                     "id": cell_id,
                     "cell_id": cell_id,
-                    "cell_label": label_id,
                     "source": label_to_source.get(
                         label_id,
                         "nuclear_expand",
@@ -571,7 +566,6 @@ def export_cell_nuclear_geojson(
                     "mask_type": "nucleus",
                     "id": nucleus_feature_id,
                     "cell_id": cell_id,
-                    "nucleus_label": nucleus_label,
                     "source": "nuclear",
                 },
                 "geometry": geometry_coords_to_int(

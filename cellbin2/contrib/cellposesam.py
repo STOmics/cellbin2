@@ -33,6 +33,8 @@ def split_image_into_patches(
 
     
     h, w = image.shape[:2]
+    if h <= patch_size and w <= patch_size:
+        return [image.copy()], [(0, 0, h, w)]
     stride = patch_size - overlap  
     patches = []
     positions = []
@@ -150,6 +152,7 @@ def cellposesam_pred_3c(
     full_mask = f_postprocess_cellpose(full_mask, overlap_mask)
     #full_mask = watershed(full_mask)
     if output_path:
+        os.makedirs(output_path, exist_ok=True)
         name = os.path.splitext(os.path.basename(img_path))[0]
         c_mask_path = os.path.join(output_path, f"{name}_cpsam_mask_watershed.tif")
         cbimwrite(output_path=c_mask_path, files=full_mask, compression=True)
