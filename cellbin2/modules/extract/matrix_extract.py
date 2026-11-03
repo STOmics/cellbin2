@@ -65,8 +65,9 @@ def extract4stitched(
             cm._gene_mat = gene_mat_resized
 
     elif detect_feature:
-        cm.detect_feature(ref=param_chip.fov_template,
-                          chip_size=min(param_chip.chip_specif))
+        chip_start = np.array(param_chip.zero_zero_point) - np.array(param_chip.zero_zero_chip_point)
+        chip_norm_size = param_chip.norm_chip_size
+        cm.detect_feature(ref=param_chip.fov_template, chip_size=min(param_chip.chip_specif), chip_start=chip_start, chip_norm_size=chip_norm_size)
         gene_tps = cm.template.template_points[:, :2]  # StereoMap is only compatible with n×2
         np.savetxt(m_naming.matrix_template, gene_tps)
     cbimwrite(m_naming.heatmap, cm.heatmap)

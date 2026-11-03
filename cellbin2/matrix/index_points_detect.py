@@ -9,11 +9,13 @@ class IndexPointsDetector(object):
         self.template = ref
         self.image: np.ndarray = np.array([])
 
-    def get_mass(self, ):
+    def get_mass(self, image=None):
         """
         2023/09/20 @fxzhao remove type convert, no impact for the results
         """
-        image = self.image.astype(float)  # IMPORTANT: NO EDIT
+        if image is None:
+            image = self.image
+        image = image.astype(float)  # IMPORTANT: NO EDIT
         image_x = np.sum(image, 0)
         xx = np.array(range(len(image_x)))
         xx_cal = xx * image_x
@@ -78,9 +80,32 @@ class IndexPointsDetector(object):
         )
         return combined
 
-    def find_cross(self, gene_exp):
-        self.image = gene_exp
+    def find_cross_state(self, chip_start, chip_size):
+        """矩阵模板推导前的质控, 返回二态:
+            0 — 正常: 矩阵表达重心在理论芯片区域内，通过；
+            1 — 异常: 矩阵表达重心在理论芯片区域外，不通过；
+        """
         mass_center = self.get_mass()
+        x_min, y_min = chip_start[0], chip_start[1]
+        x_max, y_max = chip_start[0] + chip_size[0], chip_start[1] + chip_size[1]
+        in_region = (x_min <= mass_center[0] <= x_max) and (y_min <= mass_center[1] <= y_max)
+        if not in_region:
+            return 1
+        else:
+            return 0
+
+    def find_cross(self, gene_exp, chip_start=None, chip_size=None):
+        self.image = gene_exp
+        if chip_start is not None and chip_size is not None:
+            h, w = self.image.shape
+            x_min = max(int(round(chip_start[0])), 0)
+            y_min = max(int(round(chip_start[1])), 0)
+            x_max = min(int(round(chip_start[0] + chip_size[0])), w)
+            y_max = min(int(round(chip_start[1] + chip_size[1])), h)
+            roi = self.image[y_min: y_max, x_min: x_max]
+            mass_center = self.get_mass(roi) + np.array([x_min, y_min])
+        else:
+            mass_center = self.get_mass()
         x_mid, y_mid = self.find_first_tp(mass_center)
         h, w = self.image.shape
         x_all = self.one_to_all(self.template[0], x_mid, w)
@@ -113,10 +138,30 @@ class IndexPointsDetector(object):
         ]
         return final_result
 
+    @staticmethod
+    def matrix_can_track(matrix, chip_name):
+        """根据芯片名推导理论芯片区域，并对矩阵表达重心做质控。
 
-def detect_cross_points(ref: List[List[int]], matrix: np.ndarray) -> TemplateInfo:
+        Returns:
+            track_state: 0 — 正常(重心在芯片区域内); 1 — 异常(重心在区域外)
+            chip_start: 理论芯片区域左上角坐标 [x, y]
+            chip_norm_size: 理论芯片区域尺寸 [w, h]
+        """
+        from cellbin2.utils.stereo_chip import StereoChip
+        sc = StereoChip()
+        sc.parse_info(chip_no=chip_name, print_flag=False)
+        chip_start = np.array(sc.zero_zero_point) - np.array(sc.zero_zero_chip_point)
+        chip_norm_size = sc.norm_chip_size
+        ild = IndexPointsDetector(ref=[])
+        ild.image = matrix
+        track_state = ild.find_cross_state(chip_start, chip_norm_size)
+        return track_state, chip_start, chip_norm_size
+
+
+def detect_cross_points(ref: List[List[int]], matrix: np.ndarray,
+                        chip_start=None, chip_size=None) -> TemplateInfo:
     ild = IndexPointsDetector(ref=ref)
-    pts = ild.find_cross(matrix)
+    pts = ild.find_cross(matrix, chip_start=chip_start, chip_size=chip_size)
 
     ti = TemplateInfo(template_recall=1.,
                       template_valid_area=1.,
@@ -132,14 +177,25 @@ def detect_cross_points(ref: List[List[int]], matrix: np.ndarray) -> TemplateInf
 def main():
     import tifffile
 
-    matrix_path = r'E:/03.users/liuhuanlin/01.data/cellbin2/D03951C1.tif'
-    points_path = r'E:\03.users\liuhuanlin\01.data\cellbin2\output\points.txt'
-    matrix = tifffile.imread(matrix_path)
+    # SN = 'B04660F514'
+    # vision_image = tifffile.imread(r"F:\FBS\TS_0618\B04660F514.tif")
+    SN = 'Y10043F514'
+    vision_image = tifffile.imread(r"F:\FBS\TS_0618\Y10043F514.tif")
+    # SN = 'Y40422LA'
+    # vision_image = tifffile.imread(r"F:\FBS\TS_0618\Y40422LA.tif")
+    points_path = r"F:\FBS\TS_0618\%s.txt"%SN
+    matrix = vision_image
     ref = [[240, 300, 330, 390, 390, 330, 300, 240, 420],
            [240, 300, 330, 390, 390, 330, 300, 240, 420]]
 
-    pts = detect_cross_points(ref, matrix)
-    np.savetxt(points_path, pts)
+    ild = IndexPointsDetector(ref=ref)
+    track_state, chip_start, chip_norm_size = ild.matrix_can_track(matrix, SN)
+    if track_state == 0:
+        pts = detect_cross_points(ref, matrix, chip_start=chip_start, chip_size=chip_norm_size)
+        np.savetxt(points_path, pts.template_points[:, :2])
+        print("%s asd"%SN)
+    else:
+        print("Matrix data invalid for track point inference.")
 
 
 if __name__ == '__main__':
