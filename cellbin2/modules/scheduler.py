@@ -8,7 +8,7 @@ from skimage.morphology import remove_small_objects
 import numpy as np
 
 from cellbin2.utils.config import Config
-from cellbin2.utils.common import TechType, FILES_TO_KEEP, ErrorCode, FILES_TO_KEEP_RESEARCH
+from cellbin2.utils.common import TechType, FILES_TO_KEEP, ErrorCode, FILES_TO_KEEP_RESEARCH, fPlaceHolder
 from cellbin2.utils.stereo import generate_stereo_file
 from cellbin2.utils.tar import update_ipr_in_tar
 from cellbin2.utils import clog
@@ -441,8 +441,29 @@ class Scheduler(object):
                 cs_path = cur_f_name.transform_cell_mask_raw
                 save_path = cur_f_name.transform_cell_mask
                 cell_mask = cbimread(cs_path, only_np=True)
+
+                # Resolve the tissue mask used to filter this cell mask.
+                #   tissue_filter == -1               -> no tissue filtering
+                #   tissue_filter -> non-matrix image -> that image's tissue mask
+                #   tissue_filter -> matrix image     -> no tissue file; build a mask
+                #                                       from the matrix chip-box corners
+                #                                       persisted in IPR (GeneChipBBox)
+                tissue_mask = None
                 if f.tissue_filter == -1:
-                    ts_path = cur_f_name.transform_tissue_mask
+                    # -1: no tissue filtering; pass the raw cell mask through to
+                    # transform_cell_mask so downstream always sees this file.
+                    cbimwrite(output_path=save_path, files=cell_mask)
+                elif self._files[f.tissue_filter].is_matrix:
+                    chip_box = self._get_chip_box_from_ipr(f, g_name)
+                    if chip_box is not None:
+                        tissue_mask = BestTissueCellMask.chip_box_mask(
+                            chip_box, cell_mask.shape
+                        )
+                    else:
+                        clog.warning(
+                            f"No chip-box corners in IPR for tissue_filter -> "
+                            f"matrix[{f.tissue_filter}]; skip filtering {g_name}"
+                        )
                 else:
                     filter_f_name = naming.DumpImageFileNaming(
                         sn=self.param_chip.chip_name,
@@ -450,14 +471,49 @@ class Scheduler(object):
                         save_dir=self._output_path
                     )
                     ts_path = filter_f_name.transform_tissue_mask
-                if os.path.exists(ts_path):
-                    tissue_mask = cbimread(ts_path, only_np=True)
+                    if os.path.exists(ts_path):
+                        tissue_mask = cbimread(ts_path, only_np=True)
+
+                if tissue_mask is not None:
                     filter_mask = BestTissueCellMask.best_cell_mask(tissue_mask, cell_mask)
                     if filter_mask is not None:
                         cbimwrite(
                             output_path=save_path,
                             files=filter_mask
                         )
+
+    def _get_chip_box_from_ipr(self, f: ProcFile, g_name: str) -> Optional[Any]:
+        """
+        Return the matrix chip-box corners (ChipBoxInfo) persisted in IPR, or
+        None if unavailable.
+
+        The corners live in ``Register.GeneChipBBox`` of the image that ran the
+        scell registration (register.py writes them on the moving image's
+        channel, not the matrix's). For an IF image that reused another image's
+        registration, its own GeneChipBBox stays placeholder, so walk the reuse
+        chain back to the source.
+        """
+        if self._channel_images is None:
+            return None
+
+        sn = self.param_chip.chip_name
+        candidates = [g_name]
+        cur = f
+        seen = set()
+        while cur.registration.reuse != -1 and cur.registration.reuse not in seen:
+            seen.add(cur.registration.reuse)
+            src = self._files[cur.registration.reuse]
+            candidates.append(src.get_group_name(sn=sn))
+            cur = src
+
+        for cname in candidates:
+            ch = self._channel_images.get(cname)
+            if ch is None:
+                continue
+            bbox = ch.Register.GeneChipBBox
+            if float(bbox.LeftTop[0]) != fPlaceHolder:
+                return bbox.get()
+        return None
 
     def run_mul_image(self):
         """
