@@ -167,7 +167,7 @@ def detect_tissue_mask(
         cbi.LeftBottom,
     ], dtype=np.int32)
     mask = np.zeros(matrix.shape[:2], dtype=np.uint8)
-    cv2.fillConvexPoly(mask, pts, 1)
+    cv.fillConvexPoly(mask, pts, 1)
     return mask
 
 
