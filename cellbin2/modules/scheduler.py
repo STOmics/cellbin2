@@ -412,8 +412,9 @@ class Scheduler(object):
                     if f.tissue_segmentation:
                         # scell run: skip model tissue seg; use the matrix chip
                         # box as the tissue mask (1 inside, 0 outside). chip_size
-                        # default 0.5 (gene_base_size=19992 -> 9996 edge). The
-                        # model-based run_tissue_seg path is kept for non-scell.
+                        # comes from param_chip.chip_specif (9-char chip -> 0.5,
+                        # gene_base_size=19992 -> 9996 edge). The model-based
+                        # run_tissue_seg path is kept for non-scell.
                         is_scell_run = any(
                             getattr(_f, "chip_detect", False)
                             for _f in self._files.values()
@@ -422,17 +423,18 @@ class Scheduler(object):
                             from cellbin2.contrib.tissue_segmentor import (
                                 segment4tissue_matrix_box,
                             )
+                            _scell_chip_size = min(self.param_chip.chip_specif)
                             _tissue_out = segment4tissue_matrix_box(
                                 input_path=cur_m_naming.heatmap,
-                                chip_size=0.5,
+                                chip_size=_scell_chip_size,
                             )
                             cbimwrite(
                                 output_path=cur_m_naming.tissue_mask,
                                 files=_tissue_out.tissue_mask,
                             )
                             clog.info(
-                                "scell transcriptomics: tissue mask from matrix-box "
-                                "detection (chip_size=0.5)"
+                                f"scell transcriptomics: tissue mask from matrix-box "
+                                f"detection (chip_size={_scell_chip_size})"
                             )
                         else:
                             print('Starting tissue segmentation...')

@@ -289,7 +289,9 @@ class StereoChip(object):
         name_len = len(self._name)
         try:
             if self.name_type == ChipNameType.SHORT:
-                if name_len == 8:
+                if name_len == 9:
+                    self.chip_specif = [0.5, 0.5]
+                elif name_len == 8:
                     self.chip_specif = [1, 1]
                 else:
                     self.chip_specif = suffix_parser(self._name[-4:], title_name)
@@ -378,7 +380,7 @@ class StereoChip(object):
         if not self._name[0] in CHIP_TITLE_NAME:
             return 0
 
-        if name_len in [8, 10]:
+        if name_len in [8, 9, 10]:
             if not self._name[6].isalpha():
                 return 0
             if (name_len == 8) and (self._name[0] not in self._s13_label):
@@ -432,7 +434,11 @@ class StereoChip(object):
 
         self.is_from_S13 = self._name[0] in self._s13_label and True or False  # determine S13
         self.set_chip_specif()
-        if self.is_after_230508():
+        # 9-char scell chips (e.g. Y40456H12 -> 0.5 chip) self-detect the chip
+        # box and are not in the FOV mask table, so skip the mask-based
+        # zero-point layout (set_zero_point_info would KeyError on them).
+        # Keep chip_specif=[0.5,0.5] and fall through to set_chip_size.
+        if self.is_after_230508() and len(self._name) != 9:
             try:
                 self.set_zero_point_info()
             except KeyError:
