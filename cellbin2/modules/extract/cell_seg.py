@@ -13,6 +13,12 @@ from cellbin2.utils import clog
 import os
 import numpy as np
 
+def _gpu_available() -> bool:
+    try:
+        import torch
+        return torch.cuda.is_available()
+    except Exception:
+        return False
 
 def run_cell_seg(
         image_file: ProcFile,
@@ -41,11 +47,14 @@ def run_cell_seg(
     cellseg_model = os.path.basename(cellseg_model_path)
     clog.info(f'{stain_type} image segmented by model: {cellseg_model}')
 
+    use_gpu = _gpu_available()
+    clog.info(f'GPU available: {use_gpu}, use_gpu={use_gpu}')
+
     if cellseg_model == 'cpsam':
         from cellbin2.contrib import cellposesam
         cell_mask = cellposesam.cellposesam_pred_3c(
             img_path=str(image_path),
-            use_gpu=True,
+            use_gpu=use_gpu,
             model_dir = cellseg_model_path
         )
     elif cellseg_model == 'cyto2torch_0' or cellseg_model == 'cyto3' or cellseg_model == 'cellpose3'or cellseg_model == 'cellseg_cellpose3_SD_20260916' or cellseg_model == 'cellseg_cellpose3_IF_20260916':
@@ -53,7 +62,8 @@ def run_cell_seg(
         cell_mask = cellpose_segmentor.segment4cell(
             input_path=str(image_path),
             cfg=config.cell_segmentation,
-            use_gpu=True,
+            use_gpu=use_gpu,
+            stain_type = stain_type,
             Magnification = Magnification
         )
     else:

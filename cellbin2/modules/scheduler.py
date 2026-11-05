@@ -1,14 +1,14 @@
 import sys
 import os
 import shutil
-from typing import List, Dict, Any, Tuple, Union, Optional
+from typing import List, Dict, Union, Optional
 from pathlib import Path
 from skimage.morphology import remove_small_objects
 
 import numpy as np
 
 from cellbin2.utils.config import Config
-from cellbin2.utils.common import TechType, FILES_TO_KEEP, ErrorCode, FILES_TO_KEEP_RESEARCH, fPlaceHolder
+from cellbin2.utils.common import TechType, FILES_TO_KEEP, ErrorCode, FILES_TO_KEEP_RESEARCH
 from cellbin2.utils.stereo import generate_stereo_file
 from cellbin2.utils.tar import update_ipr_in_tar
 from cellbin2.utils import clog
@@ -410,16 +410,41 @@ class Scheduler(object):
                     print('Matrix extraction completed')
 
                     if f.tissue_segmentation:
-                        print('Starting tissue segmentation...')
-                        run_tissue_seg(
-                            image_file=f,
-                            image_path=cur_m_naming.heatmap,
-                            save_path=cur_m_naming.tissue_mask,
-                            chip_info=self.param_chip,
-                            config=self.config,
-                            binx=binx
+                        # scell run: skip model tissue seg; use the matrix chip
+                        # box as the tissue mask (1 inside, 0 outside). chip_size
+                        # default 0.5 (gene_base_size=19992 -> 9996 edge). The
+                        # model-based run_tissue_seg path is kept for non-scell.
+                        is_scell_run = any(
+                            getattr(_f, "chip_detect", False)
+                            for _f in self._files.values()
                         )
-                        print('Tissue segmentation completed')
+                        if is_scell_run:
+                            from cellbin2.contrib.tissue_segmentor import (
+                                segment4tissue_matrix_box,
+                            )
+                            _tissue_out = segment4tissue_matrix_box(
+                                input_path=cur_m_naming.heatmap,
+                                chip_size=0.5,
+                            )
+                            cbimwrite(
+                                output_path=cur_m_naming.tissue_mask,
+                                files=_tissue_out.tissue_mask,
+                            )
+                            clog.info(
+                                "scell transcriptomics: tissue mask from matrix-box "
+                                "detection (chip_size=0.5)"
+                            )
+                        else:
+                            print('Starting tissue segmentation...')
+                            run_tissue_seg(
+                                image_file=f,
+                                image_path=cur_m_naming.heatmap,
+                                save_path=cur_m_naming.tissue_mask,
+                                chip_info=self.param_chip,
+                                config=self.config,
+                                binx=binx
+                            )
+                            print('Tissue segmentation completed')
 
                     if f.cell_segmentation:
                         print('Starting cell segmentation...')
@@ -444,25 +469,32 @@ class Scheduler(object):
 
                 # Resolve the tissue mask used to filter this cell mask.
                 #   tissue_filter == -1               -> no tissue filtering
-                #   tissue_filter -> non-matrix image -> that image's tissue mask
-                #   tissue_filter -> matrix image     -> no tissue file; build a mask
-                #                                       from the matrix chip-box corners
-                #                                       persisted in IPR (GeneChipBBox)
+                #   tissue_filter -> non-matrix image -> that image's transform tissue mask
+                #   tissue_filter -> matrix image     -> the matrix tissue mask file
+                #                                       (written by run_tissue_seg /
+                #                                        segment4tissue_matrix_box).
+                #   In scell the cell image is registered onto the matrix (matrix is
+                #   the chip_transform fixed image), so the transformed cell mask and
+                #   the matrix tissue mask share the same pixel space/shape; no IPR
+                #   chip-box read or re-rasterization is needed.
                 tissue_mask = None
                 if f.tissue_filter == -1:
                     # -1: no tissue filtering; pass the raw cell mask through to
                     # transform_cell_mask so downstream always sees this file.
                     cbimwrite(output_path=save_path, files=cell_mask)
                 elif self._files[f.tissue_filter].is_matrix:
-                    chip_box = self._get_chip_box_from_ipr(f, g_name)
-                    if chip_box is not None:
-                        tissue_mask = BestTissueCellMask.chip_box_mask(
-                            chip_box, cell_mask.shape
-                        )
+                    mtx_file = self._files[f.tissue_filter]
+                    mtx_naming = naming.DumpMatrixFileNaming(
+                        sn=self.param_chip.chip_name,
+                        m_type=mtx_file.tech.name,
+                        save_dir=self._output_path,
+                    )
+                    if os.path.exists(mtx_naming.tissue_mask):
+                        tissue_mask = cbimread(mtx_naming.tissue_mask, only_np=True)
                     else:
                         clog.warning(
-                            f"No chip-box corners in IPR for tissue_filter -> "
-                            f"matrix[{f.tissue_filter}]; skip filtering {g_name}"
+                            f"matrix tissue mask not found: {mtx_naming.tissue_mask}; "
+                            f"skip filtering {g_name}"
                         )
                 else:
                     filter_f_name = naming.DumpImageFileNaming(
@@ -481,39 +513,6 @@ class Scheduler(object):
                             output_path=save_path,
                             files=filter_mask
                         )
-
-    def _get_chip_box_from_ipr(self, f: ProcFile, g_name: str) -> Optional[Any]:
-        """
-        Return the matrix chip-box corners (ChipBoxInfo) persisted in IPR, or
-        None if unavailable.
-
-        The corners live in ``Register.GeneChipBBox`` of the image that ran the
-        scell registration (register.py writes them on the moving image's
-        channel, not the matrix's). For an IF image that reused another image's
-        registration, its own GeneChipBBox stays placeholder, so walk the reuse
-        chain back to the source.
-        """
-        if self._channel_images is None:
-            return None
-
-        sn = self.param_chip.chip_name
-        candidates = [g_name]
-        cur = f
-        seen = set()
-        while cur.registration.reuse != -1 and cur.registration.reuse not in seen:
-            seen.add(cur.registration.reuse)
-            src = self._files[cur.registration.reuse]
-            candidates.append(src.get_group_name(sn=sn))
-            cur = src
-
-        for cname in candidates:
-            ch = self._channel_images.get(cname)
-            if ch is None:
-                continue
-            bbox = ch.Register.GeneChipBBox
-            if float(bbox.LeftTop[0]) != fPlaceHolder:
-                return bbox.get()
-        return None
 
     def run_mul_image(self):
         """

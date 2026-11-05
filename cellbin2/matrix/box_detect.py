@@ -127,7 +127,6 @@ def detect_chip_box(
         chip_size: Union[int, float, list, tuple] = 1.0
 ) -> ChipBoxInfo:
     """
-
     Args:
         matrix:
         chip_size: "A1C3" == 3 * 2
@@ -146,6 +145,30 @@ def detect_chip_box(
                       RightBottom=box[2], RightTop=box[3])
 
     return cbi
+
+
+def detect_tissue_mask(
+        matrix: np.ndarray,
+        chip_size: Union[int, float, list, tuple] = 0.5,
+) -> np.ndarray:
+    """Detect the matrix chip box and return a binary tissue mask.
+
+    Surrogate tissue mask for Transcriptomics in the scell flow: the matrix
+    box defines the valid region. Pixels inside the box are ``1``, outside ``0``.
+
+    ``chip_size`` follows :func:`detect_chip_box` semantics
+    (``gene_base_size=19992``), so ``0.5`` -> 9996 edge, ``1`` -> 19992, etc.
+    """
+    cbi = detect_chip_box(matrix, chip_size=chip_size)
+    pts = np.array([
+        cbi.LeftTop,
+        cbi.RightTop,
+        cbi.RightBottom,
+        cbi.LeftBottom,
+    ], dtype=np.int32)
+    mask = np.zeros(matrix.shape[:2], dtype=np.uint8)
+    cv2.fillConvexPoly(mask, pts, 1)
+    return mask
 
 
 def main():

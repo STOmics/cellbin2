@@ -3,7 +3,7 @@
     "DAPI": {
       "file_path": "/media/Data/dzh/data/cellbin2/demo_data/SS200000045_M5/SS200000045_M5_fov_stitched.tif",
       "tech_type": "DAPI",
-      "chip_detect": true,
+      "chip_detect": false,
       "quality_control": false,
       "registration": {
         "fixed_image": -1,

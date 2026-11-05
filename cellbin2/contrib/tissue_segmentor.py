@@ -260,6 +260,39 @@ def segment4tissue(input_data: TissueSegInputInfo) -> TissueSegOutputInfo:
     return seg_mask
 
 
+def segment4tissue_matrix_box(
+        input_path: Union[str, Path],
+        chip_size: Union[int, float, list, tuple] = 0.5,
+) -> TissueSegOutputInfo:
+    """scell surrogate tissue segmentation for Transcriptomics.
+
+    The transcriptomics (matrix) image has no real tissue to segment; in the
+    scell flow the matrix chip box defines the valid region. This detects the
+    matrix box on the transformed matrix image and returns it as a binary
+    tissue mask: ``1`` inside the box, ``0`` outside.
+
+    Args:
+        input_path: path to the transformed matrix image (e.g.
+            ``{chip}_Transcriptomics.tif`` / the matrix heatmap).
+        chip_size: scell chip size, follows :func:`detect_chip_box` semantics
+            (``gene_base_size=19992``), so ``0.5`` -> 9996 edge, ``1`` -> 19992,
+            etc. Default ``0.5``.
+
+    Returns:
+        TissueSegOutputInfo: tissue_mask is a uint8 array (1 inside, 0 outside);
+        threshold_list is None.
+    """
+    from cellbin2.image import cbimread
+    from cellbin2.matrix.box_detect import detect_tissue_mask
+
+    img = cbimread(input_path, only_np=True)
+    mask = detect_tissue_mask(img, chip_size=chip_size)
+    clog.info(
+        f"scell matrix-box tissue mask: shape={mask.shape}, chip_size={chip_size}"
+    )
+    return TissueSegOutputInfo(tissue_mask=mask, threshold_list=None)
+
+
 def main():
     """
     Main function to perform tissue segmentation on an input image.
@@ -287,11 +320,12 @@ def main():
                         default=r".\result_mask\cellbin2\A03599D1_DAPI_fov_stitched.tif",
                         required=True, help="the output file")
     parser.add_argument("-p", "--model",
-                        default=r".\model\tissueseg_bcdu_SDI_230523_tf.onnx",
-                        required=True, help="model path")
+                        default=None, help="model path (required for non-matrix_box)")
     parser.add_argument("-s", "--stain", default='dapi', required=True,
-                        choices=['he', 'ssdna', 'dapi', 'transcriptomics', 'protein', 'if'], help="stain type")
-    parser.add_argument("-c", "--chip_size", default=None, nargs='+', type=int, help="the height and width of the chip")
+                        choices=['he', 'ssdna', 'dapi', 'transcriptomics', 'protein', 'if', 'matrix_box'],
+                        help="stain type; 'matrix_box' uses the matrix chip box as the tissue mask (scell surrogate, no model)")
+    parser.add_argument("-c", "--chip_size", default=None, nargs='+', type=float,
+                        help="chip height/width; for matrix_box a single float (e.g. 0.5)")
     parser.add_argument("-m", "--mode", default='onnx', choices=['onnx', 'tf'], help="onnx or tf")
     parser.add_argument("-g", "--gpu", default=0, type=int, help="the gpu index")
     args = parser.parse_args()
@@ -311,23 +345,35 @@ def main():
     user_s_type = args.stain
     gpu = args.gpu
     chip_size = args.chip_size
-    # stain type from user input to inner type
-    s_type = usr_stype_to_inner.get(user_s_type)
-
-    cfg = TissueSegParam()
-    if s_type != TechType.IF:
-        setattr(cfg, f"{s_type.name}_weights_path", model_path)
-    input_data = TissueSegInputInfo()
-
-    input_data.input_path = input_path
-    input_data.weight_path_cfg = cfg
-    input_data.stain_type = s_type
-    input_data.weight_path_cfg.GPU = gpu
-    input_data.chip_size = chip_size
-    # input_data.threshold_list = 34, 60
 
     clog.info(f"image path:{input_path}")
-    seg_result = segment4tissue(input_data=input_data)
+
+    if user_s_type == 'matrix_box':
+        # scell matrix-box surrogate: no model, derive tissue mask from the
+        # chip box detected on the matrix image. chip_size is a single scalar
+        # (0.5 -> 9996 edge, 1 -> 19992, etc.).
+        cs = chip_size[0] if chip_size else 0.5
+        seg_result = segment4tissue_matrix_box(
+            input_path=input_path, chip_size=cs
+        )
+    else:
+        # stain type from user input to inner type
+        s_type = usr_stype_to_inner.get(user_s_type)
+        if model_path is None:
+            parser.error(f"--model is required for stain type '{user_s_type}'")
+        cfg = TissueSegParam()
+        if s_type != TechType.IF:
+            setattr(cfg, f"{s_type.name}_weights_path", model_path)
+        input_data = TissueSegInputInfo()
+
+        input_data.input_path = input_path
+        input_data.weight_path_cfg = cfg
+        input_data.stain_type = s_type
+        input_data.weight_path_cfg.GPU = gpu
+        input_data.chip_size = [int(c) for c in chip_size] if chip_size else None
+        # input_data.threshold_list = 34, 60
+
+        seg_result = segment4tissue(input_data=input_data)
 
     seg_mask = seg_result.tissue_mask
     print(seg_mask.shape)

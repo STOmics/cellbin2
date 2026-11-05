@@ -53,6 +53,18 @@ def read_transform(
         clog.info(f"Product mode, no calibration operation is performed ")
     s = (1., 1.)  # Default scale factors
     r = 0.  # Default rotation angle
+    # scell self-detect path: when chip_detect=true and QC failed, skip the
+    # ChipBBox-based pre-scaling. scell re-detects the chip box itself on the
+    # moving image, so it must stay at native resolution; otherwise the 1/Scale
+    # pre-scale (~2x) upscales the image and can blow past OpenCV's 32767
+    # warpAffine limit. Transform output is then a copy of the original.
+    qc_info = channel_images[c_name].QCInfo
+    if image_file.chip_detect and not getattr(qc_info, "TrackCrossQCPassFlag", False):
+        clog.info(
+            "chip_detect=true and QC not passed: transform returns original "
+            "image (no pre-scale, no rotation)."
+        )
+        return (1.0, 1.0), 0.0, offset
     if image_file.registration.reuse == -1:
         # Get registration parameters
         if channel_images[c_name].QCInfo.TrackCrossQCPassFlag:

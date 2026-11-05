@@ -77,24 +77,6 @@ class BestTissueCellMask:
         return tissue_mask, cell_mask
 
     @staticmethod
-    def chip_box_mask(chip_box: ChipBoxInfo, shape: Tuple[int, int]) -> np.ndarray:
-        """
-        Build a binary mask (255 inside the chip-box polygon) from ChipBoxInfo
-        corners. Used as a tissue-mask surrogate when ``tissue_filter`` points
-        at a Transcriptomics (matrix) image: the matrix chip box, read from
-        IPR ``Register.GeneChipBBox``, defines the valid region.
-        """
-        pts = np.array([
-            chip_box.LeftTop,
-            chip_box.RightTop,
-            chip_box.RightBottom,
-            chip_box.LeftBottom,
-        ], dtype=np.int32)
-        mask = np.zeros(shape, dtype=np.uint8)
-        cv2.fillConvexPoly(mask, pts, 255)
-        return mask
-
-    @staticmethod
     def best_cell_mask(tissue_mask: np.ndarray, cell_mask: np.ndarray) -> np.ndarray:
         """
         Filter cells by contours, removing cells not within the tissue region

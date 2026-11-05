@@ -367,13 +367,70 @@ class ChipDetector(object):
 
         return self._order_box_points(best_box)
 
+    def _rough_detect_model(self, image: np.ndarray) -> np.ndarray:
+        """
+        Model-based (stage1 OBB) rough chip detection.
+
+        Initializes an OBB8Detector with the stage1 ONNX model and runs it on
+        the source image. If the image is a long rectangle (width/length < 0.9),
+        it is non-proportionally resized to a square first, and the detected
+        corner points are scaled back to the original aspect ratio.
+
+        Returns:
+            np.ndarray: four ordered corner points (LT, LB, RB, RT).
+        """
+        if image.ndim == 3:
+            h, w, _ = image.shape
+        else:
+            h, w = image.shape
+
+        max_l = max(h, w)
+        min_l = min(h, w)
+
+        obb8_detector = OBB8Detector(
+            self.onnx_model_global,
+            gpu=self.cfg.GPU,
+            num_threads=self.cfg.num_threads,
+        )
+
+        if min_l / max_l < 0.9:
+            new_size = max_l
+            square_image = cv2.resize(image, (new_size, new_size), interpolation=cv2.INTER_LINEAR)
+            square_corner_points = obb8_detector.run(square_image)
+            square_corner_points = np.asarray(square_corner_points, dtype=np.float32)
+            scale_w = w / new_size
+            scale_h = h / new_size
+            square_corner_points[:, 0] *= scale_w  # adjust x-coordinates
+            square_corner_points[:, 1] *= scale_h  # adjust y-coordinates
+            corner_points = square_corner_points
+        else:
+            corner_points = np.asarray(obb8_detector.run(image), dtype=np.float32)
+
+        if corner_points is None or corner_points.shape != (4, 2):
+            raise ValueError(
+                f"Model stage_rough returned invalid points: shape="
+                f"{None if corner_points is None else corner_points.shape}"
+            )
+        return self._order_box_points(corner_points)
+
     def stage_rough(self):
         """
-        Traditional rough detection without model inference.
-        Suitable when chip is obviously brighter than background.
+        Rough chip corner detection.
+
+        Stage-1 OBB model is tried first; on any failure (model error, bad
+        output shape, etc.) it falls back to the traditional contour-based
+        rough detection.
         """
-        self.rough_corner_points = self._rough_detect_traditional(self.source_image)
-        clog.info(f"Traditional stage_rough done. rough_corner_points = {self.rough_corner_points}")
+        try:
+            self.rough_corner_points = self._rough_detect_model(self.source_image)
+            clog.info(f"Model stage_rough done. rough_corner_points = {self.rough_corner_points}")
+        except Exception as e:
+            clog.warning(
+                f"Model stage_rough failed ({e}); falling back to traditional stage_rough."
+            )
+            self.rough_corner_points = self._rough_detect_traditional(self.source_image)
+            clog.info(f"Traditional stage_rough done. rough_corner_points = {self.rough_corner_points}")
+
 
     def stage_finetune(self):
         """

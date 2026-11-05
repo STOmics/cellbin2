@@ -440,8 +440,6 @@ def export_cell_nuclear_geojson(
 
         label_to_source[label_id] = source
 
-    # Keep the original transform behavior to avoid changing the structure.
-    # Therefore y coordinates remain negative, but are written as integers.
     transform = Affine(1, 0, 0, 0, 1, 0)
 
     features = []
