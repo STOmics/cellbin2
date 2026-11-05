@@ -250,26 +250,56 @@ def run_register(
                 raise Exception(
                     "chip_box_scell registration currently only supports matrix as fixed image."
                 )
-            cm, binx = extract4stitched(
-                image_file=fixed,
-                param_chip=param_chip,
-                m_naming=naming.DumpMatrixFileNaming(
-                    sn=sn, m_type=fixed.tech.name, save_dir=output_path
-                ),
-                config=config,
+            mtx_naming = naming.DumpMatrixFileNaming(
+                sn=sn, m_type=fixed.tech.name, save_dir=output_path
             )
-            fixed_image = ChipFeature(
-                tech_type=fixed.tech,
-                template=cm.template,
-                chip_box=cm.chip_box,
-                binx=binx,
-            )
-            fixed_image.set_mat(cm.heatmap)
-            param1.Register.MatrixTemplate = cm.template.template_points
-            if binx == 1:
+            
+            if os.path.exists(mtx_naming.heatmap):
+                from cellbin2.matrix.box_detect import detect_chip_box
+                _scell_chip_size = min(param_chip.chip_specif)
+                clog.info(
+                    f"scell register: reusing matrix heatmap {mtx_naming.heatmap} "
+                    f"(chip_size={_scell_chip_size}); skipping extract4stitched."
+                )
+                fixed_image = ChipFeature(
+                    tech_type=fixed.tech,
+                    chip_box=detect_chip_box(
+                        cbimread(mtx_naming.heatmap, only_np=True),
+                        chip_size=_scell_chip_size,
+                    ),
+                    binx=1,
+                )
+                binx = 1  # scell matrix is bin1; keep local for transform_to_register
+                fixed_image.set_mat(mtx_naming.heatmap)
+                
                 param1.Register.GeneChipBBox.update(fixed_image.chip_box)
+            else:
+                clog.warning(
+                    f"scell register: matrix heatmap not found ({mtx_naming.heatmap}); "
+                    "falling back to extract4stitched (re-reads .gef)."
+                )
+                cm, binx = extract4stitched(
+                    image_file=fixed,
+                    param_chip=param_chip,
+                    m_naming=mtx_naming,
+                    config=config,
+                )
+                fixed_image = ChipFeature(
+                    tech_type=fixed.tech,
+                    template=cm.template,
+                    chip_box=cm.chip_box,
+                    binx=binx,
+                )
+                fixed_image.set_mat(cm.heatmap)
+                param1.Register.MatrixTemplate = cm.template.template_points
+                if binx == 1:
+                    param1.Register.GeneChipBBox.update(fixed_image.chip_box)
 
             # self-detect moving chip box (independent of QC's ChipDetectQCPassFlag)
+            clog.info(
+                f"scell register: self-detecting moving chip box on "
+                f"{os.path.basename(cur_f_name.transformed_image)} ..."
+            )
             from cellbin2.contrib.chip_detector import detect_chip as _detect_chip
             moving_chip_box, _ = _detect_chip(
                 file_path=cur_f_name.transformed_image,
@@ -282,6 +312,7 @@ def run_register(
             clog.info("chip_detect=true: self-detected moving chip box (independent of QC).")
 
             # scell registration directly (no registration()/chip_re/qc_info)
+            clog.info("scell register: running chip_box_scell chip_align ...")
             from cellbin2.contrib.alignment.chip_box_scell import chip_align as _scell_align
             _scell_info = _scell_align(
                 moving_image=moving_image,
