@@ -7,10 +7,13 @@ Compatible with Python >= 3.8.
 
 Features
 --------
-1. final_cell_mask is relabeled by cgef/cellgem-like block sort logic:
-   - block id ascending
-   - inside each block: centroid x descending, then centroid y descending
-   - cell_id starts from 0
+1. final_cell_mask cell_ids are assigned by the geftools snake-scan +
+   fixed-seed shuffle algorithm (cellbin2.utils.cell_id_sort), replicating
+   cgefCellgem.cpp rebuildCellIdMapForSubset:
+   - 4-connectivity connected components (matches original cell-mask connectivity)
+   - snake scan (even rows x asc, odd rows x desc) over (y, label)-sorted cells
+   - fixed-seed (2193796729) Fisher-Yates shuffle
+   - cell_id is dense 1..N (1-based)
 2. final_nuclear_mask is assigned to cell_id by nucleus centroid falling inside cell mask.
    Multiple nuclei can share the same cell_id.
 3. Compatible with multimodal and non-multimodal modes:
@@ -32,7 +35,6 @@ from __future__ import print_function
 
 import argparse
 import json
-import math
 from pathlib import Path
 
 import numpy as np
@@ -78,45 +80,6 @@ def clean_binary(mask, min_size):
     if min_size is not None and min_size > 0:
         mask = remove_small_objects(mask, min_size=min_size, connectivity=1)
     return mask.astype(np.uint8)
-
-
-def compute_block_params(cols, rows, bs_x=256, bs_y=256):
-    x_block_num = int(math.ceil(float(cols) / float(bs_x)))
-    y_block_num = int(math.ceil(float(rows) / float(bs_y)))
-    return bs_x, bs_y, x_block_num, y_block_num
-
-
-def assign_cell_ids_block_sort(cx, cy, cols, rows, bs_x=256, bs_y=256):
-    """
-    Assign sorted cell ids.
-
-    Rule:
-      1. blkid ascending, where blkid = cx//bs_x + (cy//bs_y)*x_block_num
-      2. within each block, cx descending
-      3. within same cx, cy descending
-      4. id starts from 0
-    """
-    cx = np.asarray(cx, dtype=np.int32)
-    cy = np.asarray(cy, dtype=np.int32)
-
-    n = len(cx)
-    if len(cy) != n:
-        raise ValueError("cx and cy length mismatch")
-
-    if n == 0:
-        return np.asarray([], dtype=np.uint32)
-
-    bs_x, bs_y, x_block_num, y_block_num = compute_block_params(cols, rows, bs_x, bs_y)
-    blkid = (cx // bs_x) + (cy // bs_y) * x_block_num
-
-    # np.lexsort: last key is primary.
-    # keys=(-cy, -cx, blkid) means blkid asc, cx desc, cy desc.
-    order = np.lexsort((-cy, -cx, blkid))
-
-    cell_ids = np.empty(n, dtype=np.uint32)
-    cell_ids[order] = np.arange(n, dtype=np.uint32)
-
-    return cell_ids
 
 
 def infer_source_mode(save_path):
@@ -244,8 +207,6 @@ def export_cell_nuclear_geojson(
     out_path=None,
     save_path=None,
     min_size=15,
-    bs_x=256,
-    bs_y=256,
 ):
     cell_mask_path = Path(cell_mask_path)
     nuclear_mask_path = Path(nuclear_mask_path)
@@ -312,56 +273,30 @@ def export_cell_nuclear_geojson(
         dtype=np.uint8,
     )
 
-    print("Labeling cell mask with 4-connectivity...")
-    labeled_cell_mask, num_cell_labels = ndimage.label(
-        final_cell_mask > 0,
-        structure=structure_4,
-    )
-    print("num_cell_labels =", int(num_cell_labels))
-
-    # Collect cell centroids in label order.
-    cell_props = list(regionprops(labeled_cell_mask))
-
-    label_ids = []
-    cx_list = []
-    cy_list = []
-
-    for obj in cell_props:
-        label_id = int(obj.label)
-        cy, cx = obj.centroid
-
-        cx_i = int(round(cx))
-        cy_i = int(round(cy))
-
-        cx_i = int(np.clip(cx_i, 0, cols - 1))
-        cy_i = int(np.clip(cy_i, 0, rows - 1))
-
-        label_ids.append(label_id)
-        cx_list.append(cx_i)
-        cy_list.append(cy_i)
-
-    sorted_cell_ids = assign_cell_ids_block_sort(
-        np.asarray(cx_list, dtype=np.int32),
-        np.asarray(cy_list, dtype=np.int32),
-        cols=cols,
-        rows=rows,
-        bs_x=bs_x,
-        bs_y=bs_y,
+    # ---- Cell ID assignment: geftools snake-scan + fixed-seed shuffle ----
+    # Replicates cgefCellgem.cpp rebuildCellIdMapForSubset: 4-connectivity CC
+    # labeling (matches the original cell-mask connectivity), snake-scan order,
+    # fixed-seed (2193796729) Fisher-Yates shuffle -> dense 1..N cell_id
+    # (1-based). This MUST match the pipeline's cell numbering so GeoJSON
+    # cell_ids align with the gef/cellbin ids.
+    # NOTE: apply_contour_filter=False because the module requires connectivity=8
+    # for the contour filter (cv2.findContours is 8-connected); 4-connectivity is
+    # kept to preserve the original cell set. Cell cleaning is via min_size only.
+    from cellbin2.utils.cell_id_sort import (
+        build_cell_id_map_from_mask,
+        apply_cell_ids_to_mask,
     )
 
-    label_to_cell_id = {}
-
-    for i, label_id in enumerate(label_ids):
-        label_to_cell_id[int(label_id)] = int(
-            sorted_cell_ids[i]
-        )
-
-    # Build per-pixel cell_id+1 map for quick nucleus lookup.
-    # LUT avoids scanning the full image once for every cell.
-    cell_id_lut = np.zeros(num_cell_labels + 1, dtype=np.uint32)
-    for label_id, cell_id in label_to_cell_id.items():
-        cell_id_lut[label_id] = np.uint32(cell_id + 1)
-    cell_id_plus1_map = cell_id_lut[labeled_cell_mask]
+    print("Assigning cell ids (snake-scan + shuffle, 4-connectivity)...")
+    id_map, cc_label_map = build_cell_id_map_from_mask(
+        final_cell_mask,
+        apply_contour_filter=False,
+        connectivity=4,
+    )
+    # pixel = cell_id (1-based, dense 1..N); 0 = background or contour-filtered.
+    cell_id_map = apply_cell_ids_to_mask(cc_label_map, id_map)
+    num_cells = len(id_map)
+    print("num_cells =", num_cells)
 
     mode = infer_source_mode(save_path)
     print("GeoJSON source mode:", mode)
@@ -372,10 +307,12 @@ def export_cell_nuclear_geojson(
         nuclei_mask_for_source,
     ) = load_source_masks(save_path, mode)
 
-    label_to_source = {}
+    # ---- per-cell source classification (interior / boundary / nuclear_expand) ----
+    # regionprops on cell_id_map: each obj.label IS the (1-based) cell_id.
+    cell_id_to_source = {}
 
-    for obj in cell_props:
-        label_id = int(obj.label)
+    for obj in regionprops(cell_id_map):
+        cell_id = int(obj.label)
         cy, cx = obj.centroid
 
         cy_i = int(
@@ -438,7 +375,7 @@ def export_cell_nuclear_geojson(
             else:
                 source = "boundary"
 
-        label_to_source[label_id] = source
+        cell_id_to_source[cell_id] = source
 
     transform = Affine(1, 0, 0, 0, 1, 0)
 
@@ -446,23 +383,19 @@ def export_cell_nuclear_geojson(
 
     print("Exporting cell polygons...")
 
+    # shapes on the cell_id map: each distinct value (cell_id) is one polygon,
+    # so value IS the cell_id directly — no label lookup needed. Filtered
+    # cells (cell_id == 0) are excluded by the mask.
     for geom, value in shapes(
-        labeled_cell_mask.astype(np.int32),
-        mask=(labeled_cell_mask > 0),
+        cell_id_map.astype(np.int32),
+        mask=(cell_id_map > 0),
         transform=transform,
         connectivity=4,
     ):
-        label_id = int(value)
+        cell_id = int(value)
 
-        if label_id <= 0:
+        if cell_id <= 0:
             continue
-
-        cell_id = int(
-            label_to_cell_id.get(
-                label_id,
-                -1,
-            )
-        )
 
         features.append(
             {
@@ -471,8 +404,8 @@ def export_cell_nuclear_geojson(
                     "mask_type": "cell",
                     "id": cell_id,
                     "cell_id": cell_id,
-                    "source": label_to_source.get(
-                        label_id,
+                    "source": cell_id_to_source.get(
+                        cell_id,
                         "nuclear_expand",
                     ),
                 },
@@ -500,6 +433,8 @@ def export_cell_nuclear_geojson(
     print("Assigning nucleus to cell_id...")
 
     # nucleus connected-component label -> parent cell_id
+    # cell_id_map is 1-based (0 = background / no cell), so a centroid hit
+    # returns the cell_id directly and 0 means "miss -> overlap fallback".
     nucleus_label_to_cell_id = {}
 
     for obj in regionprops(labeled_nuclear_mask):
@@ -509,29 +444,28 @@ def export_cell_nuclear_geojson(
         cx_i = int(np.clip(int(round(cx)), 0, cols - 1))
 
         # First try the nucleus centroid.
-        cell_plus1 = int(cell_id_plus1_map[cy_i, cx_i])
+        cell_id = int(cell_id_map[cy_i, cx_i])
 
-        if cell_plus1 > 0:
-            cell_id = cell_plus1 - 1
-        else:
+        if cell_id <= 0:
             # Fallback: choose the cell overlapping the most nucleus pixels.
             coords = obj.coords
-            overlap_cell_plus1 = cell_id_plus1_map[
+            overlap = cell_id_map[
                 coords[:, 0],
                 coords[:, 1],
             ]
-            overlap_cell_plus1 = overlap_cell_plus1[
-                overlap_cell_plus1 > 0
+            overlap = overlap[
+                overlap > 0
             ]
 
-            if overlap_cell_plus1.size > 0:
+            if overlap.size > 0:
                 unique_ids, counts = np.unique(
-                    overlap_cell_plus1,
+                    overlap,
                     return_counts=True,
                 )
-                cell_id = int(unique_ids[np.argmax(counts)]) - 1
+                cell_id = int(unique_ids[np.argmax(counts)])
             else:
-                cell_id = -1
+                # 1-based scheme: 0 = no parent cell.
+                cell_id = 0
 
         nucleus_label_to_cell_id[nucleus_label] = int(cell_id)
 
@@ -553,7 +487,7 @@ def export_cell_nuclear_geojson(
         cell_id = int(
             nucleus_label_to_cell_id.get(
                 nucleus_label,
-                -1,
+                0,
             )
         )
 
@@ -645,20 +579,6 @@ def main():
         help="remove small objects smaller than this size",
     )
 
-    parser.add_argument(
-        "--bs-x",
-        type=int,
-        default=256,
-        help="block size x for cell id sorting",
-    )
-
-    parser.add_argument(
-        "--bs-y",
-        type=int,
-        default=256,
-        help="block size y for cell id sorting",
-    )
-
     args = parser.parse_args()
 
     export_cell_nuclear_geojson(
@@ -667,8 +587,6 @@ def main():
         out_path=args.out,
         save_path=args.save_path,
         min_size=args.min_size,
-        bs_x=args.bs_x,
-        bs_y=args.bs_y,
     )
 
 

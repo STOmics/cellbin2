@@ -267,8 +267,6 @@ def export_cell_mask_to_geojson(
         out_path=geojson_path,
         save_path=source_save_path,
         min_size=15,
-        bs_x=256,
-        bs_y=256,
     )
 
     clog.info(f"Saved cell/nucleus GeoJSON to: {result}")
