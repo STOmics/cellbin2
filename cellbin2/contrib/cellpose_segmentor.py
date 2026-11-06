@@ -331,6 +331,8 @@ def main(
     # patch segmentation
     if os.path.basename(model_dir) in ("cyto3", "cellpose3"):
         model = models.CellposeModel(gpu=gpu, pretrained_model=model_dir)
+    elif os.path.basename(model_dir) in ("cellpose3_rgb_scratch_best"):
+        model = models.CellposeModel(gpu=gpu, pretrained_model=model_dir, nchan=3)
     else:
         model = models.CellposeModel(gpu=gpu, pretrained_model=model_dir, nchan=1)
     masks = []
