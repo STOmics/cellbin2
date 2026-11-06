@@ -61,6 +61,11 @@ def read_transform(
             "read_transform returns identity (no pre-scale, no rotation)."
         )
         return (1.0, 1.0), 0.0, offset
+
+    if image_file.registration.reuse != -1:
+        _reuse_file = files[image_file.registration.reuse]
+        if getattr(_reuse_file, "chip_detect", False):
+            return (1.0, 1.0), 0.0, offset
     if image_file.registration.reuse == -1:
         # Get registration parameters
         if channel_images[c_name].QCInfo.TrackCrossQCPassFlag:

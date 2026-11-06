@@ -410,11 +410,6 @@ class Scheduler(object):
                     print('Matrix extraction completed')
 
                     if f.tissue_segmentation:
-                        # scell run: skip model tissue seg; use the matrix chip
-                        # box as the tissue mask (1 inside, 0 outside). chip_size
-                        # comes from param_chip.chip_specif (9-char chip -> 0.5,
-                        # gene_base_size=19992 -> 9996 edge). The model-based
-                        # run_tissue_seg path is kept for non-scell.
                         is_scell_run = any(
                             getattr(_f, "chip_detect", False)
                             for _f in self._files.values()
@@ -469,35 +464,13 @@ class Scheduler(object):
                 save_path = cur_f_name.transform_cell_mask
                 cell_mask = cbimread(cs_path, only_np=True)
 
-                # Resolve the tissue mask used to filter this cell mask.
-                #   tissue_filter == -1               -> no tissue filtering
-                #   tissue_filter -> non-matrix image -> that image's transform tissue mask
-                #   tissue_filter -> matrix image     -> the matrix tissue mask file
-                #                                       (written by run_tissue_seg /
-                #                                        segment4tissue_matrix_box).
-                #   In scell the cell image is registered onto the matrix (matrix is
-                #   the chip_transform fixed image), so the transformed cell mask and
-                #   the matrix tissue mask share the same pixel space/shape; no IPR
-                #   chip-box read or re-rasterization is needed.
                 tissue_mask = None
                 if f.tissue_filter == -1:
                     # -1: no tissue filtering; pass the raw cell mask through to
                     # transform_cell_mask so downstream always sees this file.
                     cbimwrite(output_path=save_path, files=cell_mask)
                 elif self._files[f.tissue_filter].is_matrix:
-                    mtx_file = self._files[f.tissue_filter]
-                    mtx_naming = naming.DumpMatrixFileNaming(
-                        sn=self.param_chip.chip_name,
-                        m_type=mtx_file.tech.name,
-                        save_dir=self._output_path,
-                    )
-                    if os.path.exists(mtx_naming.tissue_mask):
-                        tissue_mask = cbimread(mtx_naming.tissue_mask, only_np=True)
-                    else:
-                        clog.warning(
-                            f"matrix tissue mask not found: {mtx_naming.tissue_mask}; "
-                            f"skip filtering {g_name}"
-                        )
+                    cbimwrite(output_path=save_path, files=cell_mask)
                 else:
                     filter_f_name = naming.DumpImageFileNaming(
                         sn=self.param_chip.chip_name,
@@ -568,8 +541,21 @@ class Scheduler(object):
                     transform_to_register(
                         cur_f_name=cur_f_name
                     )
-                # mask2geojson(cur_f_name.cell_mask)
-                
+
+        for idx, f in self._files.items():
+            if f.cell_segmentation and self._files[f.tissue_filter].is_matrix:
+                mtx = self._files[f.tissue_filter]
+                mtx_naming = naming.DumpMatrixFileNaming(
+                    sn=self.param_chip.chip_name, m_type=mtx.tech.name, save_dir=self._output_path)
+                cell_mask_path = mtx_naming.cell_mask if f.is_matrix else naming.DumpImageFileNaming(
+                    sn=self.param_chip.chip_name,
+                    stain_type=f.get_group_name(sn=self.param_chip.chip_name),
+                    save_dir=self._output_path).cell_mask
+                tissue_mask = cbimread(mtx_naming.tissue_mask, only_np=True)
+                cell_mask = cbimread(cell_mask_path, only_np=True)
+                filter_mask = BestTissueCellMask.best_cell_mask(tissue_mask, cell_mask)
+                cbimwrite(output_path=cell_mask_path, files=filter_mask)
+            
 
     def run_merge_masks(self):
         """

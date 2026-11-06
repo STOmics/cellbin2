@@ -661,7 +661,7 @@ def get_view_image(
     Returns:
 
     """
-    if isinstance(image, str):
+    if isinstance(image, (str, os.PathLike)):
         image = tifffile.imread(image)
     image_list = list()
     output_dic = {}

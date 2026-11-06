@@ -204,8 +204,9 @@ def run_register(
 
         # chip_box_scell reuse: rebuild fine_alignment from the reused image's
         # RegisterChip (scell ipr) so the IF image gets the same chip-box
-        # transform. Only when the reused image actually persisted scell params.
-        if image_file.chip_detect:
+
+        reuse_file = files[image_file.registration.reuse]
+        if reuse_file.chip_detect:
             r_chip = reuse_image.Register.RegisterChip
             if getattr(r_chip, "CoarseScale", fPlaceHolder) != fPlaceHolder:
                 fa = {
@@ -329,8 +330,9 @@ def run_register(
             param1.Register.RegisterChip.update(info)
 
             if debug and getattr(info, "register_mat", None) is not None:
-                info.register_mat.write(
-                    os.path.join(output_path, f"{sn}_chip_box_register.tif")
+                cbimwrite(
+                    os.path.join(output_path, f"{sn}_chip_box_register.tif"),
+                    info.register_mat,
                 )
                 np.savetxt(
                     os.path.join(output_path, f"{sn}_chip_box_register.txt"),

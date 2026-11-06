@@ -298,7 +298,7 @@ def main(
     model_dir: str,
     Magnification = 10,
     output_path=None,
-    patch_size: int = 4096,
+    patch_size: int = 2048,
     overlap: int = 48
 ) -> np.ndarray:
 
