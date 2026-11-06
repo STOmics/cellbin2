@@ -248,12 +248,12 @@ class cMatrix(object):
             height = max_y - min_y + 1
             return binx, width, height
 
-    def detect_feature(self, ref: list, chip_size: float):
+    def detect_feature(self, ref: list, chip_size: float, chip_start=None, chip_norm_size=None):
         """ track lines detection, matrix data: chip area recognition for registration """
         from cellbin2.matrix.box_detect import detect_chip_box
         from cellbin2.matrix.index_points_detect import detect_cross_points
 
-        self._template = detect_cross_points(ref, self._gene_mat)
+        self._template = detect_cross_points(ref, self._gene_mat, chip_start=chip_start, chip_size=chip_norm_size)
         self._chip_box = detect_chip_box(self._gene_mat, chip_size)
 
     def check_standards(self, gs: GeneticStandards):

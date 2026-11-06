@@ -2,7 +2,7 @@ import numpy as np
 from cellbin2.contrib.alignment.basic import Alignment, AlignMode, ChipFeature
 from cellbin2.utils.common import TechType
 from cellbin2.contrib.track_align import AlignByTrack
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 
 class TemplateCentroid(Alignment):
@@ -14,10 +14,12 @@ class TemplateCentroid(Alignment):
             self,
             ref: Tuple[List, List] = ([], []),
             flip_flag: bool = True,
-            rot90_flag: bool = True
+            rot90_flag: bool = True,
+            chip_specif: Optional[List] = None
     ):
         super(TemplateCentroid, self).__init__()
         self._reference = ref
+        self._chip_specif = chip_specif
 
         self._hflip = flip_flag
         self._rot90_flag = rot90_flag
@@ -111,7 +113,7 @@ class TemplateCentroid(Alignment):
             np.array(moving_image.template.template_points),
             self.hflip,
             self._rot90_flag,
-            new_method=True if moving_image.tech_type == TechType.HE else False
+            chip_specif=self._chip_specif
         )
 
 
@@ -120,7 +122,8 @@ def centroid(moving_image: ChipFeature,
              ref: Tuple[List, List],
              from_stitched: bool = True,
              flip_flag: bool = True,
-             rot90_flag: bool = True
+             rot90_flag: bool = True,
+             chip_specif: Optional[List] = None
              ):
     """
     :param moving_image: The image to be registered is usually a stained image (such as ssDNA, HE)
@@ -131,7 +134,7 @@ def centroid(moving_image: ChipFeature,
     :param rot90_flag:
     :return: RegistrationInfo
     """
-    ta = TemplateCentroid(ref=ref, flip_flag=flip_flag, rot90_flag=rot90_flag)
+    ta = TemplateCentroid(ref=ref, flip_flag=flip_flag, rot90_flag=rot90_flag, chip_specif=chip_specif)
     if moving_image.tech_type is TechType.HE:
         from cellbin2.image.augmentation import f_rgb2hsv
         moving_image.set_mat(mat=f_rgb2hsv(moving_image.mat.image, channel=1, need_not=False))

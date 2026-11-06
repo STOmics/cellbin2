@@ -82,6 +82,7 @@ def registration(moving_image: ChipFeature,
                  flip_flag: bool = True,
                  rot90_flag: bool = True,
                  chip_detect: bool = False,
+                 chip_specif: Optional[List] = None,
                  ) -> (RegistrationOutput, RegistrationOutput):
     """
     :param moving_image: The image to be registered is usually a stained image (such as ssDNA, HE)
@@ -102,7 +103,8 @@ def registration(moving_image: ChipFeature,
             ref=ref,
             from_stitched=from_stitched,
             flip_flag = flip_flag,
-            rot90_flag = rot90_flag
+            rot90_flag = rot90_flag,
+            chip_specif = chip_specif
         )
     else:
         res_template = None

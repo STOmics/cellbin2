@@ -321,6 +321,7 @@ def run_register(
                 from_stitched=False,
                 flip_flag=config.registration.flip,
                 rot90_flag=config.registration.rot90,
+                chip_specif=param_chip.chip_specif
             )
             info = RegistrationOutput(**_scell_info)
             clog.info(f"chip_box_scell registration: {info}")
