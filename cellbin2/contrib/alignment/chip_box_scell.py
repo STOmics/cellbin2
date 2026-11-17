@@ -1,4 +1,6 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
+import argparse
+import os
 import sys
 from pathlib import Path
 from typing import Union
@@ -72,8 +74,8 @@ class MatrixBoxDetector(object):
             chip_size = [chip_size, chip_size]
 
         gene_size = np.array([
-            int(self.gene_base_size * chip_size[0]),
-            int(self.gene_base_size * chip_size[1])
+            int(self.gene_base_size),
+            int(self.gene_base_size)
         ])
 
         self.image = matrix
@@ -103,9 +105,10 @@ class MatrixBoxDetector(object):
 
 def detect_chip_box(
         matrix: np.ndarray,
-        chip_size: Union[int, float, list, tuple] = 1.0
+        chip_size: Union[int, float, list, tuple] = 0.5,
+        gene_base_size: int = 9996,
 ) -> ChipBoxInfo:
-    mbd = MatrixBoxDetector()
+    mbd = MatrixBoxDetector(gene_base_size=gene_base_size)
 
     if isinstance(chip_size, (list, tuple)):
         chip_size = chip_size[::-1]
@@ -135,7 +138,8 @@ class ChipAlignment(Alignment):
     def __init__(
             self,
             flip_flag: bool = False,
-            rot90_flag: bool = True
+            rot90_flag: bool = True,
+            chip_base_size: int = 9996,
     ):
         super(ChipAlignment, self).__init__()
 
@@ -152,7 +156,7 @@ class ChipAlignment(Alignment):
         self._hflip = flip_flag
         self.no_trans_flag = False
 
-        self.max_length = 9996
+        self.max_length = chip_base_size
 
         self._fixed_image = None
         self._flip_state = 0
@@ -965,9 +969,10 @@ def chip_align(
         fixed_image: ChipFeature,
         from_stitched: bool = True,
         flip_flag: bool = True,
-        rot90_flag: bool = True
+        rot90_flag: bool = True,
+        chip_base_size: int = 9996,
 ):
-    ca = ChipAlignment(flip_flag=flip_flag, rot90_flag=rot90_flag)
+    ca = ChipAlignment(flip_flag=flip_flag, rot90_flag=rot90_flag, chip_base_size=chip_base_size)
 
     if moving_image.tech_type is TechType.HE:
         from cellbin2.image.augmentation import f_rgb2hsv
@@ -1114,9 +1119,8 @@ def chip_box_register_from_paths(
         moving_image_path: str,
         fixed_image_path: str,
         chip_detect_cfg: ChipParam,
-        actual_size=(9996, 9996),
+        chip_size: float = 0.5,
         moving_stain_type=TechType.DAPI,
-        fixed_chip_size=(1, 1),
         from_stitched: bool = False,
         flip_flag: bool = True,
         rot90_flag: bool = True,
@@ -1133,12 +1137,14 @@ def chip_box_register_from_paths(
         Path of fixed matrix heatmap image.
     chip_detect_cfg:
         ChipParam for detecting moving image chip box.
-    actual_size:
-        Physical chip size used by detect_chip.
+    chip_size:
+        Chip size multiplier (0.5, 1, ...). Internally derived to
+        chip_base_size = 9996 * chip_size / 0.5 (0.5 -> 9996, 1 -> 19992),
+        used as detect_chip actual_size, detect_chip_box gene_base_size
+        (paired with chip_size, so matrix box = chip_base_size * chip_size),
+        and ChipAlignment.max_length.
     moving_stain_type:
         Stain type for moving image chip detection.
-    fixed_chip_size:
-        Chip size used by matrix chip box detection.
     from_stitched:
         Passed to chip_align. In this scell branch, usually False.
     flip_flag:
@@ -1160,6 +1166,9 @@ def chip_box_register_from_paths(
         }
     """
 
+    # chip_size=0.5 -> 9996 px (scell default); linear: chip_base = 9996 * chip_size / 0.5
+    chip_base_size = int(9996 * chip_size / 0.5)
+
     # ---------------- moving image ----------------
     moving_image = ChipFeature()
     moving_mat = cbimread(moving_image_path)
@@ -1170,22 +1179,27 @@ def chip_box_register_from_paths(
     moving_chip_box = detect_chip(
         moving_mat.image,
         cfg=cfg,
-        actual_size=(9996, 9996),
+        actual_size=(chip_base_size, chip_base_size),
         is_debug=is_debug,
-        stain_type=TechType.DAPI
+        stain_type=moving_stain_type
     )[0]
     moving_image.set_chip_box(moving_chip_box)
 
     # ---------------- fixed image ----------------
     fixed_image = ChipFeature()
-    fixed_image.tech_type = TechType.Transcriptomics
     fixed_image.set_mat(fixed_image_path)
 
-    fixed_chip_box = detect_chip_box(fixed_image.mat.image, chip_size=(1, 1))
+    fixed_chip_box = detect_chip_box(
+        fixed_image.mat.image,
+        chip_size=chip_size,
+        gene_base_size=chip_base_size,
+    )
     fixed_image.set_chip_box(fixed_chip_box)
 
     # ---------------- align ----------------
-    result = chip_align(moving_image, fixed_image)
+    result = chip_align(
+        moving_image, fixed_image, chip_base_size=chip_base_size
+    )
 
     print(result["fine_alignment"])
     return {
@@ -1197,45 +1211,80 @@ def chip_box_register_from_paths(
     }
     
 
+def _parse_tech(name: str) -> TechType:
+    try:
+        return TechType[name]
+    except KeyError:
+        raise argparse.ArgumentTypeError(
+            f"unknown tech/stain type '{name}'; valid: "
+            + ", ".join(t.name for t in TechType)
+        )
+
+
 def main():
-    # ---------------- moving image ----------------
-    moving_image = ChipFeature()
-    moving_mat = cbimread(rf"/")
-    moving_image.set_mat(moving_mat)
+    parser = argparse.ArgumentParser(
+        description=(
+            "Standalone chip-box (scell) registration: detect chip box on the "
+            "moving (DAPI) image and the matrix heatmap, then run flip/rot90 + "
+            "fine alignment. Writes the registered image to disk."
+        )
+    )
+    parser.add_argument("--moving", required=True,
+                        help="moving image path (usually transformed DAPI)")
+    parser.add_argument("--fixed", required=True,
+                        help="fixed matrix heatmap image path")
+    parser.add_argument("--stage1-weights", required=True,
+                        help="chip detector stage1 onnx weights path")
+    parser.add_argument("--stage2-weights", required=True,
+                        help="chip detector stage2 onnx weights path")
+    parser.add_argument("--chip-size", type=float, default=0.5,
+                        help="chip size multiplier (0.5, 1, ...). Derived "
+                             "chip_base_size = 9996 * chip_size / 0.5, so "
+                             "0.5 -> 9996 (scell default), 1 -> 19992, etc.")
+    parser.add_argument("--moving-stain", default="DAPI",
+                        help="moving image stain/tech type (default DAPI)")
+    parser.add_argument("-o", "--output", default=None,
+                        help="output register_mat tif path "
+                             "(default: <moving stem>_chip_box_register.tif)")
+    parser.add_argument("--from-stitched", action="store_true",
+                        help="use align_stitched instead of align_transformed")
+    parser.add_argument("--no-flip", action="store_true",
+                        help="disable horizontal flip search")
+    parser.add_argument("--no-rot90", action="store_true",
+                        help="disable rot90 search")
+    parser.add_argument("--debug", action="store_true",
+                        help="detect_chip is_debug=True")
+
+    args = parser.parse_args()
 
     cfg = ChipParam(
-        **{
-            "stage1_weights_path": r"/",
-            "stage2_weights_path": r"/"
-        }
+        stage1_weights_path=args.stage1_weights,
+        stage2_weights_path=args.stage2_weights,
     )
 
-    m_info = detect_chip(
-        moving_mat.image,
-        cfg=cfg,
-        actual_size=(9996, 9996),
-        is_debug=False,
-        stain_type=TechType.DAPI
-    )[0]
-    moving_image.set_chip_box(m_info)
-
-    # ---------------- fixed image ----------------
-    fixed_image = ChipFeature()
-    fixed_image.tech_type = TechType.Transcriptomics
-    fixed_image.set_mat(rf"/")
-
-    f_info = detect_chip_box(fixed_image.mat.image, chip_size=(1, 1))
-    fixed_image.set_chip_box(f_info)
-
-    # ---------------- align ----------------
-    result = chip_align(moving_image, fixed_image)
-
-    print(result["fine_alignment"])
-
-    cbimwrite(
-        rf"/",
-        result["register_mat"]
+    result = chip_box_register_from_paths(
+        moving_image_path=args.moving,
+        fixed_image_path=args.fixed,
+        chip_detect_cfg=cfg,
+        chip_size=args.chip_size,
+        moving_stain_type=_parse_tech(args.moving_stain),
+        from_stitched=args.from_stitched,
+        flip_flag=not args.no_flip,
+        rot90_flag=not args.no_rot90,
+        is_debug=args.debug,
     )
+
+    reg = result["registration"]
+    out_path = args.output
+    if out_path is None:
+        out_path = os.path.join(
+            os.path.dirname(os.path.abspath(args.moving)),
+            os.path.splitext(os.path.basename(args.moving))[0]
+            + "_chip_box_register.tif",
+        )
+    cbimwrite(out_path, reg["register_mat"])
+    print(f"register_mat -> {out_path}")
+    print(f"fine_alignment: {reg['fine_alignment']}")
 
 
 if __name__ == '__main__':
